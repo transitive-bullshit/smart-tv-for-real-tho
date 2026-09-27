@@ -22,7 +22,10 @@
     "test:unit": "tsx --test tests/*.test.ts",
     "test:bridge": "uv run --frozen --project bridge python -m unittest discover -s bridge -p 'test_*.py'",
     "setup:check": "tsx --env-file-if-exists=.env scripts/doctor.ts",
-    "timings": "tsx scripts/timings.ts"
+    "timings": "tsx scripts/timings.ts",
+    "tv:package": "pnpm tv:cli ares-package tv/overlay-probe --outdir build/tv",
+    "tv:preview": "vite tv/overlay-probe --host 127.0.0.1 --port 3211 --strictPort",
+    "tv:cli": "pnpm --package=@webos-tools/cli@3.2.6 dlx"
   },
   "dependencies": {
     "ky": "^2.0.2",

@@ -10,7 +10,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 | P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | A first warm transition reached A, B and Paused, but resume timed out; three consecutive complete transitions including cold launch remain pending. Test actual CEC behavior and interruption. |
 | P4 | Real YouTube API search/cache, candidate IDs/context, Realtime WebRTC and validated tools, PTT/open mic. OpenAI model access and both session configurations accepted (HTTP 200); actual Chrome WebRTC connection reached Voice ready in push-to-talk mode. | Two new songs and artist carryover pass real search-to-native-playback state checks. Remaining: actual speech/correction and room acoustics. |
 | P5 | Timing summarizer and rehearsal/recording runbook. | Measured hardware runs, two uninterrupted rehearsals, continuous physical recording. |
-| V1 | Exact model/firmware recorded. Laptop display preview exists. | [Source investigation](overlay-experiment.md) is recorded; install/test on this TV remains pending. Preview does not establish overlay support. |
+| V1 | Exact model/firmware recorded. Static dismissible TV probe packages with LG CLI 3.2.6; transparent browser layout checked. | [Source investigation](overlay-experiment.md) is recorded; Developer Mode setup and install/test on this TV remain pending. Preview does not establish overlay support. |
 | V2 | Basic laptop listening/action visual treatment. | Only implement native animation after V1 proves the rendering path. |
 
 ## Evidence so far
