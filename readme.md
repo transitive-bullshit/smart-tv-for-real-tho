@@ -29,7 +29,7 @@ No developer mode is needed for these controls. See [room facts](docs/room.md) a
 
 ## Current evidence
 
-The executable application, Python device integrations, real-search path and Realtime WebRTC client are implemented. Local tests cover cancellation, stale results, wrong receivers, timeouts and volume independence. The browser UI was checked in live mode with unpaired devices. OpenAI model access returned HTTP 200.
+The executable application, Python device integrations, real-search path and Realtime WebRTC client are implemented. Local tests cover cancellation, stale results, wrong receivers, timeouts and volume independence. The browser UI was checked in live mode with unpaired devices. OpenAI model access and both voice session configurations returned HTTP 200; no live audio session has been verified.
 
 **Physical LG/YouTube/Xbox behavior, live speech, search with a supplied Google key, native overlays and filming remain unverified.** See [implementation status](docs/implementation-status.md) for the actual gate ledger. Simulation tests do not satisfy hardware milestones.
 

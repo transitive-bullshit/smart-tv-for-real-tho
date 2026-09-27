@@ -1,40 +1,16 @@
-import { z } from 'zod'
 import { api } from './api.js'
+import { VoiceTools } from './voice-tools.js'
 
-const eventSchema = z
-  .object({
-    type: z.string(),
-    response: z
-      .object({
-        id: z.string(),
-        output: z
-          .array(
-            z
-              .object({
-                type: z.string(),
-                name: z.string().optional(),
-                call_id: z.string().optional(),
-                arguments: z.string().optional()
-              })
-              .passthrough()
-          )
-          .optional()
-      })
-      .passthrough()
-      .optional(),
-    error: z.object({ message: z.string().optional() }).passthrough().optional()
-  })
-  .passthrough()
 export class Voice {
   private pc?: RTCPeerConnection
   private channel?: RTCDataChannel
   private stream?: MediaStream
+  private tools?: VoiceTools
+  private connection?: AbortController
   private audio = new Audio()
-  private epoch = 0
   private pressed = false
-  private activeResponse = false
-  private readonly responses = new Map<string, number>()
-  private readonly seen = new Set<string>()
+  private recordingAt?: number
+  private press = 0
   constructor(
     private readonly status: (text: string) => void,
     private readonly onDisconnect: () => void
@@ -45,176 +21,164 @@ export class Voice {
   }
   async connect(openMic: boolean) {
     this.close()
+    const connection = (this.connection = new AbortController())
+    const current = () => this.connection === connection
     try {
       const pc = (this.pc = new RTCPeerConnection())
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true }
       })
-      for (const track of this.stream.getTracks()) {
+      if (!current()) {
+        stream.getTracks().forEach((track) => track.stop())
+        throw new Error('Voice connection superseded.')
+      }
+      this.stream = stream
+      for (const track of stream.getTracks()) {
         track.enabled = openMic
-        pc.addTrack(track, this.stream)
+        pc.addTrack(track, stream)
       }
       this.audio.autoplay = true
       pc.ontrack = (event) => {
+        if (!current()) return
         this.audio.srcObject = event.streams[0] ?? null
-        void this.audio
-          .play()
-          .catch(() => this.status('Click Talk to enable assistant audio.'))
+        void this.audio.play().catch(() => {
+          if (current()) this.status('Click Talk to enable assistant audio.')
+        })
       }
       pc.onconnectionstatechange = () => {
         if (
-          pc.connectionState === 'failed' ||
-          pc.connectionState === 'disconnected'
+          current() &&
+          (pc.connectionState === 'failed' ||
+            pc.connectionState === 'disconnected')
         ) {
           this.close()
           this.status('Voice disconnected. Connect again.')
         }
       }
       const channel = (this.channel = pc.createDataChannel('oai-events'))
+      const tools = (this.tools = new VoiceTools(
+        (message) => {
+          if (current() && channel.readyState === 'open')
+            channel.send(JSON.stringify(message))
+        },
+        api,
+        (text) => {
+          if (current()) this.status(text)
+        }
+      ))
       channel.onmessage = (event) => {
-        const parsed = eventSchema.safeParse(JSON.parse(event.data as string))
-        if (parsed.success)
-          void this.receive(parsed.data).catch(() =>
-            this.status('Voice tool failed. Check the operator timeline.')
-          )
+        if (current())
+          void tools.receive(event.data).catch(() => {
+            if (current())
+              this.status(
+                'Voice tool failed. Reconnect voice before trying again.'
+              )
+          })
       }
       const offer = await pc.createOffer()
+      connection.signal.throwIfAborted()
       await pc.setLocalDescription(offer)
       const response = await fetch('/api/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sdp: offer.sdp, openMic })
+        body: JSON.stringify({ sdp: offer.sdp, openMic }),
+        signal: connection.signal
       })
       if (!response.ok) {
         const result = await response.json()
         throw new Error(result.error)
       }
-      await pc.setRemoteDescription({
-        type: 'answer',
-        sdp: await response.text()
-      })
+      const sdp = await response.text()
+      connection.signal.throwIfAborted()
+      await pc.setRemoteDescription({ type: 'answer', sdp })
       if (channel.readyState !== 'open')
         await new Promise<void>((resolve, reject) => {
+          const finish = (error?: Error) => {
+            clearTimeout(timeout)
+            channel.removeEventListener('open', opened)
+            channel.removeEventListener('close', closed)
+            connection.signal.removeEventListener('abort', closed)
+            if (error) reject(error)
+            else resolve()
+          }
+          const opened = () => finish()
+          const closed = () => finish(new Error('Voice connection closed.'))
           const timeout = setTimeout(
-            () => reject(new Error('Voice connection timed out.')),
+            () => finish(new Error('Voice connection timed out.')),
             10000
           )
-          channel.addEventListener(
-            'open',
-            () => {
-              clearTimeout(timeout)
-              resolve()
-            },
-            { once: true }
-          )
-          channel.addEventListener(
-            'close',
-            () => {
-              clearTimeout(timeout)
-              reject(new Error('Voice connection closed.'))
-            },
-            { once: true }
-          )
+          channel.addEventListener('open', opened, { once: true })
+          channel.addEventListener('close', closed, { once: true })
+          connection.signal.addEventListener('abort', closed, { once: true })
+          if (connection.signal.aborted) closed()
         })
+      connection.signal.throwIfAborted()
       this.status(
         openMic ? 'Listening · open mic' : 'Voice ready · push to talk'
       )
     } catch (err) {
-      this.close()
+      if (current()) this.close()
       throw err
     }
   }
-  private async interrupt() {
-    this.epoch++
-    if (this.activeResponse) this.send({ type: 'response.cancel' })
-    this.send({ type: 'output_audio_buffer.clear' })
-    await api('cancel', {})
-  }
   async talk(pressed: boolean) {
+    if (
+      !this.tools ||
+      this.channel?.readyState !== 'open' ||
+      this.pressed === pressed
+    )
+      return
+    const connection = this.connection
+    const tools = this.tools
     this.pressed = pressed
+    const press = ++this.press
     if (pressed) {
-      await this.audio.play().catch(() => {})
-      await this.interrupt()
-      if (!this.pressed) return
-      this.send({ type: 'input_audio_buffer.clear' })
-      this.stream?.getAudioTracks().forEach((track) => {
-        track.enabled = true
-      })
-      this.status('Listening…')
+      try {
+        await this.audio.play().catch(() => {})
+        if (this.connection !== connection || this.press !== press) return
+        await tools.interrupt()
+        if (this.connection !== connection || this.press !== press) return
+        this.send({ type: 'input_audio_buffer.clear' })
+        this.stream?.getAudioTracks().forEach((track) => {
+          track.enabled = true
+        })
+        this.recordingAt = performance.now()
+        this.status('Listening…')
+      } catch {
+        if (this.connection === connection) {
+          this.pressed = false
+          this.status(
+            'Could not interrupt the previous request. Reconnect voice.'
+          )
+        }
+      }
     } else {
       this.stream?.getAudioTracks().forEach((track) => {
         track.enabled = false
       })
+      const duration =
+        this.recordingAt === undefined
+          ? 0
+          : performance.now() - this.recordingAt
+      this.recordingAt = undefined
+      if (duration < 150) {
+        this.send({ type: 'input_audio_buffer.clear' })
+        this.status('Hold Talk while speaking.')
+        return
+      }
       this.send({ type: 'input_audio_buffer.commit' })
       this.send({ type: 'response.create' })
       this.status('Thinking…')
     }
   }
-  private async receive(event: z.infer<typeof eventSchema>) {
-    if (event.type === 'input_audio_buffer.speech_started') {
-      this.epoch++
-      await api('cancel', {})
-      this.status('Listening…')
-    }
-    if (event.type === 'response.created' && event.response) {
-      this.activeResponse = true
-      this.responses.set(event.response.id, this.epoch)
-    }
-    if (event.type === 'error')
-      this.status(event.error?.message ?? 'Voice error')
-    if (event.type !== 'response.done' || !event.response) return
-    this.activeResponse = false
-    const epoch = this.responses.get(event.response.id)
-    this.responses.delete(event.response.id)
-    const calls = (event.response.output ?? []).filter(
-      (item) => item.type === 'function_call'
-    )
-    let ran = false
-    // Execute the complete batch and request a single continuation.
-    for (const call of calls) {
-      if (
-        !call.call_id ||
-        !call.name ||
-        !call.arguments ||
-        this.seen.has(call.call_id)
-      )
-        continue
-      this.seen.add(call.call_id)
-      let output: unknown = {
-        outcome: 'superseded',
-        message: 'User interrupted this response. Do not execute or retry it.'
-      }
-      if (epoch === this.epoch) {
-        try {
-          output = await api('tool', {
-            name: call.name,
-            arguments: JSON.parse(call.arguments),
-            callId: call.call_id
-          })
-        } catch {
-          output = {
-            outcome: 'failed',
-            message: 'Local tool unavailable. Do not assume completion.'
-          }
-        }
-        ran = true
-      }
-      this.send({
-        type: 'conversation.item.create',
-        item: {
-          type: 'function_call_output',
-          call_id: call.call_id,
-          output: JSON.stringify(output)
-        }
-      })
-    }
-    if (ran && epoch === this.epoch) this.send({ type: 'response.create' })
-    else this.status('Voice ready')
-  }
   close() {
-    this.onDisconnect()
-    this.epoch++
+    this.connection?.abort()
+    this.connection = undefined
+    this.tools?.close()
+    this.tools = undefined
     this.pressed = false
+    this.press++
+    this.recordingAt = undefined
     this.stream?.getTracks().forEach((track) => {
       track.stop()
     })
@@ -225,8 +189,6 @@ export class Voice {
     this.stream = undefined
     this.channel = undefined
     this.pc = undefined
-    this.activeResponse = false
-    this.seen.clear()
-    this.responses.clear()
+    this.onDisconnect()
   }
 }
