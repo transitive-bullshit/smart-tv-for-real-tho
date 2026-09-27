@@ -29,9 +29,9 @@ No developer mode is needed for these controls. See [room facts](docs/room.md) a
 
 ## Current evidence
 
-The executable application, Python device integrations, real-search path and Realtime WebRTC client are implemented. Local tests cover cancellation, stale results, wrong receivers, timeouts and volume independence. The browser UI was checked in live mode. The actual LG is now paired; app/input discovery, saved-key reconnection and current Home/volume/ARC state reads work. OpenAI model access and both voice session configurations returned HTTP 200; no live audio session has been verified.
+Native LG YouTube playback, replacement, pause/resume and Hades activation have user-confirmed physical results. LG app/input/volume/ARC observations, saved bridge pairings, Xbox discovery and installed-app catalog reads work. Real YouTube search found two new songs, retained the artist during correction, and their playback was observed in the native receiver. Chrome established an actual OpenAI Realtime WebRTC connection in push-to-talk mode; no speech was sent during that connection check.
 
-**Physical control changes, native YouTube playback, Xbox activation, live speech, search with a supplied Google key, native overlays and filming remain unverified.** See [implementation status](docs/implementation-status.md) for the actual gate ledger. Simulation tests do not satisfy hardware milestones.
+The Xbox can report a successful launch operation while withholding its foreground title. The updated controller distinguishes that accepted command from an observed active title. **Keep TV volume at 0 during current testing.** Physical timing, cold-app/full-controller restart checks, complete spoken journeys, room acoustics and filming remain pending. The static TV overlay probe packages locally but has not been installed or verified on the TV. See [implementation status](docs/implementation-status.md) for exact evidence and remaining gates; no complete P1–P5 gate is claimed.
 
 ## Development checks
 
@@ -59,5 +59,6 @@ Commands already delivered to a vendor cannot be recalled. Cancellation prevents
 - [Implementation plan](docs/implementation-plan.md): full objective, ordered work and live-device gates.
 - [Current status](docs/implementation-status.md): evidence, limitations and next steps.
 - [Hardware runbook](docs/runbook.md): probes, recovery, timing and filming.
+- [Native overlay experiment](docs/overlay-experiment.md): `pnpm tv:package`, Developer Mode setup and the static compatibility probe.
 - [Journeys](docs/journeys.md) and [feasibility research](docs/feasibility.md).
 - [Agent guidance](AGENTS.md).
