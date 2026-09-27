@@ -220,12 +220,19 @@ class Bridge:
             except Exception:
                 self.xbox_state["connected"] = False
         async def read_youtube():
-            if self.yt and self.yt.connected() and self.yt_task and not self.yt_task.done():
-                try:
-                    async with asyncio.timeout(2):
-                        await self.yt.get_now_playing()
-                except Exception:
-                    self.yt_state["connected"] = False
+            receiver, listener = self.yt, self.yt_task
+            if not receiver or not receiver.connected() or not listener or listener.done():
+                self.yt_state["connected"] = False
+                return
+            accepted = False
+            try:
+                async with asyncio.timeout(2):
+                    accepted = await receiver.get_now_playing()
+            except Exception:
+                pass
+            if self.yt is receiver and self.yt_task is listener:
+                # A transport recovery is not a fresh playback observation.
+                self.yt_state["connected"] = accepted is True and receiver.connected() and not listener.done()
         readers = [read_tv(), read_youtube()]
         if include_xbox:
             readers.append(read_xbox())

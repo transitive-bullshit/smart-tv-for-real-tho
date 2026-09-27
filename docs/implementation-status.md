@@ -15,7 +15,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 
 ## Evidence so far
 
-- pnpm test: 39 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 10 Python bridge regression tests, plus lint/format/typecheck.
+- pnpm test: 39 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 13 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
 - Browser simulation: game launch → known-video playback → return to Xbox passed through the UI; restored Live mode afterward. These are simulation results only.
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
@@ -104,3 +104,11 @@ The user physically confirmed the live activity status, then reported a couple-s
 The user also reported Hide live TV panel failing. A close trace failed with WebOsTvResponseTypeError about four seconds after a launch. The revised version 0.0.2 requests self-dismissal through the existing read-only feed, preserving the working local Dismiss behavior and avoiding the rejected SSAP close path for this app. The controller records acceptance only. Hide is idempotent and does not supersede media work; late activity cannot reopen the panel. The timeout is five minutes to cover a short session without repeated launches. All 49 tests, browser build and IPK packaging pass. TV installation/backend restart and physical Hide verification are pending. The static probe remains unchanged.
 
 Batch `display-update-1790551800795` verified volume 0, received live-panel launch acceptance in 294 ms and completed a search-only request in 581 ms without selecting playback. Because the search followed launch immediately, this does not isolate updates after the panel is visibly rendered. No in-place glitch-free update claim is made.
+
+## YouTube connection recovery regression
+
+Source inspection found a reproducible local defect: a failed or timed-out `get_now_playing` status request set `youtube.connected` false, but later successful requests in the same receiver session never restored it. Coordinator playback observations consequently could continue rejecting otherwise fresh matching events. This is a demonstrated code defect, not proof that it caused every measured TV timeout.
+
+The bridge now restores transport-connected status only after an accepted status request while the same receiver and subscription task remain active. Rejected requests and ended subscriptions stay disconnected; a late read from an older subscription cannot overwrite its replacement. Request acceptance does not modify the video ID, playback value or observation timestamp, so playback still requires a fresh correlated event.
+
+The initial reproduction failed before the fix. Three regressions now cover timeout/recovery/rejection without playback freshness changes, subscription ending during a request, and replacement subscription protection. All 39 TypeScript and 13 Python tests pass with format/lint/typecheck. No frontend/package changes were needed. The running server still lacked the close/reopen route at the start of this continuation, so live confirmation of the recovery fix awaits the already-requested server restart. Do not claim the three-run or cold-start gate passed.

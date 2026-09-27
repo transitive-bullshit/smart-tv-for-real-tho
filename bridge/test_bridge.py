@@ -141,6 +141,48 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(SetupError, "did not accept"):
             await bridge.dispatch("tv.close_youtube", {})
 
+    async def test_youtube_status_recovers_after_transient_failure_without_freshening_playback(self):
+        bridge = Bridge()
+        bridge.yt_state.update(connected=True, receiverId="receiver", videoId="old-video", playback="Paused", observedAt=100)
+        bridge.yt = NS(connected=lambda: True, get_now_playing=AsyncMock(side_effect=[TimeoutError(), True, False]))
+        bridge.yt_task = NS(done=lambda: False)
+        failed = await bridge.state(include_xbox=False)
+        self.assertFalse(failed["youtube"]["connected"])
+        recovered = await bridge.state(include_xbox=False)
+        self.assertTrue(recovered["youtube"]["connected"])
+        self.assertEqual(recovered["youtube"]["observedAt"], 100)
+        self.assertEqual(recovered["youtube"]["videoId"], "old-video")
+        self.assertEqual(recovered["youtube"]["playback"], "Paused")
+        rejected = await bridge.state(include_xbox=False)
+        self.assertFalse(rejected["youtube"]["connected"])
+
+    async def test_youtube_status_ack_cannot_revive_ended_listener(self):
+        bridge = Bridge()
+        ended = False
+        async def finish_listener():
+            nonlocal ended
+            ended = True
+            return True
+        bridge.yt_state.update(connected=True, observedAt=100)
+        bridge.yt = NS(connected=lambda: True, get_now_playing=AsyncMock(side_effect=finish_listener))
+        bridge.yt_task = NS(done=lambda: ended)
+        state = await bridge.state(include_xbox=False)
+        self.assertFalse(state["youtube"]["connected"])
+        self.assertEqual(state["youtube"]["observedAt"], 100)
+
+    async def test_old_youtube_read_cannot_disconnect_replacement_listener(self):
+        bridge = Bridge()
+        replacement = NS(done=lambda: False)
+        async def reconnect_during_read():
+            bridge.yt_task = replacement
+            bridge.yt_state.update(connected=True, receiverId="replacement")
+            raise TimeoutError()
+        bridge.yt = NS(connected=lambda: True, get_now_playing=AsyncMock(side_effect=reconnect_during_read))
+        bridge.yt_task = NS(done=lambda: False)
+        state = await bridge.state(include_xbox=False)
+        self.assertTrue(state["youtube"]["connected"])
+        self.assertEqual(state["youtube"]["receiverId"], "replacement")
+
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()
         self.assertFalse(state["tv"]["connected"])
