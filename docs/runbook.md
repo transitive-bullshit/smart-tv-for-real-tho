@@ -68,6 +68,14 @@ For each attempt record:
 
 Use trace.jsonl for software timestamps and pnpm timings for grouped medians/worst observations. Add speech-end and first-picture/audio from the live observer/video; they are not inferred by the controller. Keep simulated and live records separate.
 
+## Development server reloads
+
+Keep `pnpm dev` running in the user's network-enabled Terminal. Source changes in backend TypeScript or `bridge/main.py` restart its child automatically. Agents can also run `pnpm dev:restart` from the repository without controlling the Terminal UI. The command updates only the server file timestamp, not its contents. It requires the watcher to be running; it is not a process supervisor for a closed Terminal or `pnpm dev:stable`.
+
+Before a restart, finish or cancel active device probes and disconnect voice. Afterward, wait for `/api/status` boot results, then use `get_room_state` to verify actual TV access. The server can answer HTTP before its device connections finish, so an immediate empty state is not evidence of lost permissions. Showing the live TV panel again supplies the new display token; reconnect voice as needed. During hardware timing trials, avoid edits that trigger reloads.
+
+Verified on the user's actual setup: touching `src/server.ts` changed the listening child PID from 15817 to 17569, startup reconnected LG and Xbox, and a fresh TV read reported native YouTube with volume 0. The source contents were unchanged. Thus an automatic child restart preserved LAN access in this Terminal-launched watcher.
+
 ## Recovery
 
 - TV unreachable: confirm displayed IP and network reachability, then Pair / reconnect LG; accept the prompt. On this Mac, the same secure-port TCP check succeeded in the user’s Terminal but failed in Codex-launched Python/Node processes, even after Python.app Local Network access was enabled. If that difference persists, stop the existing controller and run pnpm dev in the successful Terminal, leaving it open. Recheck pairing through the same localhost UI. Do not infer a TV or router fault from the agent-process error alone.

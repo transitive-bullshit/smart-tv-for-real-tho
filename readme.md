@@ -13,7 +13,7 @@ pnpm setup:check
 pnpm dev
 ```
 
-`pnpm dev` now watches backend TypeScript and `bridge/main.py`, restarting the controller when those files change. Keep this process in the user’s working Terminal so its network access is preserved. Backend reloads reset voice sessions and rotate the TV display token; reconnect voice and show the panel again afterward. Use `pnpm dev:stable` for rehearsals/filming when automatic restarts are undesirable.
+`pnpm dev` now watches backend TypeScript and `bridge/main.py`, restarting the controller when those files change. Keep this process in the user’s working Terminal so its network access is preserved. Backend reloads reset voice sessions and rotate the TV display token; reconnect voice and show the panel again afterward. Use `pnpm dev:stable` for rehearsals/filming when automatic restarts are undesirable. To request a restart without editing code, run `pnpm dev:restart` in this repository. It touches the watched server entry without changing its contents; it requires an already-running `pnpm dev` watcher and does not start a stopped server.
 
 Open **http://localhost:3210**. The Node server, Vite UI and long-lived Python bridge start together. Controls bind only to loopback. The display view at /display is a laptop preview, not an installed TV overlay.
 

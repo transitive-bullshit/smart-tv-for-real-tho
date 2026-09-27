@@ -28,7 +28,8 @@
     "tv:cli": "pnpm --package=@webos-tools/cli@3.2.6 dlx",
     "tv:package-display": "pnpm tv:cli ares-package tv/display --outdir build/tv",
     "tv:preview-display": "vite tv/display --host 127.0.0.1 --port 3213 --strictPort",
-    "dev:stable": "tsx --env-file-if-exists=.env src/server.ts"
+    "dev:stable": "tsx --env-file-if-exists=.env src/server.ts",
+    "dev:restart": "node -e \"require('node:fs').utimesSync('src/server.ts',new Date(),new Date())\""
   },
   "dependencies": {
     "ky": "^2.0.2",
