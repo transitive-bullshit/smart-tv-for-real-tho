@@ -1,6 +1,6 @@
 # Native HUD investigation
 
-Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. Full coexistence, dismissal and transition checks remain pending.
+Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. The user also confirmed manual dismissal and automatic dismissal after 60 seconds. Native YouTube coexistence, focus recovery and transition checks remain pending.
 
 ## Source evidence
 
@@ -23,7 +23,7 @@ LG's [official app metadata](https://webostv.developer.lge.com/develop/reference
 
 ## Prepared probe and local evidence
 
-`tv/overlay-probe` contains a static HTML label, an original 80×80 PNG icon, dismissal code and app metadata. The manifest requests the experimental overlay window type, transparent background and no Luna API permissions (`requiredACG: []`). The page has no network calls, audio or credentials. Back (461), Escape and the focused OK/click button request `window.close()`; a 60-second timer requests the same exit. Remote focus, dismissal and timeout on the TV are still unverified. [LG app metadata](https://webostv.developer.lge.com/develop/references/appinfo-json), [Back and exit handling](https://webostv.developer.lge.com/develop/guides/back-button)
+`tv/overlay-probe` contains a static HTML label, an original 80×80 PNG icon, dismissal code and app metadata. The manifest requests the experimental overlay window type, transparent background and no Luna API permissions (`requiredACG: []`). The page has no network calls, audio or credentials. Back (461), Escape and the focused OK/click button request `window.close()`; a 60-second timer requests the same exit. The user confirmed manual dismissal (method unspecified) and automatic dismissal after 60 seconds on the TV. Individual Back/OK handling and underlying focus recovery remain unverified. [LG app metadata](https://webostv.developer.lge.com/develop/references/appinfo-json), [Back and exit handling](https://webostv.developer.lge.com/develop/guides/back-button)
 
 Build with `pnpm tv:package`. The pinned official CLI 3.2.6 creates `build/tv/it.transitivebullsh.smarttv.overlayprobe_0.0.1_all.ipk`. Archive inspection confirmed only the four app files plus package metadata. No private files are included. `pnpm tv:preview` serves a local browser preview at `http://127.0.0.1:3211`; this is a layout check only. Chrome verified transparent document/body backgrounds and initial focus on Dismiss. Escape reached the exit handler; Chrome refused the window-close request for this tab, so actual TV closure must be tested. [LG CLI](https://webostv.developer.lge.com/develop/tools/cli-introduction)
 
@@ -46,7 +46,7 @@ The user enabled Developer Mode and Key Server and successfully ran `ares-device
 
 LG Developer website sign-in succeeded in Chrome Incognito after normal Chrome email/password and Google sign-in attempts stalled without a visible error. The underlying browser-session cause is unproven.
 
-The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing. The user then installed/launched the probe from Terminal and confirmed the panel appeared over Xbox with the picture visible behind it. This verifies installation, launch and transparency over HDMI on this TV without root. It does not yet verify moving-picture/game responsiveness, native YouTube coexistence, dismissal, timeout or audio continuity.
+The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing. The user then installed/launched the probe from Terminal and confirmed the panel appeared over Xbox with the picture visible behind it. This verifies installation, launch and transparency over HDMI on this TV without root. The user subsequently confirmed manual dismissal on the first run and automatic dismissal after 60 seconds on a repeat run. Moving-picture/game responsiveness, native YouTube coexistence, individual dismissal controls, focus recovery and audio continuity remain unverified.
 
 ## Install and test after the control gate
 
@@ -72,8 +72,8 @@ Record each result in `.local/hardware-runs.md`:
 | --- | --- | --- |
 | Native YouTube foreground | Physical video continues behind label; receiver remains Playing | Untested |
 | Xbox HDMI 3 | Xbox picture remains visible behind label | User confirmed panel and background picture; game responsiveness/motion not separately measured |
-| Focus | Back/OK dismiss; underlying controls recover | Untested |
-| Timeout | Probe closes after 60 seconds and underlying picture remains | Untested |
+| Focus | Back/OK dismiss; underlying controls recover | Manual dismissal confirmed; specific control and focus recovery unverified |
+| Timeout | Probe closes after 60 seconds and underlying picture remains | User confirmed automatic dismissal after 60 seconds; post-dismissal picture continuity not separately reported |
 | Home and relaunch | Record closure, then verify explicit relaunch | Untested |
 | Source transitions | Record persistence/closure and any focus or picture interruption | Untested |
 | Soundbar | Audio continuity requires a later explicit change to the mute instruction | Deferred |
