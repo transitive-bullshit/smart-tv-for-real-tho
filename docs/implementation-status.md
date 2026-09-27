@@ -10,7 +10,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 | P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | Warm sequences remain inconsistent: an earlier resume timed out; the latest run reached pause/resume but return-to-Xbox timed out awaiting pause. Three consecutive complete transitions including cold launch remain pending. Test actual CEC behavior and interruption. |
 | P4 | Real YouTube API search/cache, candidate IDs/context, Realtime WebRTC and validated tools, PTT/open mic. OpenAI model access and both session configurations accepted (HTTP 200); actual Chrome WebRTC connection reached Voice ready in push-to-talk mode. | Two new songs and artist carryover pass real search-to-native-playback state checks. Remaining: actual speech/correction and room acoustics. |
 | P5 | Timing summarizer and rehearsal/recording runbook. | Measured hardware runs, two uninterrupted rehearsals, continuous physical recording. |
-| V1 | Exact model/firmware recorded. Static dismissible TV probe packages with LG CLI 3.2.6; transparent browser layout checked. | [Source investigation](overlay-experiment.md) is recorded; Developer Mode setup and install/test on this TV remain pending. Preview does not establish overlay support. |
+| V1 | Developer pairing verified (SDK 10.3.1). Static probe installed/launched; user physically confirmed overlay panel over Xbox HDMI with the Xbox picture visible behind it. | [Evidence and probe](overlay-experiment.md): native YouTube coexistence, dismissal/focus, timeout, motion, Home and source transitions remain untested. Audio deferred while muted. |
 | V2 | Basic laptop listening/action visual treatment. | Only implement native animation after V1 proves the rendering path. |
 
 ## Evidence so far
@@ -68,7 +68,11 @@ Playback-state-only events do not carry video identity. The bridge requests a co
 - User requested muted tests: keep LG volume at 0. Audible soundbar effects require a later explicit change to that instruction.
 - Cloud-delivered commands may act after acceptance. The coordinator suppresses later steps of interrupted sequences; it cannot revoke a command already delivered to vendor infrastructure.
 - Receiver reconnection is bounded; revoked auth requires a new TV code.
-- No root, firmware change, on-TV HUD or video recording has been performed.
+- Static on-TV overlay over Xbox HDMI is physically confirmed. No root, firmware change or video recording has been performed.
 - Local trace timestamps cover intent/search/command/observed state. Physical first-picture/audio timings require observer entries in the run log.
 
 Continue with source transitions, first-play delay diagnosis, cold-app/full-controller restart checks and actual speech before adding demo polish.
+
+## Developer setup and first physical overlay result
+
+The user restarted the controller; a subsequent check found the replacement server (PID 93467), with TV and Xbox connections restored. Live verification of the revised Xbox feedback remains pending. LG Developer sign-in succeeded in Chrome Incognito. The user enabled Developer Mode/Key Server and verified model/SDK/firmware through the paired CLI in their Terminal. Codex-launched CLI access still fails with EHOSTUNREACH. The user installed/launched the static probe and explicitly confirmed “Your room. Your software.” appeared over Xbox with its picture visible behind the panel. This is physical HDMI transparency evidence, not a complete V1 pass. Dismissal/timeout, YouTube and transitions remain pending.

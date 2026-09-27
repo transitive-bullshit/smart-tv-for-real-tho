@@ -1,6 +1,6 @@
 # Native HUD investigation
 
-Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. No TV package has been installed and no overlay gate has passed.
+Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. Full coexistence, dismissal and transition checks remain pending.
 
 ## Source evidence
 
@@ -19,7 +19,7 @@ LG's [official app metadata](https://webostv.developer.lge.com/develop/reference
 5. Stop if installation/window type is rejected or privileges beyond Developer Mode are needed. Record the actual error and boundary; no firmware modification is in this spike.
 6. Build synchronized animations only if these tests pass. A fullscreen interlude or native toast is a separate fallback, never an overlay pass.
 
-Until this test, /display is only a laptop preview. No purchase, root procedure, capture-card architecture or replacement playback host is assumed.
+`/display` remains a laptop preview; the installed probe now has separate physical evidence over Xbox HDMI. No purchase, root procedure, capture-card architecture or replacement playback host is assumed.
 
 ## Prepared probe and local evidence
 
@@ -46,7 +46,7 @@ The user enabled Developer Mode and Key Server and successfully ran `ares-device
 
 LG Developer website sign-in succeeded in Chrome Incognito after normal Chrome email/password and Google sign-in attempts stalled without a visible error. The underlying browser-session cause is unproven.
 
-The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing; installation and physical overlay observations remain pending.
+The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing. The user then installed/launched the probe from Terminal and confirmed the panel appeared over Xbox with the picture visible behind it. This verifies installation, launch and transparency over HDMI on this TV without root. It does not yet verify moving-picture/game responsiveness, native YouTube coexistence, dismissal, timeout or audio continuity.
 
 ## Install and test after the control gate
 
@@ -64,14 +64,14 @@ If remote dismissal does not work, terminate only this test app:
 pnpm tv:cli ares-launch --device smart-tv --close it.transitivebullsh.smarttv.overlayprobe
 ```
 
-These commands are prepared, not yet executed against the TV. [LG CLI command reference](https://webostv.developer.lge.com/develop/tools/cli-dev-guide)
+The user executed the install/launch workflow and physically confirmed the overlay over Xbox HDMI. The close command remains a prepared fallback. [LG CLI command reference](https://webostv.developer.lge.com/develop/tools/cli-dev-guide)
 
 Record each result in `.local/hardware-runs.md`:
 
 | Condition | Evidence required | Status |
 | --- | --- | --- |
 | Native YouTube foreground | Physical video continues behind label; receiver remains Playing | Untested |
-| Xbox HDMI 3, normal game mode | Physical game picture continues behind label | Untested |
+| Xbox HDMI 3 | Xbox picture remains visible behind label | User confirmed panel and background picture; game responsiveness/motion not separately measured |
 | Focus | Back/OK dismiss; underlying controls recover | Untested |
 | Timeout | Probe closes after 60 seconds and underlying picture remains | Untested |
 | Home and relaunch | Record closure, then verify explicit relaunch | Untested |
