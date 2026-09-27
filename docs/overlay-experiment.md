@@ -1,6 +1,6 @@
 # Native HUD investigation
 
-Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally. No TV package has been installed and no overlay gate has passed.
+Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. No TV package has been installed and no overlay gate has passed.
 
 ## Source evidence
 
@@ -39,6 +39,14 @@ When ready for the TV-side experiment:
 6. Verify with `pnpm tv:cli ares-device --system-info --device smart-tv`.
 
 Keep the Developer Mode session current with Extend. LG removes developer apps after Developer Mode becomes disabled. This setup is separate from the existing LG remote-control pairing. [Official Developer Mode workflow](https://webostv.developer.lge.com/develop/getting-started/developer-mode-app)
+
+## Developer pairing verified
+
+The user enabled Developer Mode and Key Server and successfully ran `ares-device --system-info --device smart-tv` from their Terminal. The TV reported model `86UA8450PSA.CTMFBH`, SDK `10.3.1`, firmware `33.31.61`, board `K25LP_DVB_AJ`, and OTA ID `HE_DTV_W25P_AFADATAA`. The local `smart-tv` CLI profile uses port 9922 and user `prisoner`; credentials stay outside Git.
+
+LG Developer website sign-in succeeded in Chrome Incognito after normal Chrome email/password and Google sign-in attempts stalled without a visible error. The underlying browser-session cause is unproven.
+
+The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing; installation and physical overlay observations remain pending.
 
 ## Install and test after the control gate
 
