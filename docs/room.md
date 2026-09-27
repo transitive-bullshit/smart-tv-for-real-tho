@@ -12,4 +12,4 @@ User-confirmed September 28, 2026:
 
 The user's screenshot establishes identity and software only, not protocol or HUD compatibility. Serial number intentionally omitted. Local IP and credentials belong in ignored .local configuration.
 
-Discovery initially returned no LG advertisements. Direct-IP pairing is the next network check.
+Discovery initially returned no LG advertisements. The user subsequently supplied the TV network settings; its IP is saved in ignored local configuration. Direct pairing currently fails before the pairing prompt. The Mac has a neighbor entry for the supplied IP, but TCP connections to ports 3000, 3001 and 8008 returned “No route to host.” macOS Local Network settings show Python.app disabled; permission is a candidate cause, not yet verified. The observed neighbor MAC differs by one byte from the user’s transcription, so TV identity still requires pairing/confirmation.

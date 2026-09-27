@@ -21,7 +21,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
 - Existing OpenAI key can retrieve the gpt-realtime-2.1 model (HTTP 200). The client-secrets endpoint also accepted the actual push-to-talk and open-mic configurations with all nine tools (HTTP 200 each); returned secrets were discarded without logging. This validates configuration, not a WebRTC connection or microphone/audio test.
 - Voice regression tests cover old-session results after reconnect, delayed microphone permission, stale peer callbacks, quick-release audio, interruption ordering, failed cancellation and duplicate response events. These use controlled mocks; actual room acoustics remain untested.
-- LG SSDP discovery received zero LG responses, first across Wi-Fi bands and again after the Mac moved onto the TV's 2.4 GHz network. Mac reported 192.168.1.191; TV IP still pending.
+- LG SSDP discovery received zero LG responses, first across Wi-Fi bands and again after the Mac moved onto the TV's 2.4 GHz network. The user then supplied the TV IP, now saved in ignored local config. Direct pairing fails before authentication: TCP ports 3000/3001/8008 report “No route to host.” A neighbor entry exists. Python.app Local Network permission is disabled; changing it awaits user confirmation and its relevance remains to be tested.
 - Physical identity from user screenshot: 86UA8450PSA, webOS 25, software 33.31.61. Xbox HDMI 3, soundbar HDMI 2.
 
 ## Integration decisions
@@ -44,4 +44,4 @@ Playback-state-only events do not carry video identity. The bridge requests a co
 - No root, firmware change, on-TV HUD or video recording has been performed.
 - Local trace timestamps cover intent/search/command/observed state. Physical first-picture/audio timings require observer entries in the run log.
 
-Continue with direct-IP LG pairing, then the native YouTube known-video probe before adding demo polish.
+Resolve direct-IP network access, then LG pairing and the native YouTube known-video probe before adding demo polish.
