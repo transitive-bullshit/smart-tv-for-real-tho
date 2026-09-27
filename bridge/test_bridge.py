@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import AsyncMock
 from pyytlounge.wrapper import YtLoungeApi
-from main import Bridge, Listener
+from main import Bridge, Listener, SetupError
+from aiowebostv.exceptions import WebOsTvResponseTypeError
 
 class BridgeTests(unittest.IsolatedAsyncioTestCase):
     async def test_saved_youtube_auth_round_trip(self):
@@ -20,6 +21,28 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         await Listener(bridge).playback_state_changed(object())
         bridge.yt.get_now_playing.assert_awaited_once()
         self.assertEqual(bridge.yt_state["observedAt"], 100)
+
+    async def test_optional_software_metadata_does_not_block_real_catalogs(self):
+        bridge = Bridge()
+        bridge.tv_connect = AsyncMock()
+        bridge.tv = AsyncMock()
+        bridge.tv.get_apps.return_value = [{"id": "youtube.leanback.v4", "title": "YouTube"}]
+        bridge.tv.get_inputs.return_value = [{"id": "HDMI_3", "label": "HDMI 3", "appId": "com.webos.app.hdmi3"}]
+        bridge.tv.get_software_info.side_effect = WebOsTvResponseTypeError({"type": "error"})
+        result = await bridge.dispatch("tv.connect", {})
+        self.assertEqual(result["apps"][0]["id"], "youtube.leanback.v4")
+        self.assertEqual(result["inputs"][0]["id"], "HDMI_3")
+        self.assertEqual(result["info"], {})
+        self.assertEqual(len(result["warnings"]), 1)
+
+    async def test_required_app_catalog_failure_remains_a_failure(self):
+        bridge = Bridge()
+        bridge.tv_connect = AsyncMock()
+        bridge.tv = AsyncMock()
+        bridge.tv.get_apps.side_effect = WebOsTvResponseTypeError({"type": "error"})
+        with self.assertRaisesRegex(SetupError, "LG app catalog"):
+            await bridge.dispatch("tv.connect", {})
+        bridge.tv.get_inputs.assert_not_awaited()
 
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()

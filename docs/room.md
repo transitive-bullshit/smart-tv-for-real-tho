@@ -12,4 +12,14 @@ User-confirmed September 28, 2026:
 
 The user's screenshot establishes identity and software only, not protocol or HUD compatibility. Serial number intentionally omitted. Local IP and credentials belong in ignored .local configuration.
 
-Discovery initially returned no LG advertisements. The user subsequently supplied the TV network settings; its IP is saved in ignored local configuration. Direct pairing currently fails before the pairing prompt. The Mac has a neighbor entry for the supplied IP, but TCP connections to ports 3000, 3001 and 8008 returned “No route to host.” With user approval, Python.app Local Network access was enabled and verified in System Settings. Fresh processes from both Python installations and the app’s Node runtime still report host-unreachable on the TV control ports. The user’s independent Terminal TCP check to the secure LG port succeeded, while a fresh bridge-runtime probe and controller retry still failed. The Codex-launched controller was stopped to free its port; the next check is running pnpm dev from the same user Terminal. This isolates the launch environment without claiming pairing has succeeded. The observed neighbor MAC differs by one byte from the user’s transcription, so TV identity still requires pairing/confirmation.
+The user launched pnpm dev from their own Terminal and accepted the LG pairing prompt. This resolved controller network access; Codex-launched Python/Node processes could not reach the same TV. Keep the controller in that Terminal. Python.app Local Network access was enabled with user approval, but was insufficient for Codex-launched processes.
+
+Live TV discovery confirms:
+
+- YouTube: youtube.leanback.v4.
+- Xbox input: HDMI_3, app com.webos.app.hdmi3, label “XBOX Game Console.”
+- HDMI 2 label: “LG Sound Bar.”
+- Current snapshot at setup: LG Home, volume 10, sound output external_arc. Physical audio/volume effects are still untested.
+- Pairing key reconnects after bridge restart.
+
+The optional software-information request is rejected by this firmware; the app reports that as a warning without discarding working app/input discovery. Model/firmware facts above come from the user screenshot. YouTube receiver pairing and Xbox account authorization remain pending.

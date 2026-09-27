@@ -12,6 +12,7 @@ import time
 
 from aiohttp import web
 from aiowebostv import WebOsClient
+from aiowebostv.exceptions import WebOsTvResponseTypeError
 from pyytlounge.wrapper import YtLoungeApi
 from pyytlounge.event_listener import EventListener
 from pythonxbox.authentication.manager import AuthenticationManager
@@ -236,13 +237,26 @@ class Bridge:
             return await self.state(p.get("includeXbox", True))
         if method == "tv.connect":
             await self.tv_connect(p.get("host"))
-            self.apps = await self.tv.get_apps() or []
-            self.inputs = await self.tv.get_inputs() or []
-            software = await self.tv.get_software_info()
+            try:
+                self.apps = await self.tv.get_apps() or []
+            except Exception as e:
+                raise SetupError("LG app catalog: " + type(e).__name__) from e
+            try:
+                self.inputs = await self.tv.get_inputs() or []
+            except Exception as e:
+                raise SetupError("LG input catalog: " + type(e).__name__) from e
+            warnings = []
+            try:
+                software = await self.tv.get_software_info()
+            except WebOsTvResponseTypeError:
+                # This TV rejects optional firmware metadata despite successful pairing/catalogs.
+                software = {}
+                warnings.append("TV software information unavailable; app and input discovery succeeded.")
             # Only retain non-identifying model/firmware fields.
             return dict(apps=[dict(id=a["id"], title=a.get("title", a["id"])) for a in self.apps],
                         inputs=[dict(id=i["id"], label=i.get("label", i["id"]), appId=i.get("appId", "")) for i in self.inputs],
-                        info={k:v for k,v in software.items() if k in ("model_name", "major_ver", "minor_ver", "product_name")})
+                        info={k:v for k,v in software.items() if k in ("model_name", "major_ver", "minor_ver", "product_name")},
+                        warnings=warnings)
         if method.startswith("tv."):
             if not self.tv or not self.tv.is_connected():
                 raise SetupError("LG disconnected. Reconnect in setup.")

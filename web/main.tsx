@@ -26,6 +26,7 @@ interface Catalog {
   apps: { id: string; title: string }[]
   inputs: { id: string; label: string; appId: string }[]
   info: unknown
+  warnings?: string[]
 }
 interface XboxCatalog {
   consoles: { id: string; name: string }[]
@@ -125,7 +126,10 @@ function App() {
     }
     await save(next)
     setMessage(
-      'LG paired. Check the discovered YouTube and HDMI 3 mappings below.'
+      [
+        'LG paired. Check the discovered YouTube and HDMI 3 mappings below.',
+        ...(found.warnings ?? [])
+      ].join(' ')
     )
   }
   const state = status?.state
