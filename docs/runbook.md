@@ -64,7 +64,7 @@ Use trace.jsonl for software timestamps and pnpm timings for grouped medians/wor
 
 ## Recovery
 
-- TV unreachable: confirm displayed IP and network reachability, then Pair / reconnect LG; accept the prompt.
+- TV unreachable: confirm displayed IP and network reachability, then Pair / reconnect LG; accept the prompt. On this Mac, the same secure-port TCP check succeeded in the user’s Terminal but failed in Codex-launched Python/Node processes, even after Python.app Local Network access was enabled. If that difference persists, stop the existing controller and run pnpm dev in the successful Terminal, leaving it open. Recheck pairing through the same localhost UI. Do not infer a TV or router fault from the agent-process error alone.
 - Receiver unavailable: open native YouTube, clear prompts, then Reconnect receiver. Re-pair if revoked.
 - Xbox authorization fails: start sign-in again; callback expires after ten minutes. Port 8080 must be free. The default public desktop client might be rejected by the account; own-app registration is a later fallback.
 - Uncertain mutation: Refresh observations and inspect the actual screen before retrying.
