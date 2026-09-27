@@ -22,4 +22,4 @@ Live TV discovery confirms:
 - Current snapshot at setup: LG Home, volume 10, sound output external_arc. Physical audio/volume effects are still untested.
 - Pairing key reconnects after bridge restart.
 
-The optional software-information request is rejected by this firmware; the app reports that as a warning without discarding working app/input discovery. Model/firmware facts above come from the user screenshot. YouTube receiver pairing and Xbox account authorization remain pending.
+The optional software-information request is rejected by this firmware; the app reports that as a warning without discarding working app/input discovery. Model/firmware facts above come from the user screenshot. YouTube receiver pairing now succeeds; the actual receiver has reported requested-video replacement and pause/resume. Physical picture/sound confirmation and receiver restart/cold-app checks remain pending. Xbox account authorization is still pending.

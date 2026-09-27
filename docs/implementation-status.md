@@ -5,7 +5,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 | Package | Implemented / verified locally | Remaining gate |
 | --- | --- | --- |
 | P0 | Node/Vite/React app, setup forms, explicit Live/Simulation, manual tools, JSONL traces, locked Python bridge, setup check. Browser loads and reports unavailable hardware/keys. | Recheck after device configuration changes. |
-| P1 | YouTube code pairing, auth serialization, receiver session, replace/pause/resume, correlated now-playing events. Regression test covers auth round-trip. | Pair native LG YouTube; physically verify A → B, pause/resume, closed/reopened app, and controller restart. |
+| P1 | Native LG YouTube paired. Real receiver confirmed requested video A eventually, replacement B within deadline, then Paused → Playing for B. | User picture/sound confirmation; investigate first-play timeout; closed/reopened app and saved receiver reconnect after bridge/controller restart. |
 | P2 | LG pairing accepted on the actual TV; saved key reconnects after bridge restart. Actual app/input catalogs and fresh Home/volume/ARC state read successfully. Control adapters and Xbox OAuth/catalog code implemented. | Physical input/Home/volume changes, Xbox login and installed game activation. |
 | P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | Three consecutive physical transitions, including cold launch; test actual CEC behavior and interruption. |
 | P4 | Real YouTube API search/cache, candidate IDs/context, Realtime WebRTC and validated tools, PTT/open mic. OpenAI model access and both session configurations accepted (HTTP 200). | YouTube API key; real search, two unfamiliar requests, speech/correction and room acoustics. |
@@ -25,6 +25,8 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 - User accepted the physical LG pairing prompt. Live app/input catalogs were read; saved pairing survived bridge restarts. Actual IDs: YouTube youtube.leanback.v4; Xbox HDMI_3 / com.webos.app.hdmi3. The TV labeled HDMI 2 “LG Sound Bar” and HDMI 3 “XBOX Game Console.”
 - Fresh LG state read: app com.webos.app.home, volume 10, soundOutput external_arc. No input or volume mutation has been physically verified yet.
 - The TV rejects get_software_info with WebOsTvResponseTypeError while required discovery succeeds. Optional metadata now returns an explicit warning; required app/input failures still fail setup. Two bridge regressions cover this boundary. Firmware identity remains grounded in the user’s screenshot.
+- Native YouTube TV-code pairing succeeds. Diagnostic A (4NRXx6U8ABQ) was accepted at 667 ms but timed out at 20 seconds while another video ID was reported; a later read confirmed the requested video Playing. An advertisement is a hypothesis awaiting user confirmation, not an established cause.
+- Replacement B (XXYlFuWEuKI) was accepted at 543 ms and observed Playing at 10,458 ms. Pause was accepted at 144 ms and observed at 4,865 ms; resume at 113 ms / 2,380 ms. Native YouTube remained foreground, with LG volume 10 and external_arc. These are command/state timings, not measured physical picture/audio onset; user confirmation is pending.
 - Physical identity from user screenshot: 86UA8450PSA, webOS 25, software 33.31.61. Xbox HDMI 3, soundbar HDMI 2.
 
 ## Integration decisions
@@ -47,4 +49,4 @@ Playback-state-only events do not carry video identity. The bridge requests a co
 - No root, firmware change, on-TV HUD or video recording has been performed.
 - Local trace timestamps cover intent/search/command/observed state. Physical first-picture/audio timings require observer entries in the run log.
 
-Continue with native YouTube TV-code pairing and the known-video probe before adding demo polish.
+Continue with user confirmation of native playback, first-play delay diagnosis, and saved-receiver/cold-app checks before adding demo polish.
