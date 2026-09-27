@@ -13,6 +13,8 @@ pnpm setup:check
 pnpm dev
 ```
 
+`pnpm dev` now watches backend TypeScript and `bridge/main.py`, restarting the controller when those files change. Keep this process in the user’s working Terminal so its network access is preserved. Backend reloads reset voice sessions and rotate the TV display token; reconnect voice and show the panel again afterward. Use `pnpm dev:stable` for rehearsals/filming when automatic restarts are undesirable.
+
 Open **http://localhost:3210**. The Node server, Vite UI and long-lived Python bridge start together. Controls bind only to loopback. The display view at /display is a laptop preview, not an installed TV overlay.
 
 The app starts in **Live device mode**. Unavailable hardware produces a failure; it never silently falls back to simulation. The setup mode selector enables explicit simulation for local development. Real search still requires a YouTube API key in simulation.

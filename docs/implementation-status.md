@@ -15,7 +15,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 
 ## Evidence so far
 
-- pnpm test: 39 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 13 Python bridge regression tests, plus lint/format/typecheck.
+- pnpm test: 43 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 13 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
 - Browser simulation: game launch → known-video playback → return to Xbox passed through the UI; restored Live mode afterward. These are simulation results only.
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
@@ -112,3 +112,17 @@ Source inspection found a reproducible local defect: a failed or timed-out `get_
 The bridge now restores transport-connected status only after an accepted status request while the same receiver and subscription task remain active. Rejected requests and ended subscriptions stay disconnected; a late read from an older subscription cannot overwrite its replacement. Request acceptance does not modify the video ID, playback value or observation timestamp, so playback still requires a fresh correlated event.
 
 The initial reproduction failed before the fix. Three regressions now cover timeout/recovery/rejection without playback freshness changes, subscription ending during a request, and replacement subscription protection. All 39 TypeScript and 13 Python tests pass with format/lint/typecheck. No frontend/package changes were needed. The running server still lacked the close/reopen route at the start of this continuation, so live confirmation of the recovery fix awaits the already-requested server restart. Do not claim the three-run or cold-start gate passed.
+
+## Restart verified; close/reopen and delayed panel-update trial
+
+The user reported installing version 0.0.2 and restarting. The new close/reopen endpoint now validates requests (HTTP 400 for deliberately invalid input, previously 404), the display feed is enabled, and LG/Xbox startup connections succeeded.
+
+Panel batch `display-v002-1790552354018`: volume 0 observed; Show accepted in 271 ms; after an eight-second rendering interval, search-only text update completed in 416 ms; after another eight seconds, Hide accepted in 4 ms through the feed without an LG close error. The following state read reported native YouTube, volume 0. Questions about physical disappearance and whether the text update glitched are pending. API acceptance is not a physical Hide or rendering pass.
+
+Close/reopen batch `cold-reopen-1790552416076`: LG accepted native YouTube close and reported Home in 2,773 ms, then Xbox HDMI in 593 ms. Reopening A timed out at 20,008 ms. Within that attempt, native-app launch was accepted at 2,638 ms, YouTube foreground observed at 5,116 ms, receiver connection accepted at 5,876 ms and play accepted at 5,923 ms. A later read showed native YouTube and volume 0, but a disconnected receiver without a video event. The test stopped; B, pause/resume and return were not attempted.
+
+One explicit receiver reconnect subsequently completed in 743 ms. The next read reported the requested A Playing, with a fresh receiver timestamp and volume 0. No second play command was sent. This supports a bounded reconnection recovery experiment; it does not prove all the delay came from that connection or retroactively pass the original deadline.
+
+The coordinator now attempts at most one receiver reconnect when observation after a delivered play command reports disconnection while native YouTube is freshly foreground. It retains the original operation deadline, cancellation, receiver ID, video ID and freshness requirements. It never resends the play command. Four regressions cover recovery, persistent disconnection, changed receiver and stale data; all 43 TypeScript and 13 Python tests and browser build pass. The new automatic recovery still needs loading and a live close/reopen retest.
+
+Development now uses `tsx watch` for backend TypeScript and explicitly included `bridge/main.py`. A temporary isolated runner verified initial launch, TypeScript-triggered restart, Python-triggered restart and cleanup without touching the TV controller. `pnpm dev:stable` preserves the previous non-watching command for filming. The current user-Terminal process must be restarted once to enter watch mode; future watched code edits can then reload in that same working network environment. No measured hardware test should overlap code edits/restarts.

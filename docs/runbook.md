@@ -80,6 +80,8 @@ Use trace.jsonl for software timestamps and pnpm timings for grouped medians/wor
 
 ## Continuous take, approximately 2–3 minutes
 
+Start with `pnpm dev:stable` (preserving `TV_DISPLAY_HOST` when using the panel). This disables backend file watching for the take. Do not edit the controller during measured device trials.
+
 Frame the person, TV and enough of the room to establish the real devices.
 
 1. Begin on LG Home. “Open [installed game] on Xbox and set volume to 15.”

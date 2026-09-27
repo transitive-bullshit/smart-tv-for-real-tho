@@ -81,3 +81,70 @@ void test('clarification may select existing candidates after speech interrupts 
     'observed'
   )
 })
+
+for (const recovery of [
+  'healthy',
+  'disconnected',
+  'wrong-receiver',
+  'stale'
+] as const) {
+  void test(
+    'receiver reconnect after delivered playback: ' + recovery,
+    async () => {
+      const config = configSchema.parse({
+        mode: 'simulation',
+        youtubeAppId: 'yt',
+        timeoutMs: 650
+      })
+      const base = new Simulation(config)
+      let connects = 0
+      let plays = 0
+      const devices: Devices = {
+        close() {},
+        async request(method, params, signal) {
+          if (method === 'youtube.connect') connects++
+          if (method === 'youtube.play') plays++
+          const result = await base.request(method, params, signal)
+          if (method === 'state' && plays) {
+            const state = structuredClone(base.state)
+            if (connects < 2 || recovery === 'disconnected')
+              state.youtube.connected = false
+            else if (recovery === 'wrong-receiver')
+              state.youtube.receiverId = 'other'
+            else if (recovery === 'stale') state.youtube.observedAt = 1
+            return state
+          }
+          return result
+        }
+      }
+      const c = new Coordinator(
+        devices,
+        {
+          find: async () => [
+            { videoId: 'aaaaaaaaaaa', title: 'test', channel: 'test' }
+          ]
+        },
+        config,
+        () => {}
+      )
+      await c.execute('find_youtube_video', { song: 'test' })
+      const result = await c.execute('play_youtube_video', {
+        candidate_id: c.candidates[0]!.candidateId
+      })
+      assert.equal(
+        result.outcome,
+        recovery === 'healthy' ? 'observed' : 'failed'
+      )
+      assert.equal(
+        plays,
+        1,
+        'reconnection must never repeat the playback mutation'
+      )
+      assert.equal(
+        connects,
+        2,
+        'only the initial connection and one bounded reconnect are allowed'
+      )
+    }
+  )
+}

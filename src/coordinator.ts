@@ -92,13 +92,28 @@ export class Coordinator {
   }
   private async observe(
     op: Operation,
-    predicate: (state: RoomState) => boolean
+    predicate: (state: RoomState) => boolean,
+    reconnectReceiver = false
   ) {
+    let reconnected = false
     while (true) {
       const state = await this.read(op)
       if (predicate(state)) {
         this.log(op, 'fresh_state_observed')
         return state
+      }
+      if (
+        reconnectReceiver &&
+        !reconnected &&
+        !state.youtube.connected &&
+        state.tv.connected &&
+        state.tv.appId === this.config.youtubeAppId &&
+        state.tv.observedAt >= op.started
+      ) {
+        reconnected = true
+        this.log(op, 'receiver_reconnect')
+        await this.effect(op, 'youtube.connect')
+        continue
       }
       await delay(250, undefined, { signal: op.signal })
     }
@@ -370,7 +385,8 @@ export class Coordinator {
               s.youtube.receiverId === receiver &&
               s.youtube.observedAt >= sentAt &&
               s.youtube.videoId === candidate.videoId &&
-              s.youtube.playback === 'Playing'
+              s.youtube.playback === 'Playing',
+            true
           )
           break
         }
