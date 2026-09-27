@@ -236,3 +236,58 @@ void test('volume cap and invalid arguments are enforced before effects', async 
   )
   assert.equal(c.state.tv.volume, 40)
 })
+
+void test('completed Xbox command with unavailable title stays accepted, not observed', async () => {
+  const base = new Simulation(config())
+  const devices: Devices = {
+    close() {},
+    async request(method, params, signal) {
+      if (method === 'xbox.launch')
+        return { accepted: true, operationStatus: 'Succeeded' }
+      return base.request(method, params, signal)
+    }
+  }
+  const { coordinator: c } = fixture(search, devices)
+  const result = await c.execute('start_game', { game_alias: 'demo' })
+  assert.equal(result.outcome, 'accepted')
+  assert.match(result.message, /did not report its foreground title/)
+  assert.equal(c.state.xbox.activeTitle, null)
+  assert.equal(c.state.tv.appId, 'hdmi3')
+})
+
+void test('pending Xbox command cannot use missing title as success', async () => {
+  const base = new Simulation(config())
+  const devices: Devices = {
+    close() {},
+    async request(method, params, signal) {
+      if (method === 'xbox.launch')
+        return { accepted: true, operationStatus: 'Pending' }
+      return base.request(method, params, signal)
+    }
+  }
+  const { coordinator: c } = fixture(search, devices)
+  c.config.timeoutMs = 150
+  assert.equal(
+    (await c.execute('start_game', { game_alias: 'demo' })).outcome,
+    'failed'
+  )
+})
+
+void test('completed command does not override a contradictory foreground title', async () => {
+  const base = new Simulation(config())
+  base.state.xbox.activeTitle = 'another-game'
+  const devices: Devices = {
+    close() {},
+    async request(method, params, signal) {
+      if (method === 'xbox.launch')
+        return { accepted: true, operationStatus: 'Succeeded' }
+      return base.request(method, params, signal)
+    }
+  }
+  const { coordinator: c } = fixture(search, devices)
+  c.config.timeoutMs = 150
+  assert.equal(
+    (await c.execute('start_game', { game_alias: 'demo' })).outcome,
+    'failed'
+  )
+})

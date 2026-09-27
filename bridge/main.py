@@ -321,7 +321,24 @@ class Bridge:
                 save("xbox.json", self.auth.oauth.model_dump(mode="json"))
                 if result.status.error_code != "OK":
                     raise SetupError("Xbox rejected command. Check Remote features and account.")
-                return dict(accepted=True)
+                # Acceptance can precede a console-side failure. Inspect only this operation.
+                operation_status = "Pending"
+                for attempt in range(6):
+                    report = await self.xbox.smartglass.get_op_status(self.console_id, result.op_id)
+                    if report.status.error_code != "OK":
+                        break
+                    node = next((n for n in report.op_status_list if n.op_id == result.op_id), None)
+                    if node:
+                        operation_status = str(node.operation_status)
+                        if operation_status == "Succeeded":
+                            if not node.succeeded:
+                                raise SetupError("Xbox command returned conflicting completion evidence.")
+                            break
+                        if operation_status in ("Error", "OffConsoleError", "TimedOut"):
+                            raise SetupError("Xbox command did not complete: " + operation_status)
+                    if attempt < 5:
+                        await asyncio.sleep(1)
+                return dict(accepted=True, operationStatus=operation_status)
         raise SetupError("Unknown device operation.")
 
     async def close(self):

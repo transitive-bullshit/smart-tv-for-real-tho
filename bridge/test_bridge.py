@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
+from types import SimpleNamespace as NS
 from pyytlounge.wrapper import YtLoungeApi
 from main import Bridge, Listener, SetupError
 from aiowebostv.exceptions import WebOsTvResponseTypeError
@@ -43,6 +44,52 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(SetupError, "LG app catalog"):
             await bridge.dispatch("tv.connect", {})
         bridge.tv.get_inputs.assert_not_awaited()
+
+    async def test_xbox_console_failure_after_acceptance_is_not_success(self):
+        bridge = Bridge()
+        bridge.xbox_ready = AsyncMock()
+        bridge.console_id = "console"
+        bridge.products = [NS(one_store_product_id="game")]
+        bridge.auth = NS(oauth=NS(model_dump=lambda **kwargs: {}))
+        bridge.xbox = NS(smartglass=NS(
+            launch_app=AsyncMock(return_value=NS(status=NS(error_code="OK"), op_id="this-op")),
+            get_op_status=AsyncMock(return_value=NS(status=NS(error_code="OK"), op_status_list=[
+                NS(op_id="other-op", operation_status="Succeeded", succeeded=True),
+                NS(op_id="this-op", operation_status="OffConsoleError", succeeded=False),
+            ])),
+        ))
+        with patch("main.save"):
+            with self.assertRaisesRegex(SetupError, "OffConsoleError"):
+                await bridge.dispatch("xbox.launch", {"productId": "game"})
+
+    async def test_xbox_completion_must_match_the_requested_operation(self):
+        bridge = Bridge()
+        bridge.xbox_ready = AsyncMock()
+        bridge.console_id = "console"
+        bridge.products = [NS(one_store_product_id="game")]
+        bridge.auth = NS(oauth=NS(model_dump=lambda **kwargs: {}))
+        done = NS(op_id="this-op", operation_status="Succeeded", succeeded=True)
+        poll = AsyncMock(side_effect=[
+            NS(status=NS(error_code="OK"), op_status_list=[
+                NS(op_id="other-op", operation_status="Succeeded", succeeded=True),
+                NS(op_id="this-op", operation_status="Pending", succeeded=False),
+            ]),
+            NS(status=NS(error_code="OK"), op_status_list=[done]),
+        ])
+        bridge.xbox = NS(smartglass=NS(
+            launch_app=AsyncMock(return_value=NS(status=NS(error_code="OK"), op_id="this-op")),
+            get_op_status=poll,
+        ))
+        with patch("main.save"), patch("main.asyncio.sleep", new_callable=AsyncMock):
+            result = await bridge.dispatch("xbox.launch", {"productId": "game"})
+        self.assertEqual(poll.await_count, 2)
+        self.assertEqual(result, {"accepted": True, "operationStatus": "Succeeded"})
+        done.succeeded = False
+        poll.side_effect = None
+        poll.return_value = NS(status=NS(error_code="OK"), op_status_list=[done])
+        with patch("main.save"):
+            with self.assertRaisesRegex(SetupError, "conflicting completion"):
+                await bridge.dispatch("xbox.launch", {"productId": "game"})
 
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()

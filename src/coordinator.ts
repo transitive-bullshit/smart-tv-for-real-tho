@@ -84,9 +84,10 @@ export class Coordinator {
     params: Record<string, unknown> = {}
   ) {
     return this.sourceLane.run(op.signal, async () => {
-      await this.devices.request(method, params, op.signal)
+      const result = await this.devices.request(method, params, op.signal)
       op.signal.throwIfAborted()
       this.log(op, 'command_accepted', method)
+      return result
     })
   }
   private async observe(
@@ -175,6 +176,7 @@ export class Coordinator {
     try {
       let data: unknown
       let outcome: Result['outcome'] = 'observed'
+      let message: string | undefined
       switch (name) {
         case 'get_room_state':
           data = await this.read(op)
@@ -278,8 +280,28 @@ export class Coordinator {
           const productId = this.config.games[alias]
           if (!productId)
             throw new Error('Choose an installed game alias in setup.')
-          await this.effect(op, 'xbox.launch', { productId })
-          await this.xboxInput(op)
+          const command = await this.effect(op, 'xbox.launch', { productId })
+          const state = await this.xboxInput(op)
+          const completed = z
+            .object({ operationStatus: z.literal('Succeeded') })
+            .safeParse(command).success
+          if (
+            completed &&
+            state.xbox.connected &&
+            state.xbox.observedAt >= started &&
+            state.xbox.activeTitle === null
+          ) {
+            outcome = 'accepted'
+            message =
+              'Xbox reports the launch command completed and Xbox HDMI is selected, but the console did not report its foreground title. Check the TV picture.'
+            data = { ...state, command: { operationStatus: 'Succeeded' } }
+            this.log(
+              op,
+              'console_command_completed',
+              'Foreground title unavailable'
+            )
+            break
+          }
           data = await this.observe(
             op,
             (s) =>
@@ -351,13 +373,14 @@ export class Coordinator {
         requestId: id,
         outcome,
         message:
-          name === 'get_room_state'
+          message ??
+          (name === 'get_room_state'
             ? 'Snapshot read. Check each device connection and observation timestamp.'
             : name === 'find_youtube_video'
               ? 'Search results ready; nothing has been played.'
               : outcome === 'observed'
                 ? 'State observed; physical picture and audio still require verification.'
-                : 'Command accepted; visible result not verified.',
+                : 'Command accepted; visible result not verified.'),
         data
       }
     } catch (err) {
