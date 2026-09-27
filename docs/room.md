@@ -19,7 +19,7 @@ Live TV discovery confirms:
 - YouTube: youtube.leanback.v4.
 - Xbox input: HDMI_3, app com.webos.app.hdmi3, label “XBOX Game Console.”
 - HDMI 2 label: “LG Sound Bar.”
-- Current snapshot at setup: LG Home, volume 10, sound output external_arc. Physical audio/volume effects are still untested.
+- Initial setup snapshot: LG Home, volume 10, sound output external_arc. The user subsequently requested muted testing; volume 0 is now verified. Keep it at 0 throughout testing unless the user explicitly requests otherwise. Physical audio/volume effects are still untested.
 - Pairing key reconnects after bridge restart.
 
-The optional software-information request is rejected by this firmware; the app reports that as a warning without discarding working app/input discovery. Model/firmware facts above come from the user screenshot. YouTube receiver pairing now succeeds; the actual receiver has reported requested-video replacement and pause/resume. Physical picture/sound confirmation and receiver restart/cold-app checks remain pending. Xbox account authorization is still pending.
+The optional software-information request is rejected by this firmware; the app reports that as a warning without discarding working app/input discovery. Model/firmware facts above come from the user screenshot. YouTube receiver pairing now succeeds; the actual receiver has reported requested-video replacement and pause/resume. The user confirmed physical playback, replacement, pause and resume, and has YouTube Premium with no ads. Saved receiver authentication reconnects after bridge restart; cold-app/full-controller checks remain pending. Xbox account authorization is still pending.

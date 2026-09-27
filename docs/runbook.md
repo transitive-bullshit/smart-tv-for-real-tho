@@ -2,6 +2,10 @@
 
 Use the same coordinator through manual buttons and voice. Record physical results in an ignored .local/hardware-runs.md; never infer them from a successful API response.
 
+## Active testing constraint
+
+The user asked to keep the TV muted during testing. Volume is currently set to 0 and verified through LG state. Keep it at 0; do not restore the earlier level of 10 or run audible-volume tests unless the user explicitly changes this instruction. The user is multitasking and is not a reliable observer of precise response timing during these automated probes.
+
 ## Prepare
 
 - TV awake. Xbox on, signed in, installed demo game updated; Retail Mode and Remote features enabled.
