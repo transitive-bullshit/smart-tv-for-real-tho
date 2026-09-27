@@ -50,6 +50,7 @@ function App() {
   const [key, setKey] = useState('')
   const [ytKey, setYtKey] = useState('')
   const [pending, setPending] = useState(0)
+  const [overlayResult, setOverlayResult] = useState<Result>()
   const [clock, setClock] = useState(() => Date.now())
   const voice = useRef<Voice | null>(null)
   const display = location.pathname === '/display'
@@ -206,7 +207,8 @@ function App() {
         <p className='display-note'>
           {last?.action.replaceAll('_', ' ')} · {last?.phase}
           <br />
-          Laptop display preview. Native TV overlay remains unverified.
+          Laptop display preview. The separate TV overlay probe is available in
+          Room controls.
         </p>
       ) : (
         <>
@@ -420,6 +422,42 @@ function App() {
                 Command acceptance is separate from observed state. Check the
                 physical picture and sound during hardware probes.
               </p>
+              <details>
+                <summary>TV overlay experiment</summary>
+                <p>
+                  Requires the installed Developer Mode probe. The panel closes
+                  after 60 seconds. Launch may briefly interrupt the picture.
+                  These controls cancel pending media actions.
+                </p>
+                <div className='controls'>
+                  {(['launch', 'close'] as const).map((action) => (
+                    <button
+                      key={action}
+                      disabled={mode !== 'live' || pending > 0}
+                      onClick={() =>
+                        void run(async () => {
+                          const result = await api<Result>('probe/overlay', {
+                            action
+                          })
+                          setOverlayResult(result)
+                          setMessage(
+                            result.outcome.toUpperCase() +
+                              ' · ' +
+                              result.message
+                          )
+                        })
+                      }
+                    >
+                      {action === 'launch'
+                        ? 'Show TV overlay'
+                        : 'Hide TV overlay'}
+                    </button>
+                  ))}
+                </div>
+                {overlayResult && (
+                  <pre>{JSON.stringify(overlayResult, null, 2)}</pre>
+                )}
+              </details>
               <details>
                 <summary>Known-video diagnostic</summary>
                 <p>

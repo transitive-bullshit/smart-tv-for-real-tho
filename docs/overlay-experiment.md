@@ -79,3 +79,11 @@ Record each result in `.local/hardware-runs.md`:
 | Soundbar | Audio continuity requires a later explicit change to the mute instruction | Deferred |
 
 Persistent black/full-screen replacement, suspended YouTube, installation rejection, or missing permissions is a failed coexistence test. The observed brief YouTube launch glitch/spinner must remain a recorded limitation; recovered coexistence does not establish uninterrupted playback. Record the result before considering a different architecture. A browser preview and successful package build are never a native-overlay pass.
+
+## Controller-driven overlay probes
+
+After restarting `pnpm dev`, use **Room → TV overlay experiment → Show TV overlay / Hide TV overlay**. These buttons call the loopback-only `POST /api/probe/overlay` endpoint with an allowlisted `launch` or `close` action. The bridge can only target `it.transitivebullsh.smarttv.overlayprobe`; it does not install packages or accept arbitrary app IDs. It refreshes the app catalog before launch and reports a missing installation clearly.
+
+The coordinator cancels older media work and serializes overlay effects with source changes. The result remains `accepted`, with actual before/after room snapshots for investigating LG foreground reporting. No remembered underlying app is substituted for the TV’s report. Volume is unchanged. Simulation rejects this hardware probe.
+
+Local verification: three coordinator tests cover acceptance-only semantics, simulation/disconnection boundaries and a late overlay launch followed by a newer Home command; a Python regression covers the fixed target, installation prerequisite and rejected actions/results. Full checks/build pass. The browser renders the controls. Live SSAP launch/close and foreground reporting are pending the requested controller restart; the earlier user-confirmed launches used the developer CLI.

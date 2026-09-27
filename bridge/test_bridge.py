@@ -91,6 +91,30 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(SetupError, "conflicting completion"):
                 await bridge.dispatch("xbox.launch", {"productId": "game"})
 
+    async def test_overlay_is_fixed_to_probe_and_refreshes_installed_apps(self):
+        bridge = Bridge()
+        bridge.tv = NS(
+            is_connected=lambda: True,
+            get_apps=AsyncMock(return_value=[]),
+            launch_app=AsyncMock(return_value={"returnValue": True}),
+            close_app=AsyncMock(return_value={"returnValue": True}),
+        )
+        with self.assertRaisesRegex(SetupError, "Install the TV overlay"):
+            await bridge.dispatch("tv.overlay", {"action": "launch"})
+        bridge.tv.launch_app.assert_not_awaited()
+        overlay_id = "it.transitivebullsh.smarttv.overlayprobe"
+        bridge.tv.get_apps.return_value = [{"id": overlay_id}]
+        result = await bridge.dispatch("tv.overlay", {"action": "launch", "id": "unrelated.app"})
+        self.assertEqual(result, {"accepted": True})
+        bridge.tv.launch_app.assert_awaited_once_with(overlay_id)
+        await bridge.dispatch("tv.overlay", {"action": "close", "id": "unrelated.app"})
+        bridge.tv.close_app.assert_awaited_once_with(overlay_id)
+        bridge.tv.close_app.return_value = {"returnValue": False}
+        with self.assertRaisesRegex(SetupError, "did not confirm"):
+            await bridge.dispatch("tv.overlay", {"action": "close"})
+        with self.assertRaisesRegex(SetupError, "Unknown overlay action"):
+            await bridge.dispatch("tv.overlay", {"action": "uninstall"})
+
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()
         self.assertFalse(state["tv"]["connected"])

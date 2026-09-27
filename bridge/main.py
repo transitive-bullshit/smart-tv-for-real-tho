@@ -25,6 +25,7 @@ logging.disable(logging.CRITICAL)
 ROOT = Path(__file__).resolve().parent.parent / ".local"
 CLIENT_ID = os.environ.get("XBOX_CLIENT_ID", "388ea51c-0b25-4029-aae2-17df49d23905")
 REDIRECT = "http://localhost:8080/auth/callback"
+OVERLAY_APP_ID = "it.transitivebullsh.smarttv.overlayprobe"
 
 def now():
     return int(time.time() * 1000)
@@ -260,6 +261,22 @@ class Bridge:
         if method.startswith("tv."):
             if not self.tv or not self.tv.is_connected():
                 raise SetupError("LG disconnected. Reconnect in setup.")
+            if method == "tv.overlay":
+                action = p.get("action")
+                if action not in ("launch", "close"):
+                    raise SetupError("Unknown overlay action.")
+                # Only the installed compatibility probe is controllable here.
+                # Refresh because installation can happen after bridge startup.
+                if action == "launch":
+                    apps = await self.tv.get_apps() or []
+                    if OVERLAY_APP_ID not in [a["id"] for a in apps]:
+                        raise SetupError("Install the TV overlay probe using Developer Mode first.")
+                    result = await self.tv.launch_app(OVERLAY_APP_ID)
+                else:
+                    result = await self.tv.close_app(OVERLAY_APP_ID)
+                if not isinstance(result, dict) or result.get("returnValue") is not True:
+                    raise SetupError("LG did not confirm the overlay command. Check the TV.")
+                return dict(accepted=True)
             if method == "tv.volume":
                 return await self.tv.set_volume(int(p["level"]))
             if method == "tv.home":

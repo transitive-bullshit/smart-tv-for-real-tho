@@ -210,6 +210,12 @@ const server = createServer(async (req, res) => {
         throw new Error('Exit simulation before pairing real devices.')
       const { action, ...params } = setupSchema.parse(await body(req))
       json(res, await coordinator.devices.request(action, params))
+    } else if (req.method === 'POST' && path === '/api/probe/overlay') {
+      const { action } = z
+        .object({ action: z.enum(['launch', 'close']) })
+        .strict()
+        .parse(await body(req))
+      json(res, await coordinator.probeOverlay(action))
     } else if (req.method === 'POST' && path === '/api/probe/video') {
       const { videoId } = z
         .object({ videoId: z.string().regex(/^[\w-]{11}$/) })

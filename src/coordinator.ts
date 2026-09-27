@@ -126,6 +126,57 @@ export class Coordinator {
         s.tv.observedAt >= op.started
     )
   }
+  async probeOverlay(action: 'launch' | 'close'): Promise<Result> {
+    const id = randomUUID()
+    if (this.config.mode !== 'live')
+      return {
+        requestId: id,
+        outcome: 'failed',
+        message: 'Overlay probes require live device mode.'
+      }
+    this.cancel()
+    this.candidates = []
+    const op: Operation = {
+      id,
+      action: 'overlay_' + action,
+      started: Date.now(),
+      generation: this.generation,
+      signal: AbortSignal.any([
+        this.media.signal,
+        AbortSignal.timeout(this.config.timeoutMs)
+      ])
+    }
+    this.log(op, 'intent_ready')
+    try {
+      const before = await this.read(op)
+      if (!before.tv.connected)
+        throw new Error('Reconnect the LG before testing the overlay.')
+      await this.effect(op, 'tv.overlay', { action })
+      const after = await this.read(op)
+      this.log(op, 'accepted')
+      return {
+        requestId: id,
+        outcome: 'accepted',
+        message:
+          'Overlay ' +
+          action +
+          ' accepted. Check the physical TV; foreground snapshots do not prove overlay visibility.',
+        data: { before, after }
+      }
+    } catch (err) {
+      const superseded = op.generation !== this.generation
+      const outcome = superseded ? 'superseded' : 'failed'
+      const message = superseded
+        ? 'Superseded by a newer request.'
+        : op.signal.aborted
+          ? 'Overlay probe timed out. Check the TV before retrying.'
+          : err instanceof Error
+            ? err.message
+            : 'Overlay probe failed.'
+      this.log(op, outcome, message)
+      return { requestId: id, outcome, message }
+    }
+  }
   async execute(name: ToolName, raw: unknown): Promise<Result> {
     const started = Date.now(),
       id = randomUUID()
