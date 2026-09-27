@@ -15,17 +15,28 @@
     "fix": "run-s fix:*",
     "fix:format": "oxfmt",
     "fix:lint": "oxlint --fix",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "dev": "tsx --env-file-if-exists=.env src/server.ts",
+    "build": "vite build",
+    "bridge:sync": "uv sync --frozen --project bridge",
+    "test:unit": "tsx --test tests/*.test.ts",
+    "test:bridge": "uv run --frozen --project bridge python -m unittest discover -s bridge -p 'test_*.py'",
+    "setup:check": "tsx --env-file-if-exists=.env scripts/doctor.ts",
+    "timings": "tsx scripts/timings.ts"
   },
   "dependencies": {
     "ky": "^2.0.2",
     "p-map": "^7.0.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@fisch0920/config": "^2.2.0",
     "@fisch0920/oxlint-plugin-anti-slop": "^0.2.1",
     "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "lint-staged": "^17.5.1",
     "npm-run-all2": "^9.0.3",
     "oxfmt": "^0.70.0",
@@ -33,7 +44,8 @@
     "oxlint-tsgolint": "^7.0.2002",
     "simple-git-hooks": "^2.14.0",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"

@@ -1,0 +1,12 @@
+{
+  "mode": "live",
+  "tvHost": "",
+  "youtubeAppId": "",
+  "xboxInputId": "",
+  "xboxInputAppId": "",
+  "consoleId": "",
+  "games": {},
+  "region": "",
+  "maxVolume": 40,
+  "timeoutMs": 20000
+}

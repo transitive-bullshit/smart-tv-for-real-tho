@@ -1,6 +1,6 @@
 # LG + Xbox voice-control spike: implementation plan
 
-Prepared September 27, 2026; updated during repository preparation. The TypeScript scaffold and portable documentation are in place. Feature implementation, device connections, account authorization and live API testing are future work. This document provides context for that later implementation session.
+Prepared September 27, 2026. **Implementation began September 28; current evidence and remaining gates are in [implementation status](implementation-status.md).** The architecture and gates below remain the original scope. Historical preparation context follows. The TypeScript scaffold and portable documentation are in place. Feature implementation, device connections, account authorization and live API testing are future work. This document provides context for that later implementation session.
 
 ## 1. Purpose and the result that counts
 

@@ -17,4 +17,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --strict-peer-dependencies
+      - run: python3 -m pip install uv==0.12.17
+      - run: pnpm bridge:sync
       - run: pnpm test
+      - run: pnpm build

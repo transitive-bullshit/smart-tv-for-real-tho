@@ -10,3 +10,7 @@ coverage/
 !.env.example
 .local/
 .pnpm-store/
+
+bridge/.venv/
+__pycache__/
+*.pyc

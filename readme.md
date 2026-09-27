@@ -1,31 +1,63 @@
 # Smart TV, for real tho
 
-A personal voice interface for an LG webOS TV and Xbox Series X: launch a game, adjust the room, ask for a music video, correct the song naturally, and return to Xbox.
+A personal voice interface for the room: native LG YouTube, direct Xbox HDMI, room volume, and conversational corrections. The laptop runs the controller; the TV continues using its native apps.
 
-The intended deliverable is a filmed demonstration using the actual devices and their native apps. The laptop hosts the controller. A real on-TV visual layer is a separate feasibility experiment.
+## Run locally
 
-## Status
-
-Repository preparation only. TypeScript tooling and research are in place; application behavior, device adapters and live API integrations have not been implemented or tested. `src/index.ts` is an empty module that keeps the initial TypeScript project valid.
-
-## Development
-
-Use Node.js 24 or newer and the pnpm version pinned in `package.json`.
+Requires Node.js 24+, pnpm 12.5.1, and [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```sh
-pnpm install
-pnpm test
+pnpm install --frozen-lockfile
+pnpm bridge:sync
+pnpm setup:check
+pnpm dev
 ```
 
-`pnpm test` checks formatting, lint and TypeScript. `pnpm fix` applies formatting and lint fixes. The same checks are configured in GitHub Actions for a future remote. No API keys or devices are required for these scaffold checks.
+Open **http://localhost:3210**. The Node server, Vite UI and long-lived Python bridge start together. Controls bind only to loopback. The display view at /display is a laptop preview, not an installed TV overlay.
 
-Tooling follows the owner's TypeScript template and shared `@fisch0920/config` presets. ky, zod and p-map are available for future implementation. Meaningful behavior tests and application dependencies should arrive with the features they verify or support.
+The app starts in **Live device mode**. Unavailable hardware produces a failure; it never silently falls back to simulation. The setup mode selector enables explicit simulation for local development. Real search still requires a YouTube API key in simulation.
+
+## First connection
+
+1. **LG:** enter the TV's IPv4 address in Room setup, click Pair / reconnect LG, and accept the TV prompt. The discovered catalog supplies the YouTube app and HDMI IDs. Check that the Xbox input is HDMI 3, then save the room.
+2. **YouTube:** manually open the native LG app, select the intended profile, open Settings → Link with TV code, and enter that code in setup. Known-video diagnostics work without a search API key.
+3. **Xbox:** enable Remote features in Retail Mode; start Microsoft sign-in in setup, complete the browser flow, then load consoles. Select the console and load games again. Choose an installed game and save.
+4. **API keys:** enter OpenAI and YouTube Data API keys in the local setup form, or provide OPENAI_API_KEY and YOUTUBE_API_KEY through an ignored .env. The OpenAI model defaults to gpt-realtime-2.1 and can be changed using OPENAI_REALTIME_MODEL. Public YouTube search needs an API key with YouTube Data API v3 enabled.
+5. **Voice:** use independent laptop speakers/microphone, connect voice and hold the Talk button. Open-mic mode is opt-in and must be tested with room audio.
+
+No developer mode is needed for these controls. See [room facts](docs/room.md) and the [hardware runbook](docs/runbook.md).
+
+## Current evidence
+
+The executable application, Python device integrations, real-search path and Realtime WebRTC client are implemented. Local tests cover cancellation, stale results, wrong receivers, timeouts and volume independence. The browser UI was checked in live mode with unpaired devices. OpenAI model access returned HTTP 200.
+
+**Physical LG/YouTube/Xbox behavior, live speech, search with a supplied Google key, native overlays and filming remain unverified.** See [implementation status](docs/implementation-status.md) for the actual gate ledger. Simulation tests do not satisfy hardware milestones.
+
+## Development checks
+
+```sh
+pnpm test
+pnpm build
+pnpm setup:check
+pnpm timings
+```
+
+Tests include format, lint, TypeScript, coordinator behavior and Python bridge regression checks. CI installs both locked environments and builds the browser app. No device credentials are required by automated tests.
+
+The app uses TypeScript/ESM, React/Vite, ky, zod, p-map, the shared Oxlint/Oxfmt presets, and a stdio Python bridge using aiowebostv, pyytlounge and python-xbox. Python dependencies are pinned by bridge/uv.lock. No separate bridge service port is exposed; Xbox OAuth temporarily uses localhost:8080.
+
+## Local data and recovery
+
+.local contains config.json, pairings, OAuth credentials and trace.jsonl; it is ignored by Git. Credentials are written with owner-only permissions. No keys are sent to the browser or included in traces. Search queries/video selections are part of the demo's local operational context.
+
+Restart with pnpm dev to reconnect saved LG/Xbox configuration. YouTube refreshes its saved receiver authorization when a playback sequence or Reconnect receiver requests it. If pairing was revoked, reconnect through setup. To reset one pairing, stop the app and remove only its .local/lg.json, youtube.json or xbox.json, then pair again. Deleting config.json resets room mappings; it is not needed to rotate an API key.
+
+Commands already delivered to a vendor cannot be recalled. Cancellation prevents remaining older actions from running; a final source/state check detects a mismatch. Ads, CEC changes, prompts and game loading still require physical verification.
 
 ## Project context
 
-- [Implementation plan](docs/implementation-plan.md): architecture direction, user setup, work packages and live-device gates.
-- [User journeys](docs/journeys.md): the concrete demo and what each integration needs to prove.
-- [Feasibility research](docs/feasibility.md): cited platform capabilities, alternatives and remaining unknowns.
-- [Agent guidance](AGENTS.md): a brief entry point for future agents.
-
-The TypeScript application may use a small Python device bridge if the researched libraries make that the shortest reliable hardware path. That choice remains part of the future spike; no Python environment is scaffolded yet.
+- [Implementation plan](docs/implementation-plan.md): full objective, ordered work and live-device gates.
+- [Current status](docs/implementation-status.md): evidence, limitations and next steps.
+- [Hardware runbook](docs/runbook.md): probes, recovery, timing and filming.
+- [Journeys](docs/journeys.md) and [feasibility research](docs/feasibility.md).
+- [Agent guidance](AGENTS.md).
