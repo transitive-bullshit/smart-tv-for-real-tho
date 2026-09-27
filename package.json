@@ -1,0 +1,54 @@
+{
+  "name": "smart-tv-for-real-tho",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A personal voice interface for an LG TV and Xbox Series X.",
+  "license": "MIT",
+  "author": "Travis Fischer <travis@transitivebullsh.it>",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "test": "run-s test:*",
+    "test:format": "oxfmt --check",
+    "test:lint": "oxlint",
+    "test:typecheck": "tsc --noEmit",
+    "fix": "run-s fix:*",
+    "fix:format": "oxfmt",
+    "fix:lint": "oxlint --fix",
+    "prepare": "simple-git-hooks"
+  },
+  "dependencies": {
+    "ky": "^2.0.2",
+    "p-map": "^7.0.8",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@fisch0920/config": "^2.2.0",
+    "@fisch0920/oxlint-plugin-anti-slop": "^0.2.1",
+    "@types/node": "^26.6.2",
+    "lint-staged": "^17.5.1",
+    "npm-run-all2": "^9.0.3",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "simple-git-hooks": "^2.14.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "oxfmt --no-error-on-unmatched-pattern",
+      "oxlint --fix"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "oxfmt --no-error-on-unmatched-pattern"
+    ]
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.5.1"
+}
