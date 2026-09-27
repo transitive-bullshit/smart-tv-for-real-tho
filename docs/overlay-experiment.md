@@ -1,6 +1,6 @@
 # Native HUD investigation
 
-Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. The user also confirmed manual dismissal and automatic dismissal after 60 seconds. Native YouTube coexistence, focus recovery and transition checks remain pending.
+Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. The user also confirmed manual dismissal and automatic dismissal after 60 seconds. The user also confirmed native YouTube video playing behind the panel after a brief launch glitch/spinner. Focus recovery and transition checks remain pending; launch is not visually seamless.
 
 ## Source evidence
 
@@ -19,7 +19,7 @@ LG's [official app metadata](https://webostv.developer.lge.com/develop/reference
 5. Stop if installation/window type is rejected or privileges beyond Developer Mode are needed. Record the actual error and boundary; no firmware modification is in this spike.
 6. Build synchronized animations only if these tests pass. A fullscreen interlude or native toast is a separate fallback, never an overlay pass.
 
-`/display` remains a laptop preview; the installed probe now has separate physical evidence over Xbox HDMI. No purchase, root procedure, capture-card architecture or replacement playback host is assumed.
+`/display` remains a laptop preview; the installed probe now has separate physical evidence over Xbox HDMI and native YouTube. No purchase, root procedure, capture-card architecture or replacement playback host is assumed.
 
 ## Prepared probe and local evidence
 
@@ -46,7 +46,7 @@ The user enabled Developer Mode and Key Server and successfully ran `ares-device
 
 LG Developer website sign-in succeeded in Chrome Incognito after normal Chrome email/password and Google sign-in attempts stalled without a visible error. The underlying browser-session cause is unproven.
 
-The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing. The user then installed/launched the probe from Terminal and confirmed the panel appeared over Xbox with the picture visible behind it. This verifies installation, launch and transparency over HDMI on this TV without root. The user subsequently confirmed manual dismissal on the first run and automatic dismissal after 60 seconds on a repeat run. Moving-picture/game responsiveness, native YouTube coexistence, individual dismissal controls, focus recovery and audio continuity remain unverified.
+The same paired CLI check launched from Codex still fails with `EHOSTUNREACH`, while the user’s Terminal succeeds. Installation therefore needs the user’s working Terminal environment. The package was rebuilt successfully after pairing. The user then installed/launched the probe from Terminal and confirmed the panel appeared over Xbox with the picture visible behind it. This verifies installation, launch and transparency over HDMI on this TV without root. The user subsequently confirmed manual dismissal on the first run and automatic dismissal after 60 seconds on a repeat run. The user then launched it over a playing video in native LG YouTube and confirmed the video visible/playing behind the overlay after a split-second glitch and spinner. This is recovered coexistence, not evidence of uninterrupted playback or a seamless launch. Xbox game responsiveness, individual dismissal controls, focus recovery and audio continuity remain unverified.
 
 ## Install and test after the control gate
 
@@ -70,7 +70,7 @@ Record each result in `.local/hardware-runs.md`:
 
 | Condition | Evidence required | Status |
 | --- | --- | --- |
-| Native YouTube foreground | Physical video continues behind label; receiver remains Playing | Untested |
+| Native YouTube foreground | Physical video continues behind label; receiver remains Playing | User confirmed video playing behind overlay after brief launch glitch/spinner; simultaneous receiver state not captured |
 | Xbox HDMI 3 | Xbox picture remains visible behind label | User confirmed panel and background picture; game responsiveness/motion not separately measured |
 | Focus | Back/OK dismiss; underlying controls recover | Manual dismissal confirmed; specific control and focus recovery unverified |
 | Timeout | Probe closes after 60 seconds and underlying picture remains | User confirmed automatic dismissal after 60 seconds; post-dismissal picture continuity not separately reported |
@@ -78,4 +78,4 @@ Record each result in `.local/hardware-runs.md`:
 | Source transitions | Record persistence/closure and any focus or picture interruption | Untested |
 | Soundbar | Audio continuity requires a later explicit change to the mute instruction | Deferred |
 
-Black/full-screen replacement, suspended YouTube, installation rejection, or missing permissions is a failed coexistence test. Record the result before considering a different architecture. A browser preview and successful package build are never a native-overlay pass.
+Persistent black/full-screen replacement, suspended YouTube, installation rejection, or missing permissions is a failed coexistence test. The observed brief YouTube launch glitch/spinner must remain a recorded limitation; recovered coexistence does not establish uninterrupted playback. Record the result before considering a different architecture. A browser preview and successful package build are never a native-overlay pass.
