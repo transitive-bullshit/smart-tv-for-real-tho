@@ -126,7 +126,10 @@ export class Coordinator {
         s.tv.observedAt >= op.started
     )
   }
-  async probeOverlay(action: 'launch' | 'close'): Promise<Result> {
+  async probeOverlay(
+    action: 'launch' | 'close',
+    display?: { url: string; token: string }
+  ): Promise<Result> {
     const id = randomUUID()
     if (this.config.mode !== 'live')
       return {
@@ -151,7 +154,12 @@ export class Coordinator {
       const before = await this.read(op)
       if (!before.tv.connected)
         throw new Error('Reconnect the LG before testing the overlay.')
-      await this.effect(op, 'tv.overlay', { action })
+      const params: Record<string, unknown> = { action }
+      if (display) {
+        params.target = 'display'
+        params.params = display
+      }
+      await this.effect(op, 'tv.overlay', params)
       const after = await this.read(op)
       this.log(op, 'accepted')
       return {

@@ -9,6 +9,7 @@ import { Bridge } from './bridge.js'
 import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
 import { Coordinator } from './coordinator.js'
+import { DisplayState, startDisplayFeed } from './display.js'
 import { createSession } from './realtime.js'
 import { YouTubeSearch } from './search.js'
 import { Simulation } from './simulation.js'
@@ -27,10 +28,12 @@ const origins = new Set([
   'http://localhost:' + port
 ])
 const traces: Trace[] = []
+const displayState = new DisplayState()
 await mkdir('.local', { recursive: true, mode: 0o700 })
 let logWrites = Promise.resolve()
 function trace(event: Trace) {
   const entry = { ...event, mode: config.mode }
+  displayState.update(entry)
   traces.push(entry)
   if (traces.length > 100) traces.shift()
   logWrites = logWrites
@@ -98,6 +101,32 @@ async function reconnect() {
   if (active === coordinator) boot = results
 }
 void reconnect()
+// Opt-in, separate read-only listener. The full control API remains loopback-only.
+const displayHost = process.env.TV_DISPLAY_HOST
+  ? z
+      .ipv4()
+      .refine((host) => {
+        const [a, b] = host.split('.').map(Number)
+        return (
+          a === 10 ||
+          (a === 192 && b === 168) ||
+          (a === 172 && b! >= 16 && b! <= 31)
+        )
+      }, 'Use this laptop’s private LAN IPv4 address.')
+      .parse(process.env.TV_DISPLAY_HOST)
+  : undefined
+const displayFeed = displayHost
+  ? await startDisplayFeed(
+      displayHost,
+      z.coerce
+        .number()
+        .int()
+        .min(1024)
+        .max(65535)
+        .parse(process.env.TV_DISPLAY_PORT ?? 3212),
+      () => displayState.snapshot(config.mode)
+    )
+  : undefined
 const calls = new Map<string, Promise<Result>>()
 async function body(req: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []
@@ -166,6 +195,7 @@ const server = createServer(async (req, res) => {
           youtube: Boolean(youtubeKey())
         },
         boot,
+        display: { enabled: Boolean(displayFeed) },
         state: coordinator.state,
         traces,
         gameAliases: Object.keys(coordinator.config.games),
@@ -198,6 +228,7 @@ const server = createServer(async (req, res) => {
       config = next
       coordinator = makeCoordinator()
       calls.clear()
+      displayState.reset()
       void reconnect()
       json(res, { saved: true })
     } else if (req.method === 'POST' && path === '/api/secrets') {
@@ -210,6 +241,22 @@ const server = createServer(async (req, res) => {
         throw new Error('Exit simulation before pairing real devices.')
       const { action, ...params } = setupSchema.parse(await body(req))
       json(res, await coordinator.devices.request(action, params))
+    } else if (req.method === 'POST' && path === '/api/display/overlay') {
+      const { action } = z
+        .object({ action: z.enum(['launch', 'close']) })
+        .strict()
+        .parse(await body(req))
+      if (!displayFeed)
+        throw new Error(
+          'Start the controller with TV_DISPLAY_HOST set to this laptop’s LAN IP.'
+        )
+      json(
+        res,
+        await coordinator.probeOverlay(action, {
+          url: displayFeed.url,
+          token: displayFeed.token
+        })
+      )
     } else if (req.method === 'POST' && path === '/api/probe/overlay') {
       const { action } = z
         .object({ action: z.enum(['launch', 'close']) })
@@ -289,6 +336,8 @@ async function shutdown() {
   coordinator.cancel()
   coordinator.devices.close()
   server.close()
+  displayFeed?.server.closeAllConnections()
+  displayFeed?.server.close()
   await vite.close()
   await logWrites
   process.exit(0)

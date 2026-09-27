@@ -21,6 +21,7 @@ interface Status {
   traces: Trace[]
   candidates: Candidate[]
   boot: unknown[]
+  display?: { enabled: boolean }
 }
 interface Catalog {
   apps: { id: string; title: string }[]
@@ -451,6 +452,39 @@ function App() {
                       {action === 'launch'
                         ? 'Show TV overlay'
                         : 'Hide TV overlay'}
+                    </button>
+                  ))}
+                </div>
+                <p>
+                  Live activity panel:{' '}
+                  {status?.display?.enabled ? 'feed enabled' : 'feed disabled'}.
+                </p>
+                <div className='controls'>
+                  {(['launch', 'close'] as const).map((action) => (
+                    <button
+                      key={action}
+                      disabled={
+                        mode !== 'live' ||
+                        pending > 0 ||
+                        !status?.display?.enabled
+                      }
+                      onClick={() =>
+                        void run(async () => {
+                          const result = await api<Result>('display/overlay', {
+                            action
+                          })
+                          setOverlayResult(result)
+                          setMessage(
+                            result.outcome.toUpperCase() +
+                              ' · ' +
+                              result.message
+                          )
+                        })
+                      }
+                    >
+                      {action === 'launch'
+                        ? 'Show live TV panel'
+                        : 'Hide live TV panel'}
                     </button>
                   ))}
                 </div>

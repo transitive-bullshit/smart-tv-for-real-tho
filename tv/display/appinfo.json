@@ -1,0 +1,14 @@
+{
+  "id": "it.transitivebullsh.smarttv.display",
+  "version": "0.0.1",
+  "vendor": "Travis Fischer",
+  "type": "web",
+  "main": "index.html",
+  "title": "Smart TV Live Activity",
+  "icon": "icon.png",
+  "resolution": "1920x1080",
+  "transparent": true,
+  "defaultWindowType": "overlay",
+  "disableBackHistoryAPI": true,
+  "requiredACG": []
+}

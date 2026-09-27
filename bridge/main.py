@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent / ".local"
 CLIENT_ID = os.environ.get("XBOX_CLIENT_ID", "388ea51c-0b25-4029-aae2-17df49d23905")
 REDIRECT = "http://localhost:8080/auth/callback"
 OVERLAY_APP_ID = "it.transitivebullsh.smarttv.overlayprobe"
+DISPLAY_APP_ID = "it.transitivebullsh.smarttv.display"
 
 def now():
     return int(time.time() * 1000)
@@ -265,15 +266,22 @@ class Bridge:
                 action = p.get("action")
                 if action not in ("launch", "close"):
                     raise SetupError("Unknown overlay action.")
-                # Only the installed compatibility probe is controllable here.
+                target = p.get("target", "probe")
+                if target not in ("probe", "display"):
+                    raise SetupError("Unknown overlay target.")
+                app_id = DISPLAY_APP_ID if target == "display" else OVERLAY_APP_ID
                 # Refresh because installation can happen after bridge startup.
                 if action == "launch":
                     apps = await self.tv.get_apps() or []
-                    if OVERLAY_APP_ID not in [a["id"] for a in apps]:
+                    if app_id not in [a["id"] for a in apps]:
                         raise SetupError("Install the TV overlay probe using Developer Mode first.")
-                    result = await self.tv.launch_app(OVERLAY_APP_ID)
+                    if target == "display":
+                        params = p.get("params", {})
+                        result = await self.tv.launch_app_with_params(app_id, params)
+                    else:
+                        result = await self.tv.launch_app(app_id)
                 else:
-                    result = await self.tv.close_app(OVERLAY_APP_ID)
+                    result = await self.tv.close_app(app_id)
                 if not isinstance(result, dict) or result.get("returnValue") is not True:
                     raise SetupError("LG did not confirm the overlay command. Check the TV.")
                 return dict(accepted=True)

@@ -15,7 +15,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 
 ## Evidence so far
 
-- pnpm test: 29 TypeScript tests (20 coordinator/observation/overlay and 9 voice interruption/lifecycle regressions) and 8 Python bridge regression tests, plus lint/format/typecheck.
+- pnpm test: 35 TypeScript tests (including display-feed/client, coordinator/observation/overlay and voice interruption/lifecycle regressions) and 9 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
 - Browser simulation: game launch → known-video playback → return to Xbox passed through the UI; restored Live mode afterward. These are simulation results only.
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
@@ -81,4 +81,6 @@ The user subsequently clarified that they manually dismissed the first Xbox over
 
 The next user-observed test confirmed native LG YouTube video playing beneath the overlay. Launch briefly produced a glitch and spinner, then returned to the YouTube video with the panel visible. Record this as recovered native-app coexistence with a launch interruption, not a seamless or uninterrupted-playback pass. No simultaneous receiver-state trace or audio-continuity test was captured.
 
-Controller-driven Show/Hide overlay probes are now implemented, with before/after room snapshots and shared source-effect sequencing. Tests and build pass; live SSAP behavior awaits a restart of the user-Terminal server. This enables foreground/focus/transition experiments before wiring the native visual client to live assistant state. No animated or network-connected TV client is claimed.
+Controller-driven Show/Hide overlay probes are now implemented, with before/after room snapshots and shared source-effect sequencing. After the user restarted the server, live launch and active close were accepted (1,266 ms and 152 ms in the bounded retake). Actual foreground snapshots remained Xbox HDMI and volume remained 0; physical visibility of those particular commands was not observed. The earlier close after roughly 66 seconds was inconclusive because the probe could already have auto-dismissed. See the overlay experiment for details.
+
+A separate optional live-activity TV client and token-protected read-only LAN feed are now implemented and packaged. Local tests cover the feed boundary and client lifecycle; all 44 tests and browser build pass. The TV package is not yet installed and actual launch parameters, LAN connectivity and dynamic text remain unverified. This is tool-progress transport, not microphone/listening synchronization or animation. The feed is disabled unless TV_DISPLAY_HOST is supplied at controller startup; the full control API remains localhost-only.

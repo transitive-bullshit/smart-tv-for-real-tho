@@ -115,6 +115,22 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(SetupError, "Unknown overlay action"):
             await bridge.dispatch("tv.overlay", {"action": "uninstall"})
 
+    async def test_live_display_uses_launch_params_and_rejects_unknown_targets(self):
+        bridge = Bridge()
+        app_id = "it.transitivebullsh.smarttv.display"
+        bridge.tv = NS(
+            is_connected=lambda: True,
+            get_apps=AsyncMock(return_value=[{"id": app_id}]),
+            launch_app_with_params=AsyncMock(return_value={"returnValue": True}),
+        )
+        params = {"url": "http://192.168.1.2:3212/display/state", "token": "test-token"}
+        result = await bridge.dispatch("tv.overlay", {"action": "launch", "target": "display", "params": params})
+        bridge.tv.launch_app_with_params.assert_awaited_once_with(app_id, params)
+        self.assertEqual(result, {"accepted": True})
+        self.assertNotIn("test-token", str(result))
+        with self.assertRaisesRegex(SetupError, "Unknown overlay target"):
+            await bridge.dispatch("tv.overlay", {"action": "launch", "target": "unrelated"})
+
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()
         self.assertFalse(state["tv"]["connected"])
