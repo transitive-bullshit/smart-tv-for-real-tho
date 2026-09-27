@@ -262,6 +262,11 @@ class Bridge:
         if method.startswith("tv."):
             if not self.tv or not self.tv.is_connected():
                 raise SetupError("LG disconnected. Reconnect in setup.")
+            if method == "tv.close_youtube":
+                result = await self.tv.close_app("youtube.leanback.v4")
+                if not isinstance(result, dict) or result.get("returnValue") is not True:
+                    raise SetupError("LG did not accept closing native YouTube. Check the TV before retrying.")
+                return dict(accepted=True)
             if method == "tv.overlay":
                 action = p.get("action")
                 if action not in ("launch", "close"):

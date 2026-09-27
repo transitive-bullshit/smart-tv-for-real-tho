@@ -9,6 +9,7 @@ export interface DisplayFrame {
   phase: string
   title: string
   message: string
+  dismiss?: boolean
 }
 const titles: Record<string, string> = {
   find_youtube_video: 'Finding your video',
@@ -35,6 +36,13 @@ const messages: Record<string, string> = {
 export class DisplayState {
   private requestId = ''
   private frame?: DisplayFrame
+  private dismissRequested = true
+  show() {
+    this.dismissRequested = false
+  }
+  hide() {
+    this.dismissRequested = true
+  }
   update(event: Trace) {
     const title = titles[event.action]
     if (!title) return
@@ -54,17 +62,19 @@ export class DisplayState {
   reset() {
     this.requestId = ''
     this.frame = undefined
+    this.dismissRequested = true
   }
   snapshot(mode: DisplayFrame['mode'], now = Date.now()): DisplayFrame {
     if (!this.frame || now - this.frame.updatedAt > 60000)
       return {
         mode,
+        dismiss: this.dismissRequested,
         updatedAt: now,
         phase: 'idle',
         title: 'Your room. Your software.',
         message: 'Waiting for a request'
       }
-    return { ...this.frame, mode }
+    return { ...this.frame, mode, dismiss: this.dismissRequested }
   }
 }
 export interface DisplayFeed {

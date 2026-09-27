@@ -28,7 +28,7 @@ window.addEventListener('keydown', (event) => {
   }
 })
 window.addEventListener('pagehide', dismiss)
-expiry = setTimeout(dismiss, 60000)
+expiry = setTimeout(dismiss, 300000)
 
 function connect(params) {
   if (stopped) return
@@ -36,7 +36,7 @@ function connect(params) {
   pending?.abort()
   clearTimeout(retry)
   clearTimeout(expiry)
-  expiry = setTimeout(dismiss, 60000)
+  expiry = setTimeout(dismiss, 300000)
   try {
     const url = new URL(params.url)
     const octets = url.hostname.split('.').map(Number)
@@ -88,6 +88,10 @@ function connect(params) {
           frame.message.length > 240
         ) {
           throw new Error('Invalid controller response')
+        }
+        if (frame.dismiss === true) {
+          dismiss()
+          return
         }
         title.textContent = frame.title
         message.textContent = frame.message

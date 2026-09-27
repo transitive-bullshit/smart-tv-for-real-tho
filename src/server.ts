@@ -250,19 +250,38 @@ const server = createServer(async (req, res) => {
         throw new Error(
           'Start the controller with TV_DISPLAY_HOST set to this laptop’s LAN IP.'
         )
-      json(
-        res,
-        await coordinator.probeOverlay(action, {
-          url: displayFeed.url,
-          token: displayFeed.token
+      if (action === 'close') {
+        // The TV app closes itself; hiding feedback must not cancel media work.
+        displayState.hide()
+        json(res, {
+          requestId: randomUUID(),
+          outcome: 'accepted',
+          message:
+            'Dismissal requested through the display feed. Check the TV; live panel version 0.0.2 or later is required.'
         })
-      )
+      } else {
+        if (config.mode !== 'live')
+          throw new Error('Exit simulation before showing the TV panel.')
+        displayState.show()
+        json(
+          res,
+          await coordinator.probeOverlay(action, {
+            url: displayFeed.url,
+            token: displayFeed.token
+          })
+        )
+      }
     } else if (req.method === 'POST' && path === '/api/probe/overlay') {
       const { action } = z
         .object({ action: z.enum(['launch', 'close']) })
         .strict()
         .parse(await body(req))
       json(res, await coordinator.probeOverlay(action))
+    } else if (req.method === 'POST' && path === '/api/probe/youtube-close') {
+      z.object({})
+        .strict()
+        .parse(await body(req))
+      json(res, await coordinator.closeYoutubeForProbe())
     } else if (req.method === 'POST' && path === '/api/probe/video') {
       const { videoId } = z
         .object({ videoId: z.string().regex(/^[\w-]{11}$/) })

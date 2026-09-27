@@ -88,13 +88,13 @@ The coordinator cancels older media work and serializes overlay effects with sou
 
 Local verification: three coordinator tests cover acceptance-only semantics, simulation/disconnection boundaries and a late overlay launch followed by a newer Home command; a Python regression covers the fixed target, installation prerequisite and rejected actions/results. Full checks/build pass. The browser renders the controls. After the user restarted the controller, live SSAP launch and close both returned accepted. In the bounded retake, launch completed in 1,266 ms and close in 152 ms, with close requested about 1.3 seconds after launch completed. Before/after and intervening foreground reads reported Xbox HDMI; volume remained 0. These are API observations, not visual confirmation of these particular launches. An earlier close after roughly 66 seconds failed after the automatic timeout could already have closed the app; it does not establish an active-close failure. Raw results are in ignored `.local/hardware-probes.jsonl`. The earlier user-confirmed visible overlays used the developer CLI.
 
-## Optional live-activity client: prepared, not TV-verified
+## Live-activity client: feed physically confirmed; revised dismissal pending
 
 `tv/display` is a separate installable app, `it.transitivebullsh.smarttv.display`, preserving the static compatibility probe. It projects generic controller tool progress and distinguishes an accepted command from observed device state. Search completion explicitly says nothing has played yet. It does not yet show microphone/listening state or synchronized animation.
 
 The optional listener binds only the configured private laptop address on port 3212. It exposes a single read-only route, `/display/state`, requiring a random per-process bearer token. The full control API remains on localhost. Launch passes the display URL/token directly to the installed app; credentials are not packaged or returned to the controller browser. The feed contains selected generic status strings, not room credentials or raw errors. This spike uses plain HTTP on the local network; its token is not transport-encrypted.
 
-The TV client polls at 500 ms after each completed request, uses bounded timeouts and marks disconnection explicitly. Relaunch supersedes older responses; dismissal aborts polling. Back/OK and a 60-second timeout request closure. LG documents launch/relaunch events and launch parameters; actual delivery and networking for this app on this TV remain unverified. [LG events](https://webostv.developer.lge.com/develop/references/webos-event), [LG launch parameters](https://webostv.developer.lge.com/develop/references/webostvjs-webosdev)
+The TV client polls at 500 ms after each completed request, uses bounded timeouts and marks disconnection explicitly. Relaunch supersedes older responses; dismissal aborts polling. Version 0.0.2 uses Back/OK and a five-minute timeout to request closure. The separate static probe retains its verified 60-second timeout. LG documents launch/relaunch events and launch parameters; the user has now confirmed “Live controller activity” appears on the actual TV, establishing launch-parameter delivery and an authenticated feed response for version 0.0.1. [LG events](https://webostv.developer.lge.com/develop/references/webos-event), [LG launch parameters](https://webostv.developer.lge.com/develop/references/webostvjs-webosdev)
 
 ### First installation and connection
 
@@ -102,7 +102,7 @@ Use the user's working Terminal in the repository root:
 
 ```sh
 pnpm tv:package-display
-pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.display_0.0.1_all.ipk
+pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.display_0.0.2_all.ipk
 ```
 
 Stop the current dev server with Ctrl+C in its Terminal, then start it with the read-only feed enabled:
@@ -115,4 +115,14 @@ That laptop address was rechecked on September 28; replace it if Wi-Fi assigns a
 
 At `http://localhost:3210`, use **Room → TV overlay experiment → Show live TV panel**. A connected panel should show “Waiting for a request” and “Live controller activity.” A harmless repeat of setting volume to 0 can exercise the status update. Keep the TV silent. Use **Hide live TV panel** before switching sources during this initial check. Record actual screen results; accepted launch does not prove feed connectivity. Do not launch both probe apps together.
 
-Local validation: all 35 TypeScript and 9 Python tests pass, including token/read-only boundaries, stale-response suppression and fixed display launch parameters. Browser build and display IPK packaging pass. No live installation, TV-to-laptop fetch, launch-parameter receipt or physical dynamic text update has been verified yet. V1 focus/Home/source-transition checks still gate animation.
+Local validation: all 39 TypeScript and 10 Python tests pass, including token/read-only boundaries, stale-response suppression, feed dismissal and fixed display launch parameters. Browser build and display IPK packaging pass. The user confirmed the version 0.0.1 panel connects and displays “Live controller activity.” Multiple visible text changes within an already-open panel remain unverified. V1 focus/Home/source-transition checks still gate animation.
+
+### Launch interruption and Hide failure
+
+The user reports a noticeable loading screen of a couple of seconds when opening the panel/native app, followed by another second or two of blackness before YouTube renders. Dismissing the overlay does not produce a similar glitch. These are qualitative physical observations, not measured video timings. They support investigating launch cost separately from text updates; CPU limits or an OS optimization problem have not been established as the cause.
+
+The user reported an error from Hide live TV panel. The controller logged an LG `WebOsTvResponseTypeError` on a close approximately four seconds after a launch, which cannot be explained solely by the 60-second expiry. The generic pairing advice in that exception does not establish broken pairing: other LG commands continued working. The exact LG rejection reason is unavailable in the sanitized trace.
+
+Version 0.0.2 changes only the live panel's Hide path to publish `dismiss: true` on its existing authenticated feed. The app calls its own existing dismissal handler on receipt. Hide is idempotent in controller state and does not cancel playback work. A later tool event cannot clear the dismissal request; only an explicit Show does. The API reports request acceptance, not physically observed closure. This requires both the rebuilt TV package and a backend restart; version 0.0.1 ignores the new field. The static probe retains its separate SSAP close experiment.
+
+The live panel timeout is now five minutes so a two-to-three-minute take can avoid repeated launches. This does not prove seamless text updates or remove the initial startup interruption. Keep testing those separately after installation. The new Hide path and longer timeout are locally tested/prepared, not yet physically verified.

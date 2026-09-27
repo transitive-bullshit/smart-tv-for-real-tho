@@ -35,6 +35,8 @@ A game launch gate is activation, not saved-game readiness. Home buttons return 
 
 Start with Xbox HDMI visible. Close native YouTube before at least one run.
 
+For the close/reopen case, first open native YouTube, then use **Known-video diagnostic → Close native YouTube for reopen test**. After the backend containing this diagnostic has been loaded, it requests closure of only `youtube.leanback.v4` and waits for LG to report another foreground app. If it fails, refresh state and inspect the TV before retrying. Run the native playback probe afterward and record the close/reopen result separately from a warm transition. This is an app close/reopen experiment, not a TV power cycle; accepted closure and foreground exit alone do not prove successful reopening or visible playback.
+
 1. Known video A → native YouTube launches and becomes foreground.
 2. Replace A with B in the same receiver.
 3. Pause/resume.

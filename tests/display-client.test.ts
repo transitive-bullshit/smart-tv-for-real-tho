@@ -116,3 +116,17 @@ void test('late display response cannot overwrite a newer launch or revive a dis
   assert.equal(calls, 2)
   assert.equal(c.timers.size, 0)
 })
+
+void test('feed dismissal closes the panel and stops polling without a device command', async () => {
+  let calls = 0
+  const c = client(async () => {
+    calls++
+    return Response.json({ ...frame, dismiss: true })
+  })
+  c.listeners.webOSLaunch!({ detail: params })
+  await flush()
+  assert.equal(c.closed(), true)
+  assert.equal(calls, 1)
+  assert.equal(c.timers.size, 0)
+  assert.equal(c.elements.status!.textContent, 'Close requested')
+})

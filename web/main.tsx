@@ -516,6 +516,21 @@ function App() {
                 >
                   Run native playback probe
                 </button>
+                <button
+                  disabled={pending > 0 || status?.config.mode !== 'live'}
+                  onClick={() =>
+                    void run(async () => {
+                      const r = await api<Result>('probe/youtube-close', {})
+                      setMessage(r.outcome + ' · ' + r.message)
+                    })
+                  }
+                >
+                  Close native YouTube for reopen test
+                </button>
+                <p>
+                  Open YouTube first, close it here, then run the playback
+                  probe. This interrupts its current video.
+                </p>
               </details>
             </section>
           </div>

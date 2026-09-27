@@ -185,6 +185,70 @@ export class Coordinator {
       return { requestId: id, outcome, message }
     }
   }
+  async closeYoutubeForProbe(): Promise<Result> {
+    const id = randomUUID()
+    if (
+      this.config.mode !== 'live' ||
+      this.config.youtubeAppId !== 'youtube.leanback.v4'
+    )
+      return {
+        requestId: id,
+        outcome: 'failed',
+        message:
+          'This close/reopen probe requires live mode and the discovered native LG YouTube app.'
+      }
+    this.cancel()
+    this.candidates = []
+    const op: Operation = {
+      id,
+      action: 'youtube_close_probe',
+      started: Date.now(),
+      generation: this.generation,
+      signal: AbortSignal.any([
+        this.media.signal,
+        AbortSignal.timeout(this.config.timeoutMs)
+      ])
+    }
+    this.log(op, 'intent_ready')
+    try {
+      const before = await this.read(op)
+      if (!before.tv.connected || before.tv.appId !== this.config.youtubeAppId)
+        throw new Error(
+          'Open native LG YouTube before running the close/reopen probe.'
+        )
+      const sentAt = Date.now()
+      await this.effect(op, 'tv.close_youtube')
+      const after = await this.observe(
+        op,
+        (s) =>
+          s.tv.connected &&
+          s.tv.observedAt >= sentAt &&
+          Boolean(s.tv.appId) &&
+          s.tv.appId !== this.config.youtubeAppId
+      )
+      this.log(op, 'observed')
+      return {
+        requestId: id,
+        outcome: 'observed',
+        message:
+          'LG accepted YouTube close and reports another foreground app. Run the playback probe to test reopening; this is not a TV power-cycle test.',
+        data: { before, after }
+      }
+    } catch (err) {
+      const outcome =
+        op.generation !== this.generation ? 'superseded' : 'failed'
+      const message =
+        outcome === 'superseded'
+          ? 'Superseded by a newer request.'
+          : op.signal.aborted
+            ? 'YouTube close was not confirmed before the deadline. Read current state before retrying.'
+            : err instanceof Error
+              ? err.message
+              : 'YouTube close probe failed.'
+      this.log(op, outcome, message)
+      return { requestId: id, outcome, message }
+    }
+  }
   async execute(name: ToolName, raw: unknown): Promise<Result> {
     const started = Date.now(),
       id = randomUUID()

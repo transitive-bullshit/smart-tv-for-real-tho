@@ -65,6 +65,7 @@ void test('LAN feed requires a token and cannot serve controls, config or creden
   assert.equal(ok.headers.get('cache-control'), 'no-store')
   const frame = (await ok.json()) as Record<string, unknown>
   assert.deepEqual(Object.keys(frame).sort(), [
+    'dismiss',
     'message',
     'mode',
     'phase',
@@ -89,4 +90,26 @@ void test('LAN feed requires a token and cannot serve controls, config or creden
     preflight.headers.get('access-control-allow-headers'),
     'Authorization'
   )
+})
+
+void test('display hide is idempotent and later tool progress cannot reopen it', () => {
+  const state = new DisplayState()
+  assert.equal(state.snapshot('live').dismiss, true)
+  state.show()
+  assert.equal(state.snapshot('live').dismiss, false)
+  state.hide()
+  state.hide()
+  state.update({
+    mode: 'live',
+    at: Date.now(),
+    requestId: 'new',
+    action: 'set_room_volume',
+    phase: 'intent_ready',
+    elapsedMs: 0
+  })
+  assert.equal(state.snapshot('live').dismiss, true)
+  state.show()
+  assert.equal(state.snapshot('live').dismiss, false)
+  state.reset()
+  assert.equal(state.snapshot('live').dismiss, true)
 })

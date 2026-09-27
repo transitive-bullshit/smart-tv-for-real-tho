@@ -15,7 +15,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 
 ## Evidence so far
 
-- pnpm test: 35 TypeScript tests (including display-feed/client, coordinator/observation/overlay and voice interruption/lifecycle regressions) and 9 Python bridge regression tests, plus lint/format/typecheck.
+- pnpm test: 39 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 10 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
 - Browser simulation: game launch → known-video playback → return to Xbox passed through the UI; restored Live mode afterward. These are simulation results only.
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
@@ -84,3 +84,23 @@ The next user-observed test confirmed native LG YouTube video playing beneath th
 Controller-driven Show/Hide overlay probes are now implemented, with before/after room snapshots and shared source-effect sequencing. After the user restarted the server, live launch and active close were accepted (1,266 ms and 152 ms in the bounded retake). Actual foreground snapshots remained Xbox HDMI and volume remained 0; physical visibility of those particular commands was not observed. The earlier close after roughly 66 seconds was inconclusive because the probe could already have auto-dismissed. See the overlay experiment for details.
 
 A separate optional live-activity TV client and token-protected read-only LAN feed are now implemented and packaged. Local tests cover the feed boundary and client lifecycle; all 44 tests and browser build pass. The TV package is not yet installed and actual launch parameters, LAN connectivity and dynamic text remain unverified. This is tool-progress transport, not microphone/listening synchronization or animation. The feed is disabled unless TV_DISPLAY_HOST is supplied at controller startup; the full control API remains localhost-only.
+
+## September 28: live Xbox feedback and another transition sample
+
+After the restart, batch `restart-check-1790551450752` verified volume 0 and ran Hades through the revised coordinator. Xbox reported the matching operation Succeeded, LG reported Xbox HDMI, and the title remained unavailable. The response correctly returned accepted with the title-verification limitation in 6,834 ms. This verifies the loaded live feedback path; the user’s earlier physical Hades confirmation remains separate from this run.
+
+Batch `transition-after-restart-1790551485031` tested the reduced A → B → return-to-Xbox sequence (without separate pause/resume). First run: A observed at 5,935 ms, B at 6,623 ms, and Xbox return at 14,661 ms. The pause command was accepted at 127 ms but matching paused state was not observed until 14,231 ms; the subsequent HDMI change completed quickly. All successful snapshots reported volume 0.
+
+The second run stopped at A’s 20-second timeout. LG launch was accepted at 1,975 ms, native YouTube foreground observed at 2,334 ms, receiver connect accepted at 2,335 ms and play accepted at 2,402 ms. Requested playback was not confirmed before the deadline. No third run or automatic retry followed. This remains a P3 failure, with no physical timing measurement. A later controller instance has the TV activity feed enabled; its state reset must not be interpreted as the earlier receiver’s state at the timeout.
+
+A narrowly targeted close/reopen diagnostic is implemented under Known-video diagnostic and `POST /api/probe/youtube-close`. It only closes the fixed native YouTube app in live mode, requires that app to be foreground, serializes with source commands, and waits for fresh foreground exit after LG accepts the close. It cannot close arbitrary apps. Successful exit is not proof of a TV power cycle or visible playback after reopening. Tests cover unchanged foreground despite acceptance, simulation/non-YouTube rejection, newer-source cancellation and LG command rejection. All 47 tests pass; build passes. The currently running server still returns 404 for this new route, so hardware close/reopen awaits its next restart.
+
+The read-only TV activity feed is now enabled in the running controller. Recent overlay commands were accepted, but their generic trace labels do not distinguish the static probe from the live panel. The user subsequently confirmed “Live controller activity” appears on the TV. This establishes a received authenticated feed frame, but multiple updates within an already-visible panel remain unverified.
+
+## Live panel feedback and dismissal revision
+
+The user physically confirmed the live activity status, then reported a couple-second loading screen and another second or two of blackness before native YouTube renders when opening the panel/app. Dismissal does not show the same glitch. These observations do not establish a weak-chip or OS cause; initial launch cost and in-place updates need separate measurement.
+
+The user also reported Hide live TV panel failing. A close trace failed with WebOsTvResponseTypeError about four seconds after a launch. The revised version 0.0.2 requests self-dismissal through the existing read-only feed, preserving the working local Dismiss behavior and avoiding the rejected SSAP close path for this app. The controller records acceptance only. Hide is idempotent and does not supersede media work; late activity cannot reopen the panel. The timeout is five minutes to cover a short session without repeated launches. All 49 tests, browser build and IPK packaging pass. TV installation/backend restart and physical Hide verification are pending. The static probe remains unchanged.
+
+Batch `display-update-1790551800795` verified volume 0, received live-panel launch acceptance in 294 ms and completed a search-only request in 581 ms without selecting playback. Because the search followed launch immediately, this does not isolate updates after the panel is visibly rendered. No in-place glitch-free update claim is made.

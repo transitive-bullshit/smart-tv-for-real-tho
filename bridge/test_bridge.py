@@ -131,6 +131,16 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(SetupError, "Unknown overlay target"):
             await bridge.dispatch("tv.overlay", {"action": "launch", "target": "unrelated"})
 
+    async def test_youtube_close_has_fixed_target_and_requires_lg_acceptance(self):
+        bridge = Bridge()
+        bridge.tv = NS(is_connected=lambda: True, close_app=AsyncMock(return_value={"returnValue": True}))
+        result = await bridge.dispatch("tv.close_youtube", {"id": "unrelated.app"})
+        bridge.tv.close_app.assert_awaited_once_with("youtube.leanback.v4")
+        self.assertEqual(result, {"accepted": True})
+        bridge.tv.close_app.return_value = {"returnValue": False}
+        with self.assertRaisesRegex(SetupError, "did not accept"):
+            await bridge.dispatch("tv.close_youtube", {})
+
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()
         self.assertFalse(state["tv"]["connected"])
