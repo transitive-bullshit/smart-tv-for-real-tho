@@ -5,79 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src http:"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src http:; img-src 'self' data:"
     />
-    <title>Smart TV · Live activity experiment</title>
-    <style>
-      html,
-      body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        overflow: hidden;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        color: #eef8f1;
-      }
-      main {
-        position: absolute;
-        left: 5%;
-        bottom: 8%;
-        width: 580px;
-        padding: 28px 32px;
-        background: rgba(9, 20, 22, 0.88);
-        border: 2px solid #b7e5c8;
-        border-radius: 18px;
-      }
-      p {
-        margin: 0 0 14px;
-        font-size: 24px;
-        line-height: 1.4;
-      }
-      .eyebrow {
-        color: #b7e5c8;
-        font-size: 18px;
-        letter-spacing: 3px;
-      }
-      h1 {
-        margin: 0 0 16px;
-        font-size: 38px;
-        line-height: 1.15;
-      }
-      button {
-        padding: 10px 18px;
-        border: 2px solid #b7e5c8;
-        border-radius: 8px;
-        background: #182e28;
-        color: #eef8f1;
-        font: inherit;
-        font-size: 22px;
-      }
-      button:focus {
-        outline: 3px solid white;
-        outline-offset: 5px;
-      }
-      .note {
-        margin: 16px 0 0;
-        font-size: 18px;
-        color: #c3d1c8;
-      }
-    </style>
+    <title>Smart TV · Room HUD</title>
+    <link rel="stylesheet" href="display.css" />
     <script src="display.js" defer></script>
   </head>
-  <body>
-    <main aria-labelledby="title">
-      <p class="eyebrow">SMART TV / LIVE ACTIVITY</p>
-      <h1 id="title">Your room. Your software.</h1>
-      <p id="message">
-        Launch this panel from the laptop controller to connect.
-      </p>
-      <button id="dismiss" type="button">Dismiss · Back / OK</button>
-      <p class="note" id="status">
-        Waiting for controller · closes after 5 minutes.
-      </p>
+  <body data-visual="idle" data-motion="full">
+    <div class="preview-scene" aria-hidden="true">
+      <div class="scene-grid"></div>
+      <span class="scene-caption"
+        >NATIVE PICTURE<br /><strong
+          >Your content stays center stage.</strong
+        ></span
+      ><span class="scene-number">03</span>
+    </div>
+    <div class="preview-controls" id="preview-controls" hidden>
+      <span>OVERLAY LAB · LOCAL PREVIEW</span>
+      <label
+        >State
+        <select id="preview-state">
+          <option value="live">Live feed</option>
+          <option value="idle">Idle</option>
+          <option value="listening">Listening</option>
+          <option value="working">Working</option>
+          <option value="speaking">Speaking</option>
+          <option value="success">Success</option>
+          <option value="error">Error</option>
+        </select></label
+      >
+      <label
+        >Motion
+        <select id="preview-motion">
+          <option>full</option>
+          <option>subtle</option>
+          <option>static</option>
+        </select></label
+      >
+    </div>
+    <main class="hud" id="hud" aria-labelledby="title">
+      <div class="hud-top">
+        <span class="brand">S / TV <span>PERSONAL INTELLIGENCE</span></span
+        ><span class="connection" id="connection">STANDBY</span>
+      </div>
+      <div class="hud-body">
+        <div class="core" aria-hidden="true">
+          <svg class="orbit outer" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="74" />
+            <path d="M80 6 A74 74 0 0 1 154 80 M80 154 A74 74 0 0 1 6 80" />
+          </svg>
+          <svg class="orbit inner" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="58" />
+            <path d="M23 68 A58 58 0 0 1 104 27 M137 92 A58 58 0 0 1 56 133" />
+          </svg>
+          <div class="nucleus"><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="core-cross top"></span
+          ><span class="core-cross bottom"></span>
+        </div>
+        <div class="copy" aria-live="polite">
+          <p class="phase" id="phase">ROOM LINK</p>
+          <h1 id="title">Your room.<br />Your software.</h1>
+          <p class="detail" id="detail"></p>
+          <p class="message" id="message">Ready when you are.</p>
+        </div>
+      </div>
+      <div class="hud-bottom">
+        <span class="source"><b></b><span id="source">ROOM</span></span
+        ><span class="signal" aria-hidden="true"
+          ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span
+        ><button id="dismiss" type="button">BACK <span>/ DISMISS</span></button>
+      </div>
+      <p id="status" class="sr-only">Waiting for controller</p>
     </main>
   </body>
 </html>

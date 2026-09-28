@@ -8,7 +8,19 @@ const flush = () => new Promise<void>((resolve) => setImmediate(resolve))
 function client(fetcher: typeof fetch) {
   const listeners: Record<string, (event: unknown) => void> = {}
   const elements = Object.fromEntries(
-    ['title', 'message', 'status', 'dismiss'].map((id) => [
+    [
+      'title',
+      'message',
+      'status',
+      'dismiss',
+      'detail',
+      'source',
+      'phase',
+      'connection',
+      'preview-controls',
+      'preview-state',
+      'preview-motion'
+    ].map((id) => [
       id,
       {
         textContent: '',
@@ -20,19 +32,20 @@ function client(fetcher: typeof fetch) {
     ])
   )
   let closed = false
-  const timers = new Map<number, () => void>()
+  const timers = new Map<number, { run: () => void; delay: number }>()
   let next = 0
   runInNewContext(script, {
     URL,
     AbortController,
     fetch: fetcher,
-    setTimeout: (fn: () => void) => {
+    setTimeout: (fn: () => void, delay: number) => {
       const id = ++next
-      timers.set(id, fn)
+      timers.set(id, { run: fn, delay })
       return id
     },
     clearTimeout: (id: number) => timers.delete(id),
     document: {
+      body: { dataset: {}, classList: { toggle() {} } },
       getElementById: (id: string) => elements[id],
       addEventListener: (type: string, fn: (event: unknown) => void) => {
         listeners[type] = fn
@@ -129,4 +142,35 @@ void test('feed dismissal closes the panel and stops polling without a device co
   assert.equal(calls, 1)
   assert.equal(c.timers.size, 0)
   assert.equal(c.elements.status!.textContent, 'Close requested')
+})
+
+void test('idle heartbeats do not extend panel expiry; fresh activity does', async () => {
+  let visual = 'idle'
+  let updatedAt = 100
+  const c = client(async () =>
+    Response.json({ ...frame, visual, updatedAt: ++updatedAt })
+  )
+  const timer = (delay: number) =>
+    [...c.timers].find(([, value]) => value.delay === delay)!
+  const poll = async () => {
+    const [id, value] = timer(500)
+    c.timers.delete(id)
+    value.run()
+    await flush()
+  }
+  c.listeners.webOSLaunch!({ detail: params })
+  await flush()
+  const initialExpiry = timer(300000)[0]
+  await poll()
+  assert.equal(timer(300000)[0], initialExpiry)
+  visual = 'listening'
+  await poll()
+  const activeExpiry = timer(300000)[0]
+  assert.notEqual(activeExpiry, initialExpiry)
+  visual = 'idle'
+  await poll()
+  assert.equal(timer(300000)[0], activeExpiry)
+  timer(300000)[1].run()
+  assert.equal(c.closed(), true)
+  assert.equal(c.timers.size, 0)
 })

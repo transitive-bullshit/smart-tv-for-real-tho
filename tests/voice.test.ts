@@ -140,3 +140,94 @@ void test('release during pending interruption never opens the mic or commits an
     false
   )
 })
+
+void test('voice display events follow audio state and stale peers cannot update a new session', async (t) => {
+  const h = browser(t, async () => stream())
+  const events: { session: string; sequence: number; phase: string }[] = []
+  let session = 0
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (url: string, init?: RequestInit) => {
+      if (url === '/api/session')
+        return new Response('answer', {
+          headers: { 'X-Display-Session': 'session-' + ++session }
+        })
+      if (url === '/api/display/voice')
+        events.push(JSON.parse(init?.body as string))
+      return new Response('{}')
+    }
+  )
+  await h.voice.connect(false)
+  const old = h.peers[0]!
+  for (const type of [
+    'input_audio_buffer.speech_started',
+    'input_audio_buffer.speech_stopped',
+    'output_audio_buffer.started',
+    'output_audio_buffer.stopped'
+  ])
+    old.channel.onmessage?.({ data: JSON.stringify({ type }) })
+  await h.voice.connect(false)
+  old.channel.onmessage?.({
+    data: JSON.stringify({ type: 'output_audio_buffer.started' })
+  })
+  await new Promise<void>((resolve) => setImmediate(resolve))
+  assert.deepEqual(
+    events
+      .filter((event) => event.session === 'session-1')
+      .map((event) => event.phase),
+    ['ready', 'listening', 'thinking', 'speaking', 'ready', 'offline']
+  )
+  assert.deepEqual(
+    events
+      .filter((event) => event.session === 'session-2')
+      .map((event) => event.phase),
+    ['ready']
+  )
+  assert.ok(
+    events.every(
+      (event, index) =>
+        index === 0 || event.sequence > events[index - 1]!.sequence
+    )
+  )
+})
+
+void test('a superseded SDP response cannot replace the current display session', async (t) => {
+  const h = browser(t, async () => stream())
+  const oldResponse = Promise.withResolvers<Response>()
+  const firstStarted = Promise.withResolvers<void>()
+  let calls = 0
+  const events: { session: string; phase: string }[] = []
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (url: string, init?: RequestInit) => {
+      if (url === '/api/session') {
+        if (++calls === 1) {
+          firstStarted.resolve()
+          return oldResponse.promise
+        }
+        return new Response('answer', {
+          headers: { 'X-Display-Session': 'current' }
+        })
+      }
+      if (url === '/api/display/voice')
+        events.push(JSON.parse(init?.body as string))
+      return new Response('{}')
+    }
+  )
+  const first = h.voice.connect(false)
+  const rejected = assert.rejects(first)
+  await firstStarted.promise
+  await h.voice.connect(false)
+  oldResponse.resolve(
+    new Response('answer', { headers: { 'X-Display-Session': 'old' } })
+  )
+  await rejected
+  h.peers[1]!.channel.onmessage?.({
+    data: JSON.stringify({ type: 'input_audio_buffer.speech_started' })
+  })
+  await new Promise<void>((resolve) => setImmediate(resolve))
+  assert.equal(events.at(-1)?.phase, 'listening')
+  assert.ok(events.every((event) => event.session === 'current'))
+})

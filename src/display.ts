@@ -3,6 +3,13 @@ import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import type { Trace } from './contracts.js'
 
+export type VoicePhase =
+  | 'ready'
+  | 'listening'
+  | 'thinking'
+  | 'speaking'
+  | 'offline'
+export type MotionMode = 'full' | 'subtle' | 'static'
 export interface DisplayFrame {
   mode: 'live' | 'simulation'
   updatedAt: number
@@ -10,6 +17,10 @@ export interface DisplayFrame {
   title: string
   message: string
   dismiss?: boolean
+  visual: string
+  motion: MotionMode
+  source: string
+  detail: string
 }
 const titles: Record<string, string> = {
   find_youtube_video: 'Finding your video',
@@ -27,26 +38,76 @@ const titles: Record<string, string> = {
   change_room_volume: 'Adjusting volume'
 }
 const messages: Record<string, string> = {
-  intent_ready: 'Request received',
-  search_complete: 'Search results ready',
-  command_accepted: 'Command sent · checking the device',
-  console_command_completed: 'Console command completed · title unavailable',
-  fresh_state_observed: 'Device state received',
-  observed: 'Device state confirmed',
-  accepted: 'Command accepted · visible result not verified',
-  failed: 'Could not confirm the request · check the controller',
-  superseded: 'Request cancelled'
+  intent_ready: 'On it.',
+  search_complete: 'Found your video',
+  command_accepted: 'Working on it',
+  console_command_completed: 'Opening on Xbox',
+  fresh_state_observed: 'Connected',
+  observed: 'Done',
+  accepted: 'Request sent',
+  failed: 'Something needs attention',
+  superseded: 'Cancelled'
 }
-// Deliberately accepts traces, not config, tokens, raw errors or device snapshots.
+const working = new Set([
+  'intent_ready',
+  'command_accepted',
+  'receiver_reconnect',
+  'search_complete'
+])
+// Projects only selected display text. Credentials and raw trace details never enter the feed.
 export class DisplayState {
   private requestId = ''
-  private frame?: DisplayFrame
+  private frame?: Omit<DisplayFrame, 'visual' | 'motion' | 'source' | 'detail'>
   private dismissRequested = true
+  private voiceSession = ''
+  private voiceSequence = -1
+  private voicePhase: VoicePhase = 'offline'
+  private voiceAt = 0
+  private intent = ''
+  private source = 'ROOM'
+  motion: MotionMode = 'full'
+  autoRestore = false
+  get visible() {
+    return !this.dismissRequested
+  }
   show() {
     this.dismissRequested = false
   }
   hide() {
     this.dismissRequested = true
+    this.autoRestore = false
+  }
+  describe(title: string) {
+    this.intent = title.slice(0, 160)
+  }
+  setSource(appId: string | null) {
+    this.source =
+      appId === 'youtube.leanback.v4' || appId === 'simulation.youtube'
+        ? 'YOUTUBE'
+        : appId === 'com.webos.app.hdmi3' || appId === 'simulation.hdmi3'
+          ? 'XBOX / HDMI 3'
+          : appId === 'com.webos.app.home' || appId === 'simulation.home'
+            ? 'LG HOME'
+            : 'ROOM'
+  }
+  startVoice(session: string) {
+    this.voiceSession = session
+    this.voiceSequence = -1
+    this.voicePhase = 'ready'
+    this.voiceAt = Date.now()
+  }
+  voice(
+    session: string,
+    sequence: number,
+    phase: VoicePhase,
+    now = Date.now()
+  ) {
+    if (session !== this.voiceSession || sequence <= this.voiceSequence)
+      return false
+    this.voiceSequence = sequence
+    this.voicePhase = phase
+    this.voiceAt = now
+    return true
   }
   update(event: Trace) {
     const title = titles[event.action]
@@ -60,26 +121,64 @@ export class DisplayState {
       title,
       message:
         event.action === 'find_youtube_video' && event.phase === 'observed'
-          ? 'Search results ready · nothing played yet'
-          : (messages[event.phase] ?? 'Working on your request')
+          ? 'Search results ready'
+          : (messages[event.phase] ?? 'Working on it')
     }
   }
   reset() {
     this.requestId = ''
     this.frame = undefined
     this.dismissRequested = true
+    this.autoRestore = false
+    this.voiceSession = ''
+    this.voicePhase = 'offline'
+    this.intent = ''
+    this.source = 'ROOM'
   }
   snapshot(mode: DisplayFrame['mode'], now = Date.now()): DisplayFrame {
-    if (!this.frame || now - this.frame.updatedAt > 60000)
-      return {
-        mode,
-        dismiss: this.dismissRequested,
-        updatedAt: now,
-        phase: 'idle',
-        title: 'Your room. Your software.',
-        message: 'Waiting for a request'
-      }
-    return { ...this.frame, mode, dismiss: this.dismissRequested }
+    const recent =
+      this.frame &&
+      now - this.frame.updatedAt <
+        (working.has(this.frame.phase) ? 40000 : 12000)
+        ? this.frame
+        : undefined
+    const voice = now - this.voiceAt < 30000 ? this.voicePhase : 'offline'
+    let visual = recent
+      ? working.has(recent.phase)
+        ? 'working'
+        : recent.phase === 'failed'
+          ? 'error'
+          : recent.phase === 'observed'
+            ? 'success'
+            : 'idle'
+      : 'idle'
+    if (voice === 'listening' || voice === 'speaking') visual = voice
+    else if (!recent && voice === 'thinking') visual = 'working'
+    const title =
+      visual === 'listening'
+        ? 'I’m listening.'
+        : (recent?.title ??
+          (visual === 'speaking'
+            ? 'Right here with you.'
+            : 'Your room. Your software.'))
+    return {
+      mode,
+      dismiss: this.dismissRequested,
+      updatedAt: recent?.updatedAt ?? this.voiceAt,
+      phase: recent?.phase ?? 'idle',
+      title,
+      message:
+        visual === 'listening'
+          ? 'Say what you have in mind.'
+          : (recent?.message ??
+            (voice === 'offline'
+              ? 'Ready when you are'
+              : 'Ask for something good.')),
+      visual,
+      motion: this.motion,
+      source: this.source,
+      detail: recent ? this.intent : ''
+    }
   }
 }
 export interface DisplayFeed {

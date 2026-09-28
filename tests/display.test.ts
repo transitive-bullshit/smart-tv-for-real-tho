@@ -26,7 +26,7 @@ void test('display ignores old completions, read probes and raw trace details', 
     detail: 'private diagnostic'
   })
   assert.equal(state.snapshot('live', 106).phase, 'accepted')
-  assert.match(state.snapshot('live', 106).message, /not verified/)
+  assert.equal(state.snapshot('live', 106).message, 'Request sent')
   assert.ok(
     !JSON.stringify(state.snapshot('live', 106)).includes('private diagnostic')
   )
@@ -42,7 +42,7 @@ void test('search completion is not presented as confirmed device playback', () 
     action: 'find_youtube_video'
   })
   state.update({ ...event('search', 'observed'), action: 'find_youtube_video' })
-  assert.match(state.snapshot('live', 101).message, /nothing played/)
+  assert.equal(state.snapshot('live', 101).message, 'Search results ready')
 })
 void test('LAN feed requires a token and cannot serve controls, config or credentials', async (t) => {
   const state = new DisplayState()
@@ -65,12 +65,16 @@ void test('LAN feed requires a token and cannot serve controls, config or creden
   assert.equal(ok.headers.get('cache-control'), 'no-store')
   const frame = (await ok.json()) as Record<string, unknown>
   assert.deepEqual(Object.keys(frame).sort(), [
+    'detail',
     'dismiss',
     'message',
     'mode',
+    'motion',
     'phase',
+    'source',
     'title',
-    'updatedAt'
+    'updatedAt',
+    'visual'
   ])
   assert.equal(frame.mode, 'simulation')
   assert.equal(
@@ -112,4 +116,21 @@ void test('display hide is idempotent and later tool progress cannot reopen it',
   assert.equal(state.snapshot('live').dismiss, false)
   state.reset()
   assert.equal(state.snapshot('live').dismiss, true)
+})
+
+void test('voice events reject old sessions and reordered events; listening expires and Hide persists', () => {
+  const state = new DisplayState()
+  state.startVoice('old')
+  state.startVoice('current')
+  assert.equal(state.voice('old', 5, 'speaking', 100), false)
+  assert.equal(state.voice('current', 2, 'listening', 100), true)
+  assert.equal(state.voice('current', 1, 'speaking', 101), false)
+  assert.equal(state.snapshot('live', 110).visual, 'listening')
+  assert.equal(state.snapshot('live', 30101).visual, 'idle')
+  state.show()
+  state.autoRestore = true
+  state.hide()
+  state.voice('current', 3, 'speaking', 200)
+  assert.equal(state.snapshot('live', 210).dismiss, true)
+  assert.equal(state.autoRestore, false)
 })

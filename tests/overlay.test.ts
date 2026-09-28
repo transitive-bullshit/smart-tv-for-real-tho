@@ -88,3 +88,56 @@ void test('a newer Home action waits for an already-delivered overlay launch and
   assert.equal((await second).outcome, 'accepted')
   assert.deepEqual(effects, ['tv.overlay', 'tv.home'])
 })
+
+void test('display restoration cannot clear candidates, cancel media, or run after Hide/new source', async () => {
+  const c = configSchema.parse({
+    mode: 'live',
+    youtubeAppId: 'yt',
+    timeoutMs: 500
+  })
+  const methods: string[] = []
+  const devices: Devices = {
+    async request(method) {
+      methods.push(method)
+      return true
+    },
+    close() {}
+  }
+  const coordinator = new Coordinator(
+    devices,
+    { find: async () => [] },
+    c,
+    () => {}
+  )
+  coordinator.candidates = [
+    {
+      candidateId: 'candidate',
+      videoId: 'aaaaaaaaaaa',
+      title: 'Video',
+      channel: 'test',
+      generation: coordinator.generation
+    }
+  ]
+  const generation = coordinator.generation
+  await coordinator.restoreDisplay(
+    { url: 'http://192.168.1.2/display/state', token: 'test' },
+    generation,
+    () => false
+  )
+  assert.equal(methods.length, 0)
+  await coordinator.restoreDisplay(
+    { url: 'http://192.168.1.2/display/state', token: 'test' },
+    generation,
+    () => true
+  )
+  assert.deepEqual(methods, ['tv.overlay'])
+  assert.equal(coordinator.generation, generation)
+  assert.equal(coordinator.candidates.length, 1)
+  coordinator.cancel()
+  await coordinator.restoreDisplay(
+    { url: 'http://192.168.1.2/display/state', token: 'test' },
+    generation,
+    () => true
+  )
+  assert.equal(methods.length, 1)
+})

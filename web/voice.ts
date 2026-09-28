@@ -11,6 +11,31 @@ export class Voice {
   private pressed = false
   private recordingAt?: number
   private press = 0
+  private displaySession?: string
+  private displaySequence = 0
+  private displayQueue: Promise<unknown> = Promise.resolve()
+  private displayHeartbeat?: ReturnType<typeof setInterval>
+  private displayPhase = 'ready'
+  private present(phase: string) {
+    this.displayPhase = phase
+    if (!this.displaySession) return
+    const event = {
+      session: this.displaySession,
+      sequence: ++this.displaySequence,
+      phase
+    }
+    this.displayQueue = this.displayQueue
+      .catch(() => {})
+      .then(() =>
+        fetch('/api/display/voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(event),
+          signal: AbortSignal.timeout(3000)
+        })
+      )
+      .catch(() => {})
+  }
   constructor(
     private readonly status: (text: string) => void,
     private readonly onDisconnect: () => void
@@ -67,6 +92,24 @@ export class Voice {
         }
       ))
       channel.onmessage = (event) => {
+        if (current()) {
+          try {
+            const data = JSON.parse(event.data) as { type?: string }
+            const phases: Record<string, string> = {
+              'input_audio_buffer.speech_started': 'listening',
+              'input_audio_buffer.speech_stopped': 'thinking',
+              'output_audio_buffer.started': 'speaking',
+              'output_audio_buffer.stopped': 'ready',
+              'output_audio_buffer.cleared': this.pressed
+                ? 'listening'
+                : 'ready',
+              error: 'ready'
+            }
+            if (data.type && phases[data.type]) this.present(phases[data.type]!)
+          } catch {
+            /* Tool event parser reports malformed messages. */
+          }
+        }
         if (current())
           void tools.receive(event.data).catch(() => {
             if (current())
@@ -88,6 +131,8 @@ export class Voice {
         const result = await response.json()
         throw new Error(result.error)
       }
+      const displaySession =
+        response.headers.get('X-Display-Session') ?? undefined
       const sdp = await response.text()
       connection.signal.throwIfAborted()
       await pc.setRemoteDescription({ type: 'answer', sdp })
@@ -113,6 +158,12 @@ export class Voice {
           if (connection.signal.aborted) closed()
         })
       connection.signal.throwIfAborted()
+      this.displaySession = displaySession
+      this.present('ready')
+      this.displayHeartbeat = setInterval(
+        () => this.present(this.displayPhase),
+        10000
+      )
       this.status(
         openMic ? 'Listening · open mic' : 'Voice ready · push to talk'
       )
@@ -143,6 +194,7 @@ export class Voice {
           track.enabled = true
         })
         this.recordingAt = performance.now()
+        this.present('listening')
         this.status('Listening…')
       } catch {
         if (this.connection === connection) {
@@ -163,15 +215,20 @@ export class Voice {
       this.recordingAt = undefined
       if (duration < 150) {
         this.send({ type: 'input_audio_buffer.clear' })
+        this.present('ready')
         this.status('Hold Talk while speaking.')
         return
       }
       this.send({ type: 'input_audio_buffer.commit' })
       this.send({ type: 'response.create' })
+      this.present('thinking')
       this.status('Thinking…')
     }
   }
   close() {
+    clearInterval(this.displayHeartbeat)
+    this.present('offline')
+    this.displaySession = undefined
     this.connection?.abort()
     this.connection = undefined
     this.tools?.close()

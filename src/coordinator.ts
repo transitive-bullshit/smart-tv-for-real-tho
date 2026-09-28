@@ -200,6 +200,29 @@ export class Coordinator {
       return { requestId: id, outcome, message }
     }
   }
+  async restoreDisplay(
+    display: { url: string; token: string },
+    generation: number,
+    active: () => boolean
+  ): Promise<void> {
+    const signal = AbortSignal.any([
+      this.media.signal,
+      AbortSignal.timeout(8000)
+    ])
+    await this.sourceLane.run(signal, async () => {
+      if (
+        !active() ||
+        generation !== this.generation ||
+        this.config.mode !== 'live'
+      )
+        return
+      await this.devices.request(
+        'tv.overlay',
+        { action: 'launch', target: 'display', params: display },
+        signal
+      )
+    })
+  }
   async closeYoutubeForProbe(): Promise<Result> {
     const id = randomUUID()
     if (

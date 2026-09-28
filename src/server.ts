@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { appendFile, mkdir } from 'node:fs/promises'
+import { appendFile, mkdir, readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import pMap from 'p-map'
@@ -12,6 +12,7 @@ import { Coordinator } from './coordinator.js'
 import { DisplayState, startDisplayFeed } from './display.js'
 import { createSession } from './realtime.js'
 import { YouTubeSearch } from './search.js'
+import { displayDeviceStatus, installDisplay } from './tv-package.js'
 import { Simulation } from './simulation.js'
 import { readConfig, readLocal, secretsSchema, writeLocal } from './storage.js'
 
@@ -98,7 +99,11 @@ async function reconnect() {
     },
     { concurrency: 2 }
   )
-  if (active === coordinator) boot = results
+  if (active === coordinator) {
+    boot = results
+    await active.execute('get_room_state', {})
+    if (active === coordinator) displayState.setSource(active.state.tv.appId)
+  }
 }
 void reconnect()
 // Opt-in, separate read-only listener. The full control API remains loopback-only.
@@ -170,6 +175,18 @@ const server = createServer(async (req, res) => {
     return
   }
   const path = new URL(req.url ?? '/', 'http://' + host).pathname
+  const hudAssets: Record<string, [string, string]> = {
+    '/hud/': ['index.html', 'text/html'],
+    '/hud/index.html': ['index.html', 'text/html'],
+    '/hud/display.js': ['display.js', 'text/javascript'],
+    '/hud/display.css': ['display.css', 'text/css']
+  }
+  if (req.method === 'GET' && hudAssets[path]) {
+    const [file, type] = hudAssets[path]
+    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-store' })
+    res.end(await readFile('tv/display/' + file))
+    return
+  }
   if (!path.startsWith('/api/')) {
     vite.middlewares(req, res)
     return
@@ -195,7 +212,12 @@ const server = createServer(async (req, res) => {
           youtube: Boolean(youtubeKey())
         },
         boot,
-        display: { enabled: Boolean(displayFeed) },
+        display: {
+          enabled: Boolean(displayFeed),
+          autoRestore: displayState.autoRestore,
+          motion: displayState.motion,
+          frame: displayState.snapshot(config.mode)
+        },
         state: coordinator.state,
         traces,
         gameAliases: Object.keys(coordinator.config.games),
@@ -212,11 +234,103 @@ const server = createServer(async (req, res) => {
       const callId = input.callId ?? randomUUID()
       let pending = calls.get(callId)
       if (!pending) {
+        const args = input.arguments as Record<string, unknown> | null
+        if (input.name === 'play_youtube_video')
+          displayState.describe(
+            coordinator.candidates.find(
+              (c) => c.candidateId === args?.candidate_id
+            )?.title ?? ''
+          )
+        else if (input.name === 'find_youtube_video')
+          displayState.describe(
+            [args?.artist, args?.song]
+              .filter((x) => typeof x === 'string')
+              .join(' · ')
+          )
+        else if (input.name === 'start_game')
+          displayState.describe(
+            typeof args?.game_alias === 'string' ? args.game_alias : ''
+          )
+        else displayState.describe('')
+        const current = coordinator
         pending = coordinator.execute(input.name, input.arguments)
+        const generation = current.generation
+        void pending.then(async (result) => {
+          if (current !== coordinator || generation !== current.generation)
+            return
+          displayState.setSource(current.state.tv.appId)
+          if (
+            displayFeed &&
+            displayState.autoRestore &&
+            displayState.visible &&
+            [
+              'play_youtube_video',
+              'return_to_xbox',
+              'start_game',
+              'show_home'
+            ].includes(input.name) &&
+            ['observed', 'accepted'].includes(result.outcome)
+          ) {
+            try {
+              await current.restoreDisplay(
+                { url: displayFeed.url, token: displayFeed.token },
+                generation,
+                () =>
+                  current === coordinator &&
+                  displayState.autoRestore &&
+                  displayState.visible
+              )
+            } catch {
+              console.warn(
+                'TV panel restore unavailable; use Show in the controller.'
+              )
+            }
+          }
+        })
         calls.set(callId, pending)
         if (calls.size > 500) calls.delete(calls.keys().next().value!)
       }
       json(res, await pending)
+    } else if (req.method === 'GET' && path === '/api/display/frame') {
+      json(res, displayState.snapshot(config.mode))
+    } else if (req.method === 'GET' && path === '/api/display/device-status') {
+      json(res, await displayDeviceStatus())
+    } else if (req.method === 'POST' && path === '/api/display/install') {
+      z.object({})
+        .strict()
+        .parse(await body(req))
+      if (config.mode !== 'live')
+        throw new Error('Exit simulation before installing on TV.')
+      json(res, await installDisplay())
+    } else if (req.method === 'POST' && path === '/api/display/options') {
+      const options = z
+        .object({
+          motion: z.enum(['full', 'subtle', 'static']),
+          autoRestore: z.boolean()
+        })
+        .strict()
+        .parse(await body(req))
+      displayState.motion = options.motion
+      displayState.autoRestore = options.autoRestore
+      json(res, { saved: true })
+    } else if (req.method === 'POST' && path === '/api/display/voice') {
+      const event = z
+        .object({
+          session: z.string().uuid(),
+          sequence: z.number().int().nonnegative(),
+          phase: z.enum([
+            'ready',
+            'listening',
+            'thinking',
+            'speaking',
+            'offline'
+          ])
+        })
+        .strict()
+        .parse(await body(req))
+      json(res, {
+        accepted: displayState.voice(event.session, event.sequence, event.phase)
+      })
     } else if (req.method === 'POST' && path === '/api/cancel') {
       coordinator.cancel()
       json(res, { cancelled: true })
@@ -263,13 +377,16 @@ const server = createServer(async (req, res) => {
         if (config.mode !== 'live')
           throw new Error('Exit simulation before showing the TV panel.')
         displayState.show()
-        json(
-          res,
-          await coordinator.probeOverlay(action, {
-            url: displayFeed.url,
-            token: displayFeed.token
-          })
+        await coordinator.restoreDisplay(
+          { url: displayFeed.url, token: displayFeed.token },
+          coordinator.generation,
+          () => displayState.visible
         )
+        json(res, {
+          requestId: randomUUID(),
+          outcome: 'accepted',
+          message: 'TV panel requested.'
+        })
       }
     } else if (req.method === 'POST' && path === '/api/probe/overlay') {
       const { action } = z
@@ -325,7 +442,11 @@ const server = createServer(async (req, res) => {
         coordinator.config,
         input.openMic
       )
+      if (res.destroyed) return
+      const displaySession = randomUUID()
+      displayState.startVoice(displaySession)
       res.writeHead(200, {
+        'X-Display-Session': displaySession,
         'Content-Type': 'application/sdp',
         'Cache-Control': 'no-store'
       })
