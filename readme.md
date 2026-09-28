@@ -29,11 +29,13 @@ The app starts in **Live device mode**. Unavailable hardware produces a failure;
 
 No developer mode is needed for these controls. See [room facts](docs/room.md) and the [hardware runbook](docs/runbook.md).
 
-## Current evidence
+## Demo build
 
-Native LG YouTube playback, replacement, pause/resume and Hades activation have user-confirmed physical results. LG app/input/volume/ARC observations, saved bridge pairings, Xbox discovery and installed-app catalog reads work. Real YouTube search found two new songs, retained the artist during correction, and their playback was observed in the native receiver. Chrome established an actual OpenAI Realtime WebRTC connection in push-to-talk mode; no speech was sent during that connection check.
+The controller now includes **Start demo session**, a native cyan/amber HUD with full/subtle/static motion, source-transition restoration, and six full rehearsal journeys with local notes/export. Open [the visual lab](http://localhost:3210/hud/?preview=1) to inspect the actual TV client without changing the TV.
 
-The Xbox can report a successful launch operation while withholding its foreground title. The updated controller distinguishes that accepted command from an observed active title. **Keep TV volume at 0 during current testing.** Physical timing, cold-app/full-controller restart checks, complete spoken journeys, room acoustics and filming remain pending. The static TV overlay is installed and physically confirmed over Xbox HDMI and native LG YouTube; manual dismissal and the 60-second timeout work. YouTube briefly glitches/shows a spinner at overlay launch. Focus recovery and source transitions remain unverified. After installing the probe, Room → TV overlay experiment provides Show/Hide controls; their paired-LG launch/close commands are accepted by the TV, with foreground snapshots remaining Xbox HDMI. The live-activity panel’s feed connection is physically confirmed. Version 0.0.2 adds feed-driven self-dismissal to avoid an LG close error and a five-minute session timeout; its installation and physical dismissal test remain pending (see the overlay experiment instructions). See [implementation status](docs/implementation-status.md) for exact evidence and remaining gates; no complete P1–P5 gate is claimed.
+Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.3; installation currently awaits a reachable TV Developer Mode connection. Use the controller's **Install TV update** action once available. New native animation/restoration, extended playback settings and complete rehearsals will be tested together, per the user's request. No physical performance or recording success is inferred from a browser preview.
+
+Read [one-session testing and filming](docs/demo-session.md), [the agent tool inventory](docs/agent-tools.md), and [implementation status](docs/implementation-status.md). Keep unattended tests at volume zero.
 
 ## Development checks
 

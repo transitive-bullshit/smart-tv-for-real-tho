@@ -1,6 +1,6 @@
 # LG + Xbox voice-control spike: implementation plan
 
-Prepared September 27, 2026. **Implementation began September 28; current evidence and remaining gates are in [implementation status](implementation-status.md).** The architecture and gates below remain the original scope. Historical preparation context follows. The TypeScript scaffold and portable documentation are in place. Feature implementation, device connections, account authorization and live API testing are future work. This document provides context for that later implementation session.
+Prepared September 27, 2026. **September 29 scope update:** the user requested autonomous visual polish and cohesive batch journeys, deferring per-feature manual gates. Build V2 now on the verified overlay baseline; collect remaining physical results in [one session](demo-session.md). Do not label deferred checks as passed. **Implementation began September 28; current evidence and remaining gates are in [implementation status](implementation-status.md).** The architecture and gates below remain the original scope. Historical preparation context follows. The TypeScript scaffold and portable documentation are in place. Feature implementation, device connections, account authorization and live API testing are future work. This document provides context for that later implementation session.
 
 ## 1. Purpose and the result that counts
 

@@ -1,3 +1,5 @@
+> Current workflow: use [the one-session demo guide](demo-session.md) and the controller's six journeys. Earlier step-by-step probe instructions below are diagnostics, not a requirement to interrupt the user after every action.
+
 # Hardware runbook and recording script
 
 Use the same coordinator through manual buttons and voice. Record physical results in an ignored .local/hardware-runs.md; never infer them from a successful API response.

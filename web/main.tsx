@@ -10,6 +10,9 @@ import type {
 } from '../src/contracts.js'
 import { api } from './api.js'
 import { Voice } from './voice.js'
+import { Journeys } from './journeys.js'
+import { HudControls } from './hud-controls.js'
+import type { DisplayFrame, MotionMode } from '../src/display.js'
 import './style.css'
 
 interface Status {
@@ -21,7 +24,12 @@ interface Status {
   traces: Trace[]
   candidates: Candidate[]
   boot: unknown[]
-  display?: { enabled: boolean }
+  display?: {
+    enabled: boolean
+    autoRestore: boolean
+    motion: MotionMode
+    frame: DisplayFrame
+  }
 }
 interface Catalog {
   apps: { id: string; title: string }[]
@@ -39,6 +47,7 @@ function App() {
   const [message, setMessage] = useState('Connecting to the local controller…')
   const [voiceStatus, setVoiceStatus] = useState('Voice disconnected')
   const [voiceConnected, setVoiceConnected] = useState(false)
+  const [actionError, setActionError] = useState('')
   const [openMic, setOpenMic] = useState(false)
   const [catalog, setCatalog] = useState<Catalog>()
   const [xbox, setXbox] = useState<XboxCatalog>()
@@ -84,10 +93,12 @@ function App() {
   }, [])
   async function run(fn: () => Promise<unknown>) {
     setPending((n) => n + 1)
+    setActionError('')
     try {
       await fn()
       await refresh()
     } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
       setMessage(err instanceof Error ? err.message : 'Action failed')
     } finally {
       setPending((n) => n - 1)
@@ -146,8 +157,8 @@ function App() {
         <div className={'mode ' + mode}>
           {mode === 'live' ? 'LIVE DEVICE MODE' : 'SIMULATION · NO HARDWARE'}
         </div>
-        <a href={display ? '/' : '/display'}>
-          {display ? 'Operator' : 'Display view'} ↗
+        <a href={display ? '/' : '/hud/?preview=1'}>
+          {display ? 'Operator' : 'Visual lab'} ↗
         </a>
       </header>
       <section className='hero' aria-live='polite'>
@@ -158,7 +169,9 @@ function App() {
           <p className='eyebrow'>YOUR ROOM. YOUR SOFTWARE.</p>
           <h1>{pending ? 'On it.' : 'Make yourself heard.'}</h1>
           <p className='voice-status'>{voiceStatus}</p>
-          <p className='feedback'>{message}</p>
+          <p className='feedback'>
+            {status?.display?.frame.detail || 'Music. Games. Your voice.'}
+          </p>
         </div>
       </section>
       <section className='states'>
@@ -222,6 +235,37 @@ function App() {
               </p>
             </div>
             <div className='controls'>
+              <button
+                className='primary'
+                disabled={pending > 0 || voiceConnected}
+                onClick={() =>
+                  void run(async () => {
+                    if (config?.mode === 'live' && config.tvHost)
+                      await api('setup', {
+                        action: 'tv.connect',
+                        host: config.tvHost
+                      })
+                    const muted = await api<Result>('tool', {
+                      name: 'set_room_volume',
+                      arguments: { level: 0 }
+                    })
+                    if (muted.outcome === 'failed')
+                      throw new Error(muted.message)
+                    if (status?.display?.enabled && config?.mode === 'live') {
+                      await api('display/options', {
+                        motion: status.display.motion,
+                        autoRestore: true
+                      })
+                      await api('display/overlay', { action: 'launch' })
+                    }
+                    await voice.current?.connect(openMic)
+                    setVoiceConnected(true)
+                    setMessage('Demo session ready. Follow the journeys below.')
+                  })
+                }
+              >
+                Start demo session
+              </button>
               <label className='check'>
                 <input
                   type='checkbox'
@@ -292,6 +336,17 @@ function App() {
               </button>
             </div>
           </section>
+          {actionError && (
+            <p className='action-error' role='alert'>
+              {actionError}
+            </p>
+          )}
+          <HudControls display={status?.display} refresh={refresh} />
+          <Journeys traces={status?.traces ?? []} />
+          <details className='panel'>
+            <summary>Controller feedback</summary>
+            <p role='status'>{message}</p>
+          </details>
           <div className='columns'>
             <section className='panel'>
               <p className='eyebrow'>01 / MUSIC</p>
@@ -424,7 +479,7 @@ function App() {
                 physical picture and sound during hardware probes.
               </p>
               <details>
-                <summary>TV overlay experiment</summary>
+                <summary>Legacy overlay diagnostics</summary>
                 <p>
                   Requires the installed Developer Mode probe. The panel closes
                   after 60 seconds. Launch may briefly interrupt the picture.
@@ -842,7 +897,7 @@ function App() {
       )}
       <footer>
         Personal software for a room you already own.{' '}
-        <span>Prototype · physical-device verification pending</span>
+        <span>S / TV · Private room controller</span>
       </footer>
     </main>
   )

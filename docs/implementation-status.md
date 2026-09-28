@@ -1,17 +1,17 @@
 # Implementation status
 
-Updated September 28, 2026. This ledger distinguishes code, local evidence and physical-device evidence. The full original scope in [the implementation plan](implementation-plan.md) remains active.
+Updated September 29, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier entries below are historical observations, not current instructions to pause for every manual test.
 
-| Package | Implemented / verified locally | Remaining gate |
+The current objective is an autonomous polished demo build with a single cohesive room-testing session. The user explicitly deferred piecemeal hardware checks. See [demo session](demo-session.md) and the six journeys embedded in the controller.
+
+| Area | Current result | Remaining batch check |
 | --- | --- | --- |
-| P0 | Node/Vite/React app, setup forms, explicit Live/Simulation, manual tools, JSONL traces, locked Python bridge, setup check. Browser loads and reports unavailable hardware/keys. | Recheck after device configuration changes. |
-| P1 | Native LG YouTube paired. Real receiver confirmed requested video A eventually, replacement B within deadline, then Paused → Playing for B. | User confirmed picture/sound for A → B, pause and resume. Saved receiver authentication reconnects after bridge restart. Remaining: investigate first-play timeout, closed/reopened app and full controller restart. |
-| P2 | LG pairing accepted on the actual TV; saved key reconnects after bridge restart. Actual app/input catalogs and fresh Home/volume/ARC state read successfully. Xbox OAuth, console/catalog discovery and Hades launch physically confirmed by the user. | Input/Home picture confirmation and audible volume effects; foreground-title metadata remains unavailable. Automated tests must now keep volume 0. |
-| P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | One complete API-observed sequence including app close/reopen now passes, but the following warm transition timed out. Three consecutive complete transitions and physical timing observations remain pending. Test actual CEC behavior and interruption. |
-| P4 | Real YouTube API search/cache, candidate IDs/context, Realtime WebRTC and validated tools, PTT/open mic. OpenAI model access and both session configurations accepted (HTTP 200); actual Chrome WebRTC connection reached Voice ready in push-to-talk mode. | Two new songs and artist carryover pass real search-to-native-playback state checks. Remaining: actual speech/correction and room acoustics. |
-| P5 | Timing summarizer and rehearsal/recording runbook. | Measured hardware runs, two uninterrupted rehearsals, continuous physical recording. |
-| V1 | Developer pairing verified (SDK 10.3.1). Static probe installed/launched; user physically confirmed overlay over Xbox HDMI and a playing native YouTube video. YouTube briefly glitches/shows a spinner at launch, then returns behind the overlay. | [Evidence and probe](overlay-experiment.md): manual dismissal and 60-second automatic dismissal are user-confirmed; specific Back/OK controls, focus recovery, Xbox game responsiveness, Home and source transitions remain untested. YouTube launch interruption needs characterization. Audio deferred while muted. |
-| V2 | Basic laptop listening/action visual treatment. | Only implement native animation after V1 proves the rendering path. |
+| Device control | LG/Xbox pairing, Hades, native YouTube, search/correction, voice, seeking; 13 active tools with conditional ad skip | Three complete transitions, cold-start reliability, new YouTube settings |
+| Voice | Actual spoken search/playback and concise response style user-confirmed | Contextual interruption, two unfamiliar songs, two rehearsals, optional acoustics |
+| Native HUD baseline | User-confirmed picture coexistence over YouTube/Xbox, clean Hide, smooth text updates, Back/focus recovery on LG Home, explicit post-switch relaunch | Animated version, automatic source restoration, sustained performance |
+| Animated HUD 0.0.3 | CSS/SVG cyan/amber HUD, full/subtle/static modes, actual voice/tool signals, local visual lab, package built | Install on reachable TV, then batch-check native rendering |
+| Rehearsal | Six complete journeys, browser-persisted notes, downloadable results with recent traces, one-click muted demo start | One room session and an uncut recording |
+| Local verification | 55 TypeScript + 20 Python tests, format/lint/typecheck, browser build and TV package pass; browser layout and state preview inspected | Remaining real-device results deliberately deferred |
 
 ## Evidence so far
 
@@ -176,3 +176,13 @@ Added next/previous to `control_video`, plus playback speed, caption language/of
 Validation: 50 TypeScript and 20 Python tests pass, plus formatting, lint, and type checks. Coverage includes exact bridge routing, input validation/rejection, next/previous simulation, setting acceptance without fabricated observation, foreground restrictions, all Premium/enable combinations, and ad eligibility expiry/consumption. Live behavior of these newly added controls is pending. The user reported the preceding seek feature was working well.
 
 The complete agent surface and sound-control boundaries are in [agent tools](agent-tools.md). Reconnect voice to load the updated schema. No manual server restart is required under the dev watcher.
+
+## September 29: autonomous visual build and batch rehearsal
+
+Implemented the 0.0.3 HUD and complete rehearsal workflow described above. The read-only feed now projects concise presentation state, motion preferences, source labels and selected request titles. Browser voice events are session/sequence checked; old-session events cannot overwrite a new voice connection. The overlay uses local assets only and renders text through textContent. Hide prevents restoration; source restoration is generation checked and serialized without cancelling media. Credentials and raw diagnostic details remain outside the display feed.
+
+A fixed, loopback-only install action was added to reuse the controller's existing LAN environment. Installation failed; a subsequent read-only ares-device system-info request reported a connection timeout, and ordinary LG startup connection also failed. No successful install or physical V2 pass is claimed. The package is ready; the next room session can install and test it in one batch.
+
+The user subsequently confirmed the TV is turned off. Device checks and installation are deferred until it is back on. Continue local work and commit completed milestones regularly.
+
+Local milestone checks: 55 TypeScript and 20 Python tests pass, plus formatting, lint, type checks, the browser build, and TV package build. Added regressions for idle-heartbeat dismissal, actual voice-event projection, and a late SDP response after reconnect. Browser inspection confirmed the preview states and persisted rehearsal notes; the temporary UI note was cleared. No physical-device result was added.

@@ -370,3 +370,68 @@ footer {
     animation: none !important;
   }
 }
+
+.button-link {
+  display: inline-block;
+  padding: 11px 16px;
+  border: 1px solid #385053;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.hud-controls {
+  background: linear-gradient(120deg, #12272e, #101c25);
+  border-color: #3b5d62;
+}
+.hud-controls h2 {
+  font-size: 30px;
+  margin: 8px 0;
+}
+.hud-controls .controls label {
+  margin: 0;
+}
+.journey-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.journey summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 16px;
+}
+.journey summary span {
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  color: #8ba4a8;
+}
+.journey li {
+  padding: 8px 0;
+  line-height: 1.55;
+  color: #c3d6d5;
+  font-size: 14px;
+}
+.journey .row > label:first-child {
+  flex: 0 0 200px;
+}
+@media (max-width: 800px) {
+  .journey-heading {
+    display: block;
+  }
+  .journey .row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .journey .row > label:first-child {
+    flex: auto;
+  }
+}
+
+.action-error {
+  padding: 16px 20px;
+  border: 1px solid #9a7148;
+  border-radius: 8px;
+  color: #ffcc94;
+  background: #292017;
+}
