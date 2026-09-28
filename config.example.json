@@ -7,6 +7,8 @@
   "consoleId": "",
   "games": {},
   "region": "",
+  "youtubePremium": true,
+  "enableAdSkip": false,
   "maxVolume": 40,
   "timeoutMs": 20000
 }

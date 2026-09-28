@@ -154,3 +154,25 @@ All successful snapshots reported volume 0. Run 2 stopped at A’s 20,007 ms tim
 A subsequent fresh-session-on-launch experiment (`fresh-session-1790553567816`) stopped at the initial cold A timeout, before it could test its intended warm-session replacement branch. It did not establish a benefit and was removed, along with its experiment-specific tests. The lower-rate status reads remain. Final checks pass: 43 TypeScript and 14 Python tests (57 total); the browser build passed during the comparison work. No TV package update is required.
 
 The last post-failure read showed an unavailable LG and a receiver reporting no selected video/Stopped. After code cleanup, automatic reload again restored successful LG and Xbox startup connections. Further playback testing stopped pending a user screen check (YouTube home/profile prompt, video/loading, another input or off). Physical confirmation of feed-driven Hide and in-place text updates also remains unanswered. No hardware success is inferred from those pending observations.
+
+## September 28: spoken playback and concise voice behavior
+
+The user completed the spoken request “Play Virtual Insanity by Jamiroquai” and reported that it worked perfectly on the TV. This confirms one end-to-end spoken search/playback journey, not the remaining correction/rehearsal gates.
+
+At the user’s request, the Realtime prompt now specifies warm, confident routine responses (usually 2–8 words), silent tool execution by default, and no redundant recap after an acknowledgment. Technical tool messages and physical-verification caveats remain developer information. Observed success permits a short completion response; accepted commands receive action wording without invented completion. Actual failures still get a concise, useful error. Tool outcomes, diagnostics, and coordinator verification remain intact. Reconnect voice to load the revised prompt; its spoken style still needs a live retest. Prompt structure follows [official OpenAI voice prompting guidance](https://developers.openai.com/api/docs/guides/voice-prompting).
+
+## September 28: native YouTube seeking
+
+The voice-tool surface previously exposed only pause/resume despite the installed pyytlounge library providing `seek_to(seconds)`. Added `seek_video` with absolute timestamps and signed relative offsets, exposed correlated position/duration from now-playing events, and added a live-panel activity title. Voice maps timestamps to seconds, “start over” to zero, and unspecified forward/back jumps to ten seconds. Seek is restricted to foreground native YouTube, uses a fresh position for relative jumps, clamps to the available duration (one second before the end), and checks same-video/receiver position feedback after the command. Missing/stale position cannot silently become zero. Stream-specific seek restrictions can still reject or time out; no remote-button fallback is implemented.
+
+Validation: 46 TypeScript and 16 Python tests pass along with format/lint/type checks. New cases cover timestamps, forward/backward jumps, restart, clamping, stale-position refusal, acceptance without movement, bridge input validation/rejection, and clearing position on a video change.
+
+Live receiver evidence (volume 0): absolute seek to 90 seconds returned observed at position 92.860 (`98a7c49f-29c4-4e23-934e-21747cc67e6e`); relative +30 returned observed at position 135.486 (`573b956b-a818-484a-98f4-a21aae670509`), both on video `yPwkzdYN4JE`. The preceding attempt to open Virtual Insanity timed out and a different video remained playing; no startup success is claimed. Physical/voice seek confirmation is pending. Reconnect voice to obtain the new tool schema.
+
+## September 29: expanded YouTube agent controls
+
+Added next/previous to `control_video`, plus playback speed, caption language/off, and autoplay tools. Added `skip_video_ad` behind Premium and explicit-enable checks in both the Realtime tool list and coordinator; defaults and the running room confirm Premium=true / enableAdSkip=false. The Python bridge requires fresh eligible-ad feedback before calling skip. No ad was tested or skipped on this Premium account.
+
+Validation: 50 TypeScript and 20 Python tests pass, plus formatting, lint, and type checks. Coverage includes exact bridge routing, input validation/rejection, next/previous simulation, setting acceptance without fabricated observation, foreground restrictions, all Premium/enable combinations, and ad eligibility expiry/consumption. Live behavior of these newly added controls is pending. The user reported the preceding seek feature was working well.
+
+The complete agent surface and sound-control boundaries are in [agent tools](agent-tools.md). Reconnect voice to load the updated schema. No manual server restart is required under the dev watcher.

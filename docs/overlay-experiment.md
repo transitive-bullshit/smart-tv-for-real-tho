@@ -88,7 +88,7 @@ The coordinator cancels older media work and serializes overlay effects with sou
 
 Local verification: three coordinator tests cover acceptance-only semantics, simulation/disconnection boundaries and a late overlay launch followed by a newer Home command; a Python regression covers the fixed target, installation prerequisite and rejected actions/results. Full checks/build pass. The browser renders the controls. After the user restarted the controller, live SSAP launch and close both returned accepted. In the bounded retake, launch completed in 1,266 ms and close in 152 ms, with close requested about 1.3 seconds after launch completed. Before/after and intervening foreground reads reported Xbox HDMI; volume remained 0. These are API observations, not visual confirmation of these particular launches. An earlier close after roughly 66 seconds failed after the automatic timeout could already have closed the app; it does not establish an active-close failure. Raw results are in ignored `.local/hardware-probes.jsonl`. The earlier user-confirmed visible overlays used the developer CLI.
 
-## Live-activity client: feed physically confirmed; revised dismissal pending
+## Live-activity client: feed and revised dismissal physically confirmed
 
 `tv/display` is a separate installable app, `it.transitivebullsh.smarttv.display`, preserving the static compatibility probe. It projects generic controller tool progress and distinguishes an accepted command from observed device state. Search completion explicitly says nothing has played yet. It does not yet show microphone/listening state or synchronized animation.
 
@@ -125,4 +125,36 @@ The user reported an error from Hide live TV panel. The controller logged an LG 
 
 Version 0.0.2 changes only the live panel's Hide path to publish `dismiss: true` on its existing authenticated feed. The app calls its own existing dismissal handler on receipt. Hide is idempotent in controller state and does not cancel playback work. A later tool event cannot clear the dismissal request; only an explicit Show does. The API reports request acceptance, not physically observed closure. This requires both the rebuilt TV package and a backend restart; version 0.0.1 ignores the new field. The static probe retains its separate SSAP close experiment.
 
-The live panel timeout is now five minutes so a two-to-three-minute take can avoid repeated launches. This does not prove seamless text updates or remove the initial startup interruption. Keep testing those separately after installation. The new Hide path and longer timeout are locally tested/prepared, not yet physically verified.
+The live panel timeout is now five minutes so a two-to-three-minute take can avoid repeated launches. This does not prove seamless text updates or remove the initial startup interruption. Keep testing those separately after installation. The new Hide path is now physically confirmed below; the five-minute timeout remains locally tested but not physically timed.
+
+### Supervised LG Home check — September 28
+
+The user returned from the LG screensaver to Home. The controller reconnected to the paired TV and observed LG Home with volume 0 through external ARC. Live-panel launch was accepted; the user saw live activity showing “adjusting volume,” with a brief loading screen before the panel appeared. The subsequent feed-based Hide was accepted and the user confirmed that the panel disappeared while LG Home stayed visible, with no loading screen or black flash. This physically verifies the revised Hide path on LG Home.
+
+The user accepts the launch interruption for this spike. Its underlying graphics/compositor cause is unverified; deeper OS integration is a hypothesis, not a demonstrated requirement. Multiple in-place text updates, remote focus recovery, and source transitions remain separate checks.
+
+### Supervised in-place update — September 28
+
+After the TV returned to its screensaver, the controller sent Home and explicitly reopened the live panel. With the user watching, search-only `find_youtube_video` for Jamiroquai / Cosmic Girl completed (request `865b84db-8a4c-4b5d-902d-5f73fb4d29b3`). The user confirmed that the panel changed to “Search results ready” without a loading screen, black flash, or disappearance. No playback was requested; the preceding TV snapshot reported volume 0. This verifies one in-place search-result update over LG Home, separately from the accepted launch interruption. Remote focus recovery and updates over native YouTube/Xbox remain unverified.
+
+### Supervised remote focus recovery — September 28
+
+The user pressed Back on the LG remote to dismiss the live panel, then Left/Right on LG Home. They confirmed the panel closed and Home navigation worked immediately. This verifies Back dismissal and focus recovery on LG Home; OK dismissal and recovery over YouTube/Xbox remain separate checks.
+
+### Supervised live panel over native YouTube — September 28
+
+The user confirmed the requested Cosmic Girl video visibly started after controller playback request `cc2ccdfa-5e18-46c6-96b1-364bc4ecd282`. Later live-panel launch `33e2f788-98dd-4739-84dd-077dba94989b` was accepted over native YouTube. At that point the receiver reported a different video (`nyDvaivsBrg`); continuity of the originally requested video is not claimed. The TV reported volume 9, so the controller restored and observed volume 0 with request `634183b2-eb05-4849-897c-db84d77b7237`.
+
+The user confirmed about one second of loading when the panel opened, followed by the live overlay visibly above the YouTube player while video continued playing behind it. A subsequent receiver observation also reported Playing. This verifies recovered live-panel coexistence with native YouTube; it does not establish uninterrupted playback during launch. In-place updates over playing YouTube and source transitions remain separate checks.
+
+### Supervised in-place update over YouTube — September 28
+
+Search-only request `028ff804-ebeb-4035-b8fe-1eea50441dc0` for Jamiroquai / Virtual Insanity updated the already-open panel. The user confirmed “Search results ready” appeared while YouTube kept playing smoothly, with no additional loading screen or black flash. No replacement playback was requested. This verifies in-place text updates over playing native YouTube.
+
+### Supervised YouTube-to-Xbox transition — September 28
+
+With the live panel open over YouTube, `return_to_xbox` request `d6ba1932-262c-407c-834f-82c5a38e1ab4` observed YouTube Paused and HDMI 3 selected in about 5.8 seconds, with TV volume 0. The user confirmed the picture switched to Xbox and the overlay was hidden during the switch. The live panel therefore did not remain visibly persistent across this transition. Whether it was closed or merely hidden is not established. Explicit relaunch on the destination is the next check; automatic relaunch is not yet implemented or verified here.
+
+### Supervised live-panel relaunch over Xbox — September 28
+
+After the source transition hid the panel, explicit launch `c1f8f4d0-3375-40d9-8d10-983452d5789f` was accepted with HDMI 3 foreground and volume 0. The user confirmed the live panel looked good on top of Xbox. This verifies explicit destination relaunch after a YouTube-to-Xbox switch; automatic relaunch remains unimplemented/unverified.

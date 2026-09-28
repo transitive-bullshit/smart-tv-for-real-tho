@@ -207,3 +207,79 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class SeekTests(unittest.IsolatedAsyncioTestCase):
+    async def test_seek_validation_and_receiver_rejection(self):
+        bridge = Bridge()
+        bridge.yt = NS(connected=lambda: True, seek_to=AsyncMock(return_value=True))
+        self.assertTrue(await bridge.dispatch('youtube.seek', {'seconds': 90}))
+        bridge.yt.seek_to.assert_awaited_once_with(90)
+        for seconds in (-1, float('nan'), float('inf'), True, '90', 86401):
+            with self.assertRaises(SetupError):
+                await bridge.dispatch('youtube.seek', {'seconds': seconds})
+        bridge.yt.seek_to.return_value = False
+        with self.assertRaises(SetupError):
+            await bridge.dispatch('youtube.seek', {'seconds': 30})
+
+    async def test_position_correlates_with_video_and_missing_data_clears_it(self):
+        bridge = Bridge()
+        listener = Listener(bridge)
+        await listener.now_playing_changed(NS(video_id='one', state=NS(name='Playing'), current_time=90, duration=240))
+        self.assertEqual(bridge.yt_state['positionSeconds'], 90)
+        self.assertEqual(bridge.yt_state['durationSeconds'], 240)
+        await listener.now_playing_changed(NS(video_id='two', state=NS(name='Playing'), current_time=None, duration=None))
+        self.assertIsNone(bridge.yt_state['positionSeconds'])
+        self.assertIsNone(bridge.yt_state['durationSeconds'])
+
+class PlaybackControlsTests(unittest.IsolatedAsyncioTestCase):
+    def fixture(self):
+        bridge = Bridge()
+        bridge.yt = NS(connected=lambda: True, set_playback_speed=AsyncMock(return_value=True), set_closed_captions=AsyncMock(return_value=True), set_auto_play_mode=AsyncMock(return_value=True), skip_ad=AsyncMock(return_value=True), next=AsyncMock(return_value=True), previous=AsyncMock(return_value=True), pause=AsyncMock(), play=AsyncMock())
+        bridge.yt_state['videoId'] = 'current'
+        return bridge
+
+    async def test_settings_and_navigation_dispatch(self):
+        b = self.fixture()
+        await b.dispatch('youtube.speed', {'speed': 1.5})
+        b.yt.set_playback_speed.assert_awaited_once_with(1.5)
+        await b.dispatch('youtube.captions', {'language': 'en', 'videoId': 'current'})
+        await b.dispatch('youtube.captions', {'language': None, 'videoId': 'current'})
+        b.yt.set_closed_captions.assert_awaited_with(None, 'current')
+        await b.dispatch('youtube.autoplay', {'enabled': False})
+        b.yt.set_auto_play_mode.assert_awaited_once_with(False)
+        await b.dispatch('youtube.next', {})
+        await b.dispatch('youtube.previous', {})
+        b.yt.next.assert_awaited_once()
+        b.yt.previous.assert_awaited_once()
+
+    async def test_settings_validation_and_rejection(self):
+        b = self.fixture()
+        for method, params in [('youtube.speed', {'speed': True}), ('youtube.speed', {'speed': 3}), ('youtube.autoplay', {'enabled': 'false'}), ('youtube.captions', {'language': 'en', 'videoId': 'old'})]:
+            with self.assertRaises(SetupError):
+                await b.dispatch(method, params)
+        b.yt.set_playback_speed.return_value = False
+        with self.assertRaises(SetupError):
+            await b.dispatch('youtube.speed', {'speed': 1.5})
+
+    async def test_ad_skip_requires_fresh_eligibility_and_consumes_it(self):
+        b = self.fixture()
+        with self.assertRaises(SetupError):
+            await b.dispatch('youtube.skip_ad', {})
+        await Listener(b).ad_state_changed(NS(is_skip_enabled=True))
+        self.assertTrue(await b.dispatch('youtube.skip_ad', {}))
+        with self.assertRaises(SetupError):
+            await b.dispatch('youtube.skip_ad', {})
+        b.ad_eligible, b.ad_observed_at = True, 1
+        with self.assertRaises(SetupError):
+            await b.dispatch('youtube.skip_ad', {})
+        b.yt.skip_ad.assert_awaited_once()
+
+    async def test_new_ad_and_disconnect_clear_skip_eligibility(self):
+        b = self.fixture()
+        listener = Listener(b)
+        await listener.ad_state_changed(NS(is_skip_enabled=True))
+        await listener.ad_playing_changed(object())
+        self.assertFalse(b.ad_eligible)
+        await listener.ad_state_changed(NS(is_skip_enabled=True))
+        await listener.disconnected(object())
+        self.assertFalse(b.ad_eligible)

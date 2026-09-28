@@ -4,6 +4,8 @@ import contextlib
 import ipaddress
 import json
 import logging
+import math
+import re
 import os
 from pathlib import Path
 import secrets
@@ -49,12 +51,25 @@ class Listener(EventListener):
     def __init__(self, owner):
         self.owner = owner
     async def now_playing_changed(self, event):
-        self.owner.yt_state.update(videoId=event.video_id, playback=event.state.name, observedAt=now())
+        if event.video_id != self.owner.yt_state.get("videoId"):
+            self.owner.ad_eligible = False
+            self.owner.ad_observed_at = 0
+        self.owner.yt_state.update(videoId=event.video_id, playback=event.state.name, observedAt=now(),
+            positionSeconds=event.current_time if event.current_time is not None and math.isfinite(event.current_time) and event.current_time >= 0 else None,
+            durationSeconds=event.duration if event.duration is not None and math.isfinite(event.duration) and event.duration >= 0 else None)
     async def playback_state_changed(self, event):
         # A playback event has no video ID; request now-playing to correlate it.
         if self.owner.yt:
             await self.owner.yt.get_now_playing()
+    async def ad_state_changed(self, event):
+        self.owner.ad_eligible = event.is_skip_enabled is True
+        self.owner.ad_observed_at = now()
+    async def ad_playing_changed(self, event):
+        self.owner.ad_eligible = False
+        self.owner.ad_observed_at = 0
     async def disconnected(self, event):
+        self.owner.ad_eligible = False
+        self.owner.ad_observed_at = 0
         self.owner.yt_state["connected"] = False
 
 class Bridge:
@@ -63,6 +78,8 @@ class Bridge:
         self.yt = None
         self.yt_task = None
         self.yt_status_at = 0
+        self.ad_eligible = False
+        self.ad_observed_at = 0
         self.xsession = None
         self.auth = None
         self.xbox = None
@@ -121,6 +138,8 @@ class Bridge:
             save("youtube.json", self.yt.auth.serialize())
             if not await self.yt.connect():
                 raise SetupError("YouTube receiver unavailable. Open native YouTube and reconnect.")
+            self.ad_eligible = False
+            self.ad_observed_at = 0
             self.yt_state.update(connected=True, receiverId=self.yt.auth.screen_id)
             self.yt_task = asyncio.create_task(self.yt_subscribe())
             self.yt_status_at = now()
@@ -332,10 +351,50 @@ class Bridge:
             if not self.yt or not self.yt.connected():
                 raise SetupError("YouTube receiver disconnected.")
             return dict(receiverId=self.yt.auth.screen_id)
-        if method in ("youtube.play", "youtube.pause", "youtube.resume"):
+        if method == "youtube.seek":
+            seconds = p.get("seconds")
+            if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or not math.isfinite(seconds) or not 0 <= seconds <= 86400:
+                raise SetupError("Invalid YouTube seek time.")
             if not self.yt or not self.yt.connected():
                 raise SetupError("YouTube receiver disconnected.")
-            action = self.yt.play_video(p["videoId"]) if method == "youtube.play" else self.yt.pause() if method == "youtube.pause" else self.yt.play()
+            if not await self.yt.seek_to(seconds):
+                raise SetupError("YouTube seek rejected.")
+            self.yt_status_at = 0
+            return True
+        if method in ("youtube.speed", "youtube.captions", "youtube.autoplay", "youtube.skip_ad"):
+            if not self.yt or not self.yt.connected():
+                raise SetupError("YouTube receiver disconnected.")
+            if method == "youtube.speed":
+                speed = p.get("speed")
+                if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not math.isfinite(speed) or not .25 <= speed <= 2:
+                    raise SetupError("Playback speed must be between 0.25 and 2.")
+                action = self.yt.set_playback_speed(speed)
+            elif method == "youtube.captions":
+                language, video = p.get("language"), p.get("videoId")
+                if language is not None and (not isinstance(language, str) or len(language) > 64 or not re.fullmatch(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*", language)):
+                    raise SetupError("Invalid caption language.")
+                if not video or video != self.yt_state.get("videoId"):
+                    raise SetupError("Current video changed before setting captions.")
+                action = self.yt.set_closed_captions(language, video)
+            elif method == "youtube.autoplay":
+                if not isinstance(p.get("enabled"), bool):
+                    raise SetupError("Autoplay requires enabled true or false.")
+                action = self.yt.set_auto_play_mode(p["enabled"])
+            else:
+                if not self.ad_eligible or now() - self.ad_observed_at > 10000:
+                    raise SetupError("No currently eligible ad to skip.")
+                self.ad_eligible = False
+                action = self.yt.skip_ad()
+            if not await action:
+                raise SetupError("YouTube command rejected.")
+            return True
+        if method in ("youtube.play", "youtube.pause", "youtube.resume", "youtube.next", "youtube.previous"):
+            if not self.yt or not self.yt.connected():
+                raise SetupError("YouTube receiver disconnected.")
+            if method in ("youtube.play", "youtube.next", "youtube.previous"):
+                self.ad_eligible = False
+                self.ad_observed_at = 0
+            action = self.yt.play_video(p["videoId"]) if method == "youtube.play" else {"youtube.pause": self.yt.pause, "youtube.resume": self.yt.play, "youtube.next": self.yt.next, "youtube.previous": self.yt.previous}[method]()
             if not await action:
                 raise SetupError("YouTube command rejected; reconnect the receiver.")
             return True

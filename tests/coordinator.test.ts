@@ -291,3 +291,92 @@ void test('completed command does not override a contradictory foreground title'
     'failed'
   )
 })
+
+void test('seeking supports timestamps, relative jumps, restart and duration bounds without replacing video', async () => {
+  const { coordinator: c } = fixture()
+  await c.execute('play_youtube_video', { candidate_id: await candidate(c) })
+  await c.execute('control_video', { action: 'pause' })
+  for (const [mode, seconds, expected] of [
+    ['absolute', 90, 90],
+    ['relative', 30, 120],
+    ['relative', -10, 110],
+    ['relative', -200, 0],
+    ['absolute', 999, 299],
+    ['absolute', 0, 0]
+  ] as const) {
+    assert.equal(
+      (await c.execute('seek_video', { mode, seconds })).outcome,
+      'observed'
+    )
+    assert.equal(c.state.youtube.positionSeconds, expected)
+    assert.equal(c.state.youtube.videoId, 'aaaaaaaaaaa')
+    assert.equal(c.state.youtube.playback, 'Paused')
+  }
+  assert.equal(
+    (await c.execute('seek_video', { mode: 'absolute', seconds: -1 })).outcome,
+    'failed'
+  )
+})
+
+void test('seeking rejects stale position and does not send a jump', async () => {
+  const cfg = { ...config(), timeoutMs: 200 }
+  const sim = new Simulation(cfg)
+  sim.state.tv.appId = 'yt'
+  Object.assign(sim.state.youtube, {
+    connected: true,
+    videoId: 'aaaaaaaaaaa',
+    playback: 'Playing',
+    positionSeconds: 50
+  })
+  let seeks = 0
+  const c = new Coordinator(
+    {
+      async request(method, params, signal) {
+        if (method === 'youtube.seek') seeks++
+        const result = await sim.request(method, params, signal)
+        if (method === 'state') {
+          const state = result as typeof sim.state
+          state.youtube.observedAt = 1
+        }
+        return result
+      },
+      close() {}
+    },
+    search,
+    cfg,
+    () => {}
+  )
+  assert.equal(
+    (await c.execute('seek_video', { mode: 'relative', seconds: 30 })).outcome,
+    'failed'
+  )
+  assert.equal(seeks, 0)
+})
+
+void test('seek acceptance without movement cannot count as observed', async () => {
+  const cfg = { ...config(), timeoutMs: 300 }
+  const sim = new Simulation(cfg)
+  sim.state.tv.appId = 'yt'
+  Object.assign(sim.state.youtube, {
+    connected: true,
+    videoId: 'aaaaaaaaaaa',
+    playback: 'Paused',
+    positionSeconds: 10
+  })
+  const c = new Coordinator(
+    {
+      request: (method, params, signal) =>
+        method === 'youtube.seek'
+          ? Promise.resolve(true)
+          : sim.request(method, params, signal),
+      close() {}
+    },
+    search,
+    cfg,
+    () => {}
+  )
+  assert.equal(
+    (await c.execute('seek_video', { mode: 'absolute', seconds: 90 })).outcome,
+    'failed'
+  )
+})

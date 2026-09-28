@@ -459,15 +459,160 @@ export class Coordinator {
           data = await this.read(op)
           break
         }
+        case 'seek_video': {
+          const { mode, seconds } = argsSchemas.seek_video.parse(raw)
+          if (mode === 'absolute' && seconds < 0)
+            throw new Error('Absolute time cannot be negative.')
+          const initial = await this.read(op)
+          if (
+            !initial.tv.connected ||
+            initial.tv.appId !== this.config.youtubeAppId
+          )
+            throw new Error('Open native YouTube before seeking.')
+          if (!initial.youtube.connected)
+            await this.effect(op, 'youtube.connect')
+          const before = await this.observe(
+            op,
+            (s) =>
+              s.tv.connected &&
+              s.tv.appId === this.config.youtubeAppId &&
+              s.youtube.connected &&
+              s.youtube.receiverId !== null &&
+              s.youtube.videoId !== null &&
+              s.youtube.observedAt >= started &&
+              (s.youtube.playback === 'Playing' ||
+                s.youtube.playback === 'Paused') &&
+              (mode === 'absolute' || s.youtube.positionSeconds != null)
+          )
+          const current =
+            (before.youtube.positionSeconds ?? 0) +
+            (before.youtube.playback === 'Playing'
+              ? Math.max(0, Date.now() - before.youtube.observedAt) / 1000
+              : 0)
+          const requested = mode === 'absolute' ? seconds : current + seconds
+          const duration = before.youtube.durationSeconds
+          const target = Math.max(
+            0,
+            Math.min(
+              requested,
+              86400,
+              duration != null && duration > 0
+                ? Math.max(0, duration - 1)
+                : 86400
+            )
+          )
+          const sentAt = Date.now()
+          await this.effect(op, 'youtube.seek', { seconds: target })
+          data = await this.observe(op, (s) => {
+            const position = s.youtube.positionSeconds
+            const advance =
+              s.youtube.playback === 'Playing'
+                ? Math.max(0, s.youtube.observedAt - sentAt) / 1000
+                : 0
+            return (
+              s.tv.connected &&
+              s.tv.appId === this.config.youtubeAppId &&
+              s.youtube.connected &&
+              s.youtube.receiverId === before.youtube.receiverId &&
+              s.youtube.videoId === before.youtube.videoId &&
+              s.youtube.observedAt >= sentAt &&
+              position != null &&
+              position >= target - 3 &&
+              position <= target + advance + 3
+            )
+          })
+          break
+        }
+        case 'set_video_speed':
+        case 'set_video_captions':
+        case 'set_video_autoplay':
+        case 'skip_video_ad': {
+          if (
+            name === 'skip_video_ad' &&
+            (this.config.youtubePremium || !this.config.enableAdSkip)
+          )
+            throw new Error('Ad skipping is disabled for this room.')
+          const params = argsSchemas[name].parse(raw)
+          let before = await this.read(op)
+          if (
+            !before.tv.connected ||
+            before.tv.appId !== this.config.youtubeAppId
+          )
+            throw new Error(
+              'Open native YouTube before changing playback settings.'
+            )
+          if (!before.youtube.connected) {
+            await this.effect(op, 'youtube.connect')
+            before = await this.observe(
+              op,
+              (s) =>
+                s.tv.connected &&
+                s.tv.appId === this.config.youtubeAppId &&
+                s.youtube.connected &&
+                s.youtube.observedAt >= started
+            )
+          }
+          if (name === 'set_video_captions') {
+            before = await this.observe(
+              op,
+              (s) =>
+                s.tv.connected &&
+                s.tv.appId === this.config.youtubeAppId &&
+                s.youtube.connected &&
+                s.youtube.observedAt >= started &&
+                s.youtube.videoId !== null
+            )
+          }
+          const method = {
+            set_video_speed: 'youtube.speed',
+            set_video_captions: 'youtube.captions',
+            set_video_autoplay: 'youtube.autoplay',
+            skip_video_ad: 'youtube.skip_ad'
+          }[name]
+          const commandParams: Record<string, unknown> = { ...params }
+          if (name === 'set_video_captions')
+            commandParams.videoId = before.youtube.videoId
+          await this.effect(op, method, commandParams)
+          outcome = 'accepted'
+          message =
+            'YouTube accepted the command. Setting change is not independently observed.'
+          break
+        }
         case 'control_video': {
           const { action } = argsSchemas.control_video.parse(raw)
-          const before = await this.read(op)
+          let before = await this.read(op)
           if (
+            before.tv.connected &&
+            before.tv.appId === this.config.youtubeAppId &&
+            !before.youtube.connected
+          ) {
+            await this.effect(op, 'youtube.connect')
+            before = await this.observe(
+              op,
+              (s) =>
+                s.tv.connected &&
+                s.tv.appId === this.config.youtubeAppId &&
+                s.youtube.connected &&
+                s.youtube.observedAt >= started
+            )
+          }
+          if (
+            !before.tv.connected ||
             !before.youtube.connected ||
             before.tv.appId !== this.config.youtubeAppId
           )
             throw new Error(
               'Native YouTube is not connected in the foreground.'
+            )
+          if (action === 'next' || action === 'previous')
+            before = await this.observe(
+              op,
+              (s) =>
+                s.tv.connected &&
+                s.tv.appId === this.config.youtubeAppId &&
+                s.youtube.connected &&
+                s.youtube.videoId !== null &&
+                s.youtube.observedAt >= started
             )
           const sentAt = Date.now()
           await this.effect(op, 'youtube.' + action)
@@ -478,9 +623,18 @@ export class Coordinator {
               s.tv.appId === this.config.youtubeAppId &&
               s.youtube.connected &&
               s.youtube.receiverId === before.youtube.receiverId &&
-              s.youtube.videoId === before.youtube.videoId &&
               s.youtube.observedAt >= sentAt &&
-              s.youtube.playback === (action === 'pause' ? 'Paused' : 'Playing')
+              (action === 'next' || action === 'previous'
+                ? s.youtube.videoId !== null &&
+                  (s.youtube.videoId !== before.youtube.videoId ||
+                    (action === 'previous' &&
+                      before.youtube.positionSeconds != null &&
+                      before.youtube.positionSeconds > 5 &&
+                      s.youtube.positionSeconds != null &&
+                      s.youtube.positionSeconds < 3))
+                : s.youtube.videoId === before.youtube.videoId &&
+                  s.youtube.playback ===
+                    (action === 'pause' ? 'Paused' : 'Playing'))
           )
           break
         }

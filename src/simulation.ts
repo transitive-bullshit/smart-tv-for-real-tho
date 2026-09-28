@@ -41,7 +41,24 @@ export class Simulation implements Devices {
       case 'youtube.play':
         this.state.youtube.videoId = String(params.videoId)
         this.state.youtube.playback = 'Playing'
+        this.state.youtube.positionSeconds = 0
+        this.state.youtube.durationSeconds = 300
         break
+      case 'youtube.seek':
+        this.state.youtube.positionSeconds = Number(params.seconds)
+        break
+      case 'youtube.next':
+      case 'youtube.previous':
+        this.state.youtube.videoId =
+          method === 'youtube.next' ? 'simulation-next' : 'simulation-previous'
+        this.state.youtube.positionSeconds = 0
+        this.state.youtube.playback = 'Playing'
+        break
+      case 'youtube.speed':
+      case 'youtube.captions':
+      case 'youtube.autoplay':
+      case 'youtube.skip_ad':
+        return true
       case 'youtube.pause':
         this.state.youtube.playback = 'Paused'
         break

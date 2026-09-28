@@ -105,3 +105,11 @@ Complete two rehearsals without developer intervention before the recorded take.
 Use the exact model/firmware in room.md for a bounded V1 investigation. Test a static dismissible transparent label over both native YouTube and direct Xbox HDMI, including audio, focus, normal game picture mode, transitions and Home. No firmware modifications are authorized by this plan.
 
 Only after V1 passes should native animation be added. /display is a laptop preview and must not be filmed or described as proof of a TV overlay. If V1 fails, retain the working control demo and document the visual limitation explicitly.
+
+## Seeking within native YouTube
+
+Reconnect voice after loading the seek tool, then try “Go to one minute thirty,” “Skip forward thirty seconds,” “Go back ten seconds,” and “Start over.” These act on the current video without searching or replacing it. Default forward/back jumps are ten seconds when no amount is given. The controller requires foreground native YouTube and fresh receiver feedback; live streams or videos that reject seeking can fail explicitly. For a muted supervised check, verify the picture and player timestamp after each request.
+
+## Additional YouTube voice controls
+
+See [the complete agent tool list](agent-tools.md). Reconnect voice, then test “Next track,” “Previous video,” “Play at one-and-a-half speed,” “Normal speed,” “English captions,” “Captions off,” and “Turn autoplay off.” Record actual picture/player-setting results. Captions need an available language. Autoplay is a real preference change; restore it if desired after testing. Ad skip remains disabled for this Premium room.

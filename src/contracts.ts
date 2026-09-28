@@ -9,6 +9,8 @@ export const configSchema = z.object({
   consoleId: z.string().max(200).default(''),
   games: z.record(z.string().max(100), z.string().max(200)).default({}),
   region: z.union([z.string().regex(/^[A-Z]{2}$/), z.literal('')]).default(''),
+  youtubePremium: z.boolean().default(true),
+  enableAdSkip: z.boolean().default(false),
   maxVolume: z.number().int().min(1).max(100).default(40),
   timeoutMs: z.number().int().min(100).max(60000).default(20000)
 })
@@ -25,7 +27,9 @@ export const stateSchema = z.object({
     ...observation,
     receiverId: z.string().nullable(),
     videoId: z.string().nullable(),
-    playback: z.string()
+    playback: z.string(),
+    positionSeconds: z.number().nonnegative().nullable().optional(),
+    durationSeconds: z.number().nonnegative().nullable().optional()
   }),
   xbox: z.object({ ...observation, activeTitle: z.string().nullable() })
 })
@@ -103,7 +107,27 @@ export const argsSchemas = {
   play_youtube_video: z
     .object({ candidate_id: z.string().min(1).max(100) })
     .strict(),
-  control_video: z.object({ action: z.enum(['pause', 'resume']) }).strict(),
+  control_video: z
+    .object({ action: z.enum(['pause', 'resume', 'next', 'previous']) })
+    .strict(),
+  seek_video: z
+    .object({
+      mode: z.enum(['absolute', 'relative']),
+      seconds: z.number().min(-86400).max(86400)
+    })
+    .strict(),
+  set_video_speed: z.object({ speed: z.number().min(0.25).max(2) }).strict(),
+  set_video_captions: z
+    .object({
+      language: z
+        .string()
+        .regex(/^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/)
+        .max(64)
+        .nullable()
+    })
+    .strict(),
+  set_video_autoplay: z.object({ enabled: z.boolean() }).strict(),
+  skip_video_ad: z.object({}).strict(),
   return_to_xbox: z.object({}).strict()
 }
 export type ToolName = keyof typeof argsSchemas
