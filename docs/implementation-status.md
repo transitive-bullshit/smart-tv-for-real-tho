@@ -7,7 +7,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 | P0 | Node/Vite/React app, setup forms, explicit Live/Simulation, manual tools, JSONL traces, locked Python bridge, setup check. Browser loads and reports unavailable hardware/keys. | Recheck after device configuration changes. |
 | P1 | Native LG YouTube paired. Real receiver confirmed requested video A eventually, replacement B within deadline, then Paused → Playing for B. | User confirmed picture/sound for A → B, pause and resume. Saved receiver authentication reconnects after bridge restart. Remaining: investigate first-play timeout, closed/reopened app and full controller restart. |
 | P2 | LG pairing accepted on the actual TV; saved key reconnects after bridge restart. Actual app/input catalogs and fresh Home/volume/ARC state read successfully. Xbox OAuth, console/catalog discovery and Hades launch physically confirmed by the user. | Input/Home picture confirmation and audible volume effects; foreground-title metadata remains unavailable. Automated tests must now keep volume 0. |
-| P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | Warm sequences remain inconsistent: an earlier resume timed out; the latest run reached pause/resume but return-to-Xbox timed out awaiting pause. Three consecutive complete transitions including cold launch remain pending. Test actual CEC behavior and interruption. |
+| P3 | Deadlines, serialized source effects, independent volume lane, interruption, receiver/foreground/freshness checks. Coordinator tests pass. | One complete API-observed sequence including app close/reopen now passes, but the following warm transition timed out. Three consecutive complete transitions and physical timing observations remain pending. Test actual CEC behavior and interruption. |
 | P4 | Real YouTube API search/cache, candidate IDs/context, Realtime WebRTC and validated tools, PTT/open mic. OpenAI model access and both session configurations accepted (HTTP 200); actual Chrome WebRTC connection reached Voice ready in push-to-talk mode. | Two new songs and artist carryover pass real search-to-native-playback state checks. Remaining: actual speech/correction and room acoustics. |
 | P5 | Timing summarizer and rehearsal/recording runbook. | Measured hardware runs, two uninterrupted rehearsals, continuous physical recording. |
 | V1 | Developer pairing verified (SDK 10.3.1). Static probe installed/launched; user physically confirmed overlay over Xbox HDMI and a playing native YouTube video. YouTube briefly glitches/shows a spinner at launch, then returns behind the overlay. | [Evidence and probe](overlay-experiment.md): manual dismissal and 60-second automatic dismissal are user-confirmed; specific Back/OK controls, focus recovery, Xbox game responsiveness, Home and source transitions remain untested. YouTube launch interruption needs characterization. Audio deferred while muted. |
@@ -15,7 +15,7 @@ Updated September 28, 2026. This ledger distinguishes code, local evidence and p
 
 ## Evidence so far
 
-- pnpm test: 43 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 13 Python bridge regression tests, plus lint/format/typecheck.
+- pnpm test: 43 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 14 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
 - Browser simulation: game launch → known-video playback → return to Xbox passed through the UI; restored Live mode afterward. These are simulation results only.
 - Browser: live-mode page renders; missing Google key fails without selecting media; volume fails with an unpaired TV.
@@ -132,3 +132,25 @@ Development now uses `tsx watch` for backend TypeScript and explicitly included 
 The user restarted into `pnpm dev` watch mode. An agent-triggered timestamp change on `src/server.ts` restarted the listening child from PID 15817 to 17569 without editing its content. After asynchronous startup finished, LG and Xbox both reconnected and a fresh read showed native YouTube, volume 0. An immediate read during startup was empty, so readiness checks must wait for connection boot results.
 
 Added `pnpm dev:restart` to trigger that same watcher without source edits. Running the actual command changed child PID 17569 to 19142; LG/Xbox startup succeeded again and a fresh TV read confirmed connection, native YouTube foreground and volume 0. This resolves repeated manual restarts while the Terminal-launched watcher stays running. It does not start a stopped watcher or restart stable filming mode. The hardware runbook records the operator/agent workflow. Live panel Hide observation, automatic receiver recovery after cold reopen, speech, focus/transitions and filming remain outstanding.
+
+## Bounded receiver recovery and status-rate comparison on hardware
+
+Batch `recovery-gate-1790553071431` confirms the automatic reconnect actually ran during a cold reopen: play was accepted at 5,269 ms, disconnection prompted a receiver reconnect at 7,423 ms, reconnect completed at 7,989 ms, and A was observed Playing at 14,285 ms. No second play command was sent. B, pause and resume were observed in 9,139 / 13,377 / 19,881 ms; return-to-Xbox failed at 20,006 ms awaiting pause. A later read reported B Paused. This is successful cold-app API recovery, not a complete P3 run or physical latency measurement.
+
+Repeated room reads previously requested YouTube status at approximately the coordinator polling rate. The bridge now coalesces those requests to at most once per five seconds, while its event subscription and playback-event correlation remain active. It does not change observation timestamps on reads or relax the 20-second operation deadline. A regression verifies that repeated reads share a request, cached playback stays stale and another request becomes possible after the interval. Existing transient-recovery tests advance the request interval explicitly.
+
+The matched experiment `status-5s-1790553317663` completed one full sequence:
+
+| Step                               | API-observed completion |
+| ---------------------------------- | ----------------------- |
+| A after explicit app close/reopen  | 13,281 ms               |
+| Replacement B                      | 3,215 ms                |
+| Pause                              | 8,073 ms                |
+| Resume                             | 8,195 ms                |
+| Return to Xbox with YouTube Paused | 1,506 ms                |
+
+All successful snapshots reported volume 0. Run 2 stopped at A’s 20,007 ms timeout; a later read reported the previous B Stopped. The first-run comparison is encouraging but is not a causal proof of queueing or a reliability guarantee. P3 still requires three consecutive runs and physical observations.
+
+A subsequent fresh-session-on-launch experiment (`fresh-session-1790553567816`) stopped at the initial cold A timeout, before it could test its intended warm-session replacement branch. It did not establish a benefit and was removed, along with its experiment-specific tests. The lower-rate status reads remain. Final checks pass: 43 TypeScript and 14 Python tests (57 total); the browser build passed during the comparison work. No TV package update is required.
+
+The last post-failure read showed an unavailable LG and a receiver reporting no selected video/Stopped. After code cleanup, automatic reload again restored successful LG and Xbox startup connections. Further playback testing stopped pending a user screen check (YouTube home/profile prompt, video/loading, another input or off). Physical confirmation of feed-driven Hide and in-place text updates also remains unanswered. No hardware success is inferred from those pending observations.

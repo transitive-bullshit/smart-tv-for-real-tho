@@ -148,11 +148,13 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         bridge.yt_task = NS(done=lambda: False)
         failed = await bridge.state(include_xbox=False)
         self.assertFalse(failed["youtube"]["connected"])
+        bridge.yt_status_at -= 5000
         recovered = await bridge.state(include_xbox=False)
         self.assertTrue(recovered["youtube"]["connected"])
         self.assertEqual(recovered["youtube"]["observedAt"], 100)
         self.assertEqual(recovered["youtube"]["videoId"], "old-video")
         self.assertEqual(recovered["youtube"]["playback"], "Paused")
+        bridge.yt_status_at -= 5000
         rejected = await bridge.state(include_xbox=False)
         self.assertFalse(rejected["youtube"]["connected"])
 
@@ -182,6 +184,20 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         state = await bridge.state(include_xbox=False)
         self.assertTrue(state["youtube"]["connected"])
         self.assertEqual(state["youtube"]["receiverId"], "replacement")
+
+    async def test_repeated_state_reads_do_not_flood_receiver_or_freshen_cached_playback(self):
+        bridge = Bridge()
+        bridge.yt_state.update(connected=True, videoId="old", observedAt=100)
+        bridge.yt = NS(connected=lambda: True, get_now_playing=AsyncMock(return_value=True))
+        bridge.yt_task = NS(done=lambda: False)
+        with patch("main.now", return_value=10000):
+            await bridge.state(include_xbox=False)
+            state = await bridge.state(include_xbox=False)
+        self.assertEqual(bridge.yt.get_now_playing.await_count, 1)
+        self.assertEqual(state["youtube"]["observedAt"], 100)
+        with patch("main.now", return_value=15001):
+            await bridge.state(include_xbox=False)
+        self.assertEqual(bridge.yt.get_now_playing.await_count, 2)
 
     async def test_unconfigured_state_is_explicitly_disconnected(self):
         state = await Bridge().state()

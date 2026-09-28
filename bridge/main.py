@@ -62,6 +62,7 @@ class Bridge:
         self.tv = None
         self.yt = None
         self.yt_task = None
+        self.yt_status_at = 0
         self.xsession = None
         self.auth = None
         self.xbox = None
@@ -122,6 +123,7 @@ class Bridge:
                 raise SetupError("YouTube receiver unavailable. Open native YouTube and reconnect.")
             self.yt_state.update(connected=True, receiverId=self.yt.auth.screen_id)
             self.yt_task = asyncio.create_task(self.yt_subscribe())
+            self.yt_status_at = now()
             await self.yt.get_now_playing()
 
     async def yt_subscribe(self):
@@ -224,6 +226,11 @@ class Bridge:
             if not receiver or not receiver.connected() or not listener or listener.done():
                 self.yt_state["connected"] = False
                 return
+            # State reads share the subscription; avoid flooding its command queue.
+            requested_at = now()
+            if requested_at - self.yt_status_at < 5000:
+                return
+            self.yt_status_at = requested_at
             accepted = False
             try:
                 async with asyncio.timeout(2):
