@@ -65,15 +65,6 @@ button:disabled {
   transform-origin: 0 0;
   will-change: transform, opacity;
 }
-#film {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: #000;
-}
 #focus {
   position: absolute;
   border: 1px solid #fff;
@@ -84,10 +75,13 @@ button:disabled {
   box-shadow: 0 0 0 7px #0003;
   pointer-events: none;
 }
-#chrome {
+#chrome,
+#ambient-titles {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+#ambient-titles {
   background: linear-gradient(0deg, #08141475, transparent 35%);
 }
 header {
@@ -114,20 +108,11 @@ header a {
   max-width: calc(100% - 450px);
   text-shadow: 0 2px 24px #0008;
 }
-.caption span {
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  opacity: 0.8;
-}
 .caption h1 {
   font-weight: 450;
   font-size: clamp(24px, 3.5vw, 56px);
   letter-spacing: -0.04em;
-  margin: 12px 0;
-}
-.caption p {
-  font-size: 14px;
-  opacity: 0.85;
+  margin: 0;
 }
 #panel {
   pointer-events: auto;
@@ -293,9 +278,6 @@ summary {
     bottom: 24px;
     max-width: calc(100% - 330px);
   }
-  .caption p {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   #reveal {
@@ -310,6 +292,7 @@ summary {
   pointer-events: none;
 }
 #chrome,
+#ambient-titles,
 #reveal,
 #toast {
   z-index: 1;

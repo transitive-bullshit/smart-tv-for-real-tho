@@ -294,10 +294,10 @@ class AmbientTests(unittest.IsolatedAsyncioTestCase):
             launch_app_with_params=AsyncMock(return_value={"returnValue": True}),
             close_app=AsyncMock(return_value={"returnValue": True}),
         )
-        await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "video", "guard": True, "id": "other.app"})
-        bridge.tv.launch_app_with_params.assert_awaited_once_with(app_id, {"mode": "video", "guard": False})
+        await bridge.dispatch("tv.ambient", {"action": "launch", "guard": True, "id": "other.app"})
+        bridge.tv.launch_app_with_params.assert_awaited_once_with(app_id, {"guard": True})
         with self.assertRaisesRegex(SetupError, "Invalid ambient"):
-            await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "external"})
+            await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "video"})
         bridge.tv.get_apps.return_value = []
         with self.assertRaisesRegex(SetupError, "Install Room Ambient"):
             await bridge.dispatch("tv.ambient", {"action": "launch"})

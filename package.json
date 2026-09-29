@@ -34,8 +34,7 @@
     "predev": "pnpm build:visuals && pnpm build:ambient",
     "predev:stable": "pnpm build:visuals && pnpm build:ambient",
     "build:ambient": "vite build --config tv/ambient.config.ts",
-    "ambient:render": "tsx scripts/render-ambient.ts",
-    "tv:package-ambient": "pnpm build:ambient && pnpm ambient:render && pnpm tv:cli ares-package tv/ambient --outdir build/tv"
+    "tv:package-ambient": "pnpm build:ambient && pnpm tv:cli ares-package tv/ambient --outdir build/tv"
   },
   "dependencies": {
     "ky": "^2.0.2",

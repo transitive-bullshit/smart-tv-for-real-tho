@@ -41,9 +41,9 @@ Read [one-session testing and filming](docs/demo-session.md), [the agent tool in
 
 ## Personal ambient screen
 
-Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion, cover framing and a silent film alternative. The controller can install/open the separate **Room Ambient 0.0.2** foreground TV app. It is prepared locally; screensaver suppression, native playback and remote behavior await the shared TV session. This does not yet replace LG's global idle screensaver.
+Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion and cover framing. **Room Ambient 0.0.3** is installed on the real TV; the slideshow, transitions, persistent scene titles and focal-point control are user-verified. The rendered film direction has been removed. The private guard registration responded on TV; screensaver suppression and long idle behavior remain unverified; this is a foreground app, not LG's global idle provider.
 
-[Feasibility, implementation and one-session checks](docs/ambient-screensaver.md). Build the installable package with `pnpm tv:package-ambient` (requires ffmpeg for the generated film).
+[Feasibility, implementation and live checks](docs/ambient-screensaver.md). Build the installable package with `pnpm tv:package-ambient`. After TV client edits, run `pnpm build:ambient` and reload the browser preview; Vite does not need restarting. The TV itself requires a package update through the controller.
 
 ## Development checks
 

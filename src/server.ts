@@ -18,7 +18,8 @@ import { YouTubeSearch } from './search.js'
 import {
   displayDeviceStatus,
   installDisplay,
-  installAmbient
+  installAmbient,
+  uninstallOverlayProbe
 } from './tv-package.js'
 import { Simulation } from './simulation.js'
 import { readConfig, readLocal, secretsSchema, writeLocal } from './storage.js'
@@ -321,6 +322,13 @@ const server = createServer(async (req, res) => {
       if (config.mode !== 'live')
         throw new Error('Exit simulation before installing on TV.')
       json(res, await installDisplay())
+    } else if (req.method === 'POST' && path === '/api/probe/uninstall') {
+      z.object({})
+        .strict()
+        .parse(await body(req))
+      if (config.mode !== 'live')
+        throw new Error('Exit simulation before removing a TV app.')
+      json(res, await uninstallOverlayProbe())
     } else if (req.method === 'POST' && path === '/api/ambient/install') {
       z.object({})
         .strict()

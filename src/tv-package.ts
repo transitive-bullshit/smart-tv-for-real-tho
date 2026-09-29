@@ -4,7 +4,7 @@ import { promisify } from 'node:util'
 const exec = promisify(execFile)
 const packages = {
   display: { version: '0.0.4', command: 'tv:package-display' },
-  ambient: { version: '0.0.2', command: 'tv:package-ambient' }
+  ambient: { version: '0.0.3', command: 'tv:package-ambient' }
 } as const
 const installing = new Map<
   string,
@@ -102,5 +102,22 @@ export async function displayDeviceStatus() {
         output
       )
     }
+  }
+}
+
+// Remove only our superseded experiment; the live assistant and ambient app remain installed.
+export async function uninstallOverlayProbe() {
+  const id = 'it.transitivebullsh.smarttv.overlayprobe'
+  try {
+    await exec(
+      'pnpm',
+      ['tv:cli', 'ares-install', '--device', 'smart-tv', '--remove', id],
+      { timeout: 45000, maxBuffer: 262144 }
+    )
+    return { removed: id }
+  } catch {
+    throw new Error(
+      'Could not remove the old overlay probe. Check the Developer Mode connection.'
+    )
   }
 }

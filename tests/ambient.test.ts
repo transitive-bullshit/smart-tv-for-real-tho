@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { byteRange } from '../src/ambient-assets.js'
 import { ambientCommandSchema } from '../src/ambient-options.js'
 import { configSchema, emptyState } from '../src/contracts.js'
 import type { Devices } from '../src/contracts.js'
@@ -41,43 +40,6 @@ void test('cover motion never exposes edges or crops its focal point across aspe
     width: 100,
     height: 100
   })
-})
-void test('video range serving supports seeks and rejects invalid or multiple byte ranges', () => {
-  assert.deepEqual(byteRange(undefined, 100), {
-    start: 0,
-    end: 99,
-    partial: false
-  })
-  assert.deepEqual(byteRange('bytes=10-19', 100), {
-    start: 10,
-    end: 19,
-    partial: true
-  })
-  assert.deepEqual(byteRange('bytes=80-', 100), {
-    start: 80,
-    end: 99,
-    partial: true
-  })
-  assert.deepEqual(byteRange('bytes=-20', 100), {
-    start: 80,
-    end: 99,
-    partial: true
-  })
-  assert.deepEqual(byteRange('bytes=10-999', 100), {
-    start: 10,
-    end: 99,
-    partial: true
-  })
-  for (const header of [
-    'bytes=-0',
-    'bytes=100-',
-    'bytes=30-10',
-    'bytes=',
-    'bytes=-',
-    'bytes=0-10,20-30',
-    'bytes=a-b'
-  ])
-    assert.equal(byteRange(header, 100), undefined)
 })
 function create(devices: Devices, mode: 'live' | 'simulation' = 'live') {
   return new Coordinator(
@@ -151,7 +113,7 @@ void test('a newer source command wins over an in-flight ambient launch', async 
     }
   })
   const first = c.controlAmbient(
-    ambientCommandSchema.parse({ action: 'launch', mode: 'video' })
+    ambientCommandSchema.parse({ action: 'launch' })
   )
   await started
   const second = c.execute('show_home', { target: 'tv' })

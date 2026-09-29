@@ -5,19 +5,18 @@ export function AmbientControls({ live }: { live: boolean }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [guard, setGuard] = useState(false)
-  async function run(action: 'install' | 'images' | 'video' | 'close') {
+  async function run(action: 'install' | 'images' | 'close') {
     setBusy(true)
     setMessage('')
     try {
       if (action === 'install') {
         await api('ambient/install', {})
         setMessage(
-          'Room Ambient 0.0.2 installed. Choose a playback mode when ready.'
+          'Room Ambient 0.0.3 installed. Open the slideshow when ready.'
         )
       } else {
         const result = await api<Result>('ambient/control', {
           action: action === 'close' ? 'close' : 'launch',
-          mode: action === 'video' ? 'video' : 'images',
           guard: action === 'images' && guard
         })
         setMessage(result.message)
@@ -32,7 +31,7 @@ export function AmbientControls({ live }: { live: boolean }) {
   }
   return (
     <section className='panel'>
-      <p className='eyebrow'>ROOM AMBIENT / 0.0.2</p>
+      <p className='eyebrow'>ROOM AMBIENT / 0.0.3</p>
       <h2>A screen worth leaving on.</h2>
       <p>
         Your wallpapers, slowly moving. Explore the framing locally, then launch
@@ -53,9 +52,6 @@ export function AmbientControls({ live }: { live: boolean }) {
         <button disabled={busy || !live} onClick={() => void run('images')}>
           Show slideshow on TV
         </button>
-        <button disabled={busy || !live} onClick={() => void run('video')}>
-          Show film on TV
-        </button>
         <button disabled={busy || !live} onClick={() => void run('close')}>
           Close ambient app
         </button>
@@ -69,16 +65,12 @@ export function AmbientControls({ live }: { live: boolean }) {
         Try private idle guard with the slideshow
       </label>
       <p className='muted'>
-        TV launch sets room volume to zero and hides the assistant panel. Image
-        controls are exploratory; the bundled film uses the default framing.
-        This opens a foreground app; automatic system screensaver replacement is
+        TV launch sets room volume to zero and hides the assistant panel. This
+        opens a foreground app; automatic system screensaver replacement is
         unverified.
       </p>
       <p className='muted'>
-        <a href='/ambient/?mode=video' target='_blank' rel='noreferrer'>
-          Preview the silent film ↗
-        </a>{' '}
-        · See docs/ambient-screensaver.md for the single-session TV test.
+        See docs/ambient-screensaver.md for the live TV checks.
       </p>
       {message && <p role='status'>{message}</p>}
     </section>

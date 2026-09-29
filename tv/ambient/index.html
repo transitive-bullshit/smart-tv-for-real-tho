@@ -9,27 +9,16 @@
   <body>
     <main id="stage" aria-label="Ambient slideshow">
       <div id="photos"></div>
-      <video
-        id="film"
-        muted
-        loop
-        playsinline
-        preload="none"
-        aria-label="Silent ambient film"
-        hidden
-      ></video>
       <div id="focus" hidden aria-hidden="true"></div>
     </main>
+    <div id="ambient-titles">
+      <div class="caption"><h1 id="title">Leaving Earth</h1></div>
+    </div>
     <div id="chrome">
       <header>
         <a id="controller" href="/">← Room controller</a
         ><span>ROOM / AMBIENT STUDIES</span>
       </header>
-      <div class="caption">
-        <span id="number">01 / 02</span>
-        <h1 id="title">Leaving Earth</h1>
-        <p>A little space to slow down.</p>
-      </div>
       <aside id="panel" aria-label="Ambient controls">
         <div class="panel-heading">
           <span class="eyebrow">THE AMBIENT LAB</span
@@ -39,12 +28,6 @@
         <p class="intro">
           Two places to wander. A slow drift toward what matters.
         </p>
-        <label
-          >Playback<select id="mode">
-            <option value="images">Live image slideshow</option>
-            <option value="video">Rendered film · 60s loop</option>
-          </select></label
-        >
         <div id="image-controls">
           <label
             >Scene<select id="scene">
@@ -115,7 +98,7 @@
           ><button id="next" aria-label="Next scene">→</button
           ><button id="fullscreen">Full screen</button>
         </div>
-        <p id="mode-note" class="note">
+        <p id="motion-note" class="note">
           Cover framing · 3-second dissolves · original images bundled locally.
         </p>
         <details>

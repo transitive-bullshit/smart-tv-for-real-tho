@@ -14,8 +14,6 @@ const native = Boolean(platform)
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T
 const input = (id: string) => el<HTMLInputElement>(id)
-const film = el<HTMLVideoElement>('film')
-const modeSelect = el<HTMLSelectElement>('mode')
 const chrome = el('chrome')
 const events: { at: string; message: string }[] = []
 const started = performance.now()
@@ -26,8 +24,6 @@ let seconds: number = defaults.seconds
 let zoom: number = defaults.zoom
 let paused = false
 let scrubbing = false
-let mode = 'images'
-let filmAttempt = 0
 let controls = !native
 let toastTimer: ReturnType<typeof setTimeout>
 const focus = slides.map((slide) => ({
@@ -68,10 +64,6 @@ function updateGuard() {
     report('Guard released · app hidden')
     return
   }
-  if (mode !== 'images') {
-    report('Guard off · full-screen video experiment')
-    return
-  }
   if (!input('guard').checked) {
     report('Guard off')
     return
@@ -82,12 +74,11 @@ function showControls(show: boolean) {
   controls = show
   chrome.hidden = !show
   el('reveal').hidden = show || native
-  if (show && native) modeSelect.focus()
+  if (show && native) el('scene').focus()
 }
 function syncLabels() {
   const slide = slides[current]!
   el('title').textContent = slide.title
-  el('number').textContent = '0' + (current + 1) + ' / 02'
   el<HTMLSelectElement>('scene').value = String(current)
   input('x').value = String(focus[current]!.x)
   input('y').value = String(focus[current]!.y)
@@ -100,7 +91,7 @@ function syncLabels() {
   el('play').textContent = paused ? 'Play' : 'Pause'
 }
 function adjacentScene(direction = 1) {
-  const indices = mode === 'video' ? slides.map((_, index) => index) : available
+  const indices = available
   return (
     indices[
       (indices.indexOf(current) + direction + indices.length) % indices.length
@@ -108,70 +99,27 @@ function adjacentScene(direction = 1) {
   )
 }
 function scene(index: number) {
-  if (mode === 'images' && !available.includes(index)) return
+  if (!available.includes(index)) return
   current = (index + slides.length) % slides.length
   elapsed = 0
   scrubbing = false
-  if (mode === 'video') film.currentTime = current === 0 ? 0 : defaults.seconds
   syncLabels()
 }
-function stopFilm() {
-  filmAttempt++
-  film.pause()
+function updateMotionNote() {
+  el('motion-note').textContent = reduced.matches
+    ? 'Reduced motion is on: still images and direct cuts.'
+    : 'Cover framing · 3-second dissolves · original images bundled locally.'
 }
-async function resumeFilm() {
-  const attempt = ++filmAttempt
-  try {
-    await film.play()
-  } catch {
-    if (
-      attempt !== filmAttempt ||
-      mode !== 'video' ||
-      paused ||
-      document.hidden
-    )
-      return
-    paused = true
-    toast('Film could not start. Press Play or run pnpm ambient:render.')
-    log('Video play rejected')
-    syncLabels()
-  }
-}
-async function setMode(next: string) {
-  mode = next === 'video' ? 'video' : 'images'
-  modeSelect.value = mode
-  film.hidden = mode !== 'video'
-  el('photos').hidden = mode === 'video'
-  el('image-controls').hidden = mode === 'video'
-  el('focus').hidden = true
-  el('mode-note').textContent =
-    mode === 'video'
-      ? 'Fixed render · 30s per scene · 8% zoom. Motion and dissolves are baked into the silent film.'
-      : reduced.matches
-        ? 'Reduced motion is on: still images and direct cuts.'
-        : 'Cover framing · 3-second dissolves · original images bundled locally.'
-  updateGuard()
-  if (mode === 'video') {
-    if (!film.getAttribute('src')) film.src = 'media/ambient-loop.mp4'
-    if (!paused) await resumeFilm()
-  } else stopFilm()
-  log('Mode: ' + mode)
-}
-async function play() {
+function play() {
   paused = !paused
   if (scrubbing) {
     scrubbing = false
     if (elapsed >= seconds) elapsed = 0
   }
-  if (mode === 'video') {
-    if (paused) stopFilm()
-    else await resumeFilm()
-  }
   syncLabels()
 }
 function exit() {
   cleanupGuard()
-  stopFilm()
   if (native) {
     if (platform?.platformBack) platform.platformBack()
     else window.close()
@@ -182,11 +130,9 @@ function launch(params: unknown) {
   if (!params || typeof params !== 'object') return
   const data = params as Record<string, unknown>
   if (typeof data.guard === 'boolean') input('guard').checked = data.guard
-  if (data.mode === 'images' || data.mode === 'video') {
-    paused = false
-    syncLabels()
-    void setMode(data.mode)
-  }
+  paused = false
+  syncLabels()
+  updateGuard()
 }
 function parseLaunch(raw?: string) {
   try {
@@ -194,9 +140,6 @@ function parseLaunch(raw?: string) {
   } catch {
     log('Ignored malformed launch parameters')
   }
-}
-modeSelect.onchange = () => {
-  void setMode(modeSelect.value)
 }
 el<HTMLSelectElement>('scene').onchange = (event) =>
   scene(Number((event.target as HTMLSelectElement).value))
@@ -217,12 +160,7 @@ for (const axis of ['x', 'y'] as const)
 input('progress').oninput = () => {
   paused = true
   scrubbing = true
-  if (mode === 'video') {
-    stopFilm()
-    if (Number.isFinite(film.duration))
-      film.currentTime =
-        Number(input('progress').value) * Math.max(0, film.duration - 0.05)
-  } else elapsed = Number(input('progress').value) * (seconds + defaults.fade)
+  elapsed = Number(input('progress').value) * (seconds + defaults.fade)
   syncLabels()
 }
 input('guard').onchange = updateGuard
@@ -231,7 +169,7 @@ el('reveal').onclick = () => showControls(true)
 el('previous').onclick = () => scene(adjacentScene(-1))
 el('next').onclick = () => scene(adjacentScene())
 el('play').onclick = () => {
-  void play()
+  play()
 }
 el('fullscreen').onclick = () => {
   showControls(false)
@@ -245,7 +183,6 @@ el('export').onclick = () => {
     [
       JSON.stringify(
         {
-          mode,
           guard: input('guard').checked,
           seconds,
           zoom,
@@ -266,37 +203,39 @@ el('export').onclick = () => {
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
-film.addEventListener('error', () => {
-  if (mode !== 'video') return
-  paused = true
-  syncLabels()
-  toast('Film unavailable. Build it with pnpm ambient:render.')
-  log('Video error: ' + film.error?.code)
-})
 document.addEventListener('visibilitychange', () => {
   el('lifecycle').textContent = document.hidden
     ? 'Hidden · animation suspended'
     : 'Visible · ' + new Date().toLocaleTimeString()
   log('Visibility: ' + !document.hidden)
   updateGuard()
-  if (document.hidden) stopFilm()
-  else if (mode === 'video' && !paused) void resumeFilm()
 })
 window.addEventListener('pagehide', () => {
   cleanupGuard()
-  stopFilm()
 })
 document.addEventListener('webOSLaunch', (event) =>
   launch((event as CustomEvent).detail)
 )
 document.addEventListener('webOSRelaunch', (event) => {
-  launch((event as CustomEvent<{ mode?: string; guard?: boolean }>).detail)
+  launch((event as CustomEvent<{ guard?: boolean }>).detail)
   showControls(false)
 })
 document.addEventListener('keydown', (event) => {
   if (event.keyCode === 461 || event.key === 'Escape') {
     event.preventDefault()
     exit()
+    return
+  }
+  if (
+    controls &&
+    event.key === 'Enter' &&
+    event.target instanceof HTMLInputElement &&
+    event.target.type === 'checkbox'
+  ) {
+    event.preventDefault()
+    // Remote OK sends Enter; a native HTML checkbox otherwise only toggles on Space.
+    // Synthetic click also dispatches input/change and preserves pointer behavior.
+    event.target.click()
     return
   }
   if (native && controls && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
@@ -338,7 +277,7 @@ document.addEventListener('keydown', (event) => {
     showControls(!controls)
   } else if (event.key === ' ') {
     event.preventDefault()
-    void play()
+    play()
   } else if (event.key === 'ArrowRight') {
     event.preventDefault()
     scene(adjacentScene())
@@ -347,9 +286,7 @@ document.addEventListener('keydown', (event) => {
     scene(adjacentScene(-1))
   }
 })
-reduced.addEventListener('change', () => {
-  void setMode(mode)
-})
+reduced.addEventListener('change', updateMotionNote)
 function draw(index: number, time: number, opacity: number) {
   const slide = slides[index]!
   const point = focus[index]!
@@ -371,7 +308,7 @@ let last = performance.now()
 function tick(now: number) {
   const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
   last = now
-  if (!document.hidden && mode === 'images' && available.length > 0) {
+  if (!document.hidden && available.length > 0) {
     if (!paused) elapsed += dt
     if (!scrubbing && elapsed >= seconds + defaults.fade) {
       elapsed -= seconds
@@ -397,14 +334,6 @@ function tick(now: number) {
     el('focus').style.top = frame.y + focus[current]!.y * frame.height + 'px'
     if (document.activeElement !== input('progress'))
       input('progress').value = String(elapsed / (seconds + defaults.fade))
-  } else if (mode === 'video' && Number.isFinite(film.duration)) {
-    if (document.activeElement !== input('progress'))
-      input('progress').value = String(film.currentTime / film.duration)
-    const next = film.currentTime < defaults.seconds ? 0 : 1
-    if (next !== current) {
-      current = next
-      syncLabels()
-    }
   }
   requestAnimationFrame(tick)
 }
@@ -412,7 +341,7 @@ el('controller').hidden = native
 el('fullscreen').textContent = native ? 'Clean view' : 'Full screen'
 syncLabels()
 showControls(controls)
-void setMode(new URLSearchParams(location.search).get('mode') ?? 'images')
+updateMotionNote()
 parseLaunch(platform?.launchParams)
 photos.forEach((photo, index) => {
   void loadImage(photo, 'media/' + slides[index]!.file)
