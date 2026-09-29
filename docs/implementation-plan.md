@@ -1,16 +1,18 @@
-# LG + Xbox voice-control spike: implementation plan
+# Personal LG + Xbox interface: implementation plan
 
-Prepared September 27, 2026. **September 29 scope update:** the user requested autonomous visual polish and cohesive batch journeys, deferring per-feature manual gates. Build V2 now on the verified overlay baseline; collect remaining physical results in [one session](demo-session.md). Do not label deferred checks as passed. **Implementation began September 28; current evidence and remaining gates are in [implementation status](implementation-status.md).** The architecture and gates below remain the original scope. Historical preparation context follows. The TypeScript scaffold and portable documentation are in place. Feature implementation, device connections, account authorization and live API testing are future work. This document provides context for that later implementation session.
+**September 30 scope update:** the goal now includes ongoing personal use on the owner's real TV. Automatic Room Ambient activation is a required demo journey and a daily-use deliverable. Start with LG Home; investigate a usable idle signal or manual TV setup, and evaluate a Home-only timed launcher as an interim implementation. Manual setup is acceptable. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements and evidence; it supersedes earlier foreground-only ambient scope. Automatic activation is not implemented yet.
+
+Originally prepared September 27, 2026; implementation began September 28. The September 29 scope update authorized autonomous visual work and cohesive batch verification rather than piecemeal hardware gates. Current evidence and remaining checks live in [implementation status](implementation-status.md) and [the demo session](demo-session.md). The original implementation sequence below remains historical planning context where later evidence supersedes it.
 
 ## 1. Purpose and the result that counts
 
-Build a compelling, filmable demonstration of personal software controlling the user's actual LG webOS television and Xbox Series X. Natural conversation should cross device boundaries and correct media choices inside a running native app. Preserve the existing TV software, Xbox software and direct gameplay connection.
+Build a compelling, filmable demonstration of personal software controlling the user's actual LG webOS television and Xbox Series X, and make Room Ambient useful on that TV beyond the recording. Natural conversation should cross device boundaries and correct media choices inside a running native app. Preserve the existing TV software, Xbox software and direct gameplay connection.
 
 The laptop can remain the controller in the live version. “Integrated with the real devices” means the actual TV switches sources, the actual console opens a game, and native LG YouTube plays the requested videos. Moving the entire assistant onto the television is not required to achieve that result.
 
-The first deliverable is a working local application plus a reproducible live demonstration. A laptop simulation helps development but does not satisfy the live-device milestone. The second visual milestone is a real on-TV assistant layer, starting with a small compatibility test before investing in animation. Its feasibility remains unresolved.
+The deliverables include a working local application, a reproducible live demonstration, and automatic ambient activation with repeatable setup and recovery for personal use. A laptop simulation helps development but does not satisfy the live-device milestone. The original assistant-layer experiment and its subsequent hardware results are recorded in [implementation status](implementation-status.md).
 
-Known context: a reportedly recent 86-inch LG, bought less than a year ago; Xbox Series X; current Mac assumed to be the host; existing OpenAI API access; willingness to enable relevant settings. Purchase age and screen size are enough to design the controller but do not identify firmware or establish overlay compatibility.
+The target is the owner's LG 86UA8450PSA with Xbox Series X and the Mac controller. [Room facts](room.md) records device configuration; [ambient evidence](ambient-screensaver.md) and [implementation status](implementation-status.md) distinguish confirmed behavior from remaining tests.
 
 Prior evidence and boundaries are recorded in [the feasibility study](feasibility.md) and [the concrete journeys](journeys.md). This plan selects an implementation; those documents retain the broader alternatives.
 
@@ -41,6 +43,7 @@ Use known video IDs for diagnostics only. The completed demo must include genuin
 
 ### Completion criteria
 
+- Automatic ambient activation passes the [ambient acceptance checks](ambient-screensaver.md#scope-and-acceptance), with the actual trigger and any always-on controller dependency documented. Foreground guard success alone does not complete this requirement.
 - Both journeys operate the physical devices, including native LG YouTube.
 - A song correction changes the running receiver without manual search navigation.
 - P3 passes three consecutive diagnostic hardware transitions using known videos, including a cold YouTube start. P5 then passes two complete voice-and-search rehearsals without developer intervention.

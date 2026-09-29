@@ -1,8 +1,8 @@
-# Two journeys for a conversational LG TV and Xbox
+# Journeys for a personal LG TV and Xbox interface
 
-Research checked September 27, 2026. This is an evidence-based experiment design; no commands have been tested on your TV or console. Exact LG model, firmware, webOS version and audio setup remain unknown.
+Updated September 30, 2026. Journeys 1 and 2 retain the original September 27 design; later hardware evidence is in [implementation status](implementation-status.md). The owner has added automatic ambient activation for both the demo and ongoing personal use. It remains unimplemented; the foreground slideshow is already running on the real TV.
 
-Next step: [the detailed prototype implementation plan](implementation-plan.md) turns these journeys into build tasks, setup requirements and hardware acceptance gates.
+The [implementation plan](implementation-plan.md) connects these journeys to build tasks and hardware checks.
 
 **Recommendation:** build one external voice controller with three narrow integrations: LG for the visible app/input and room volume, Xbox for installed games and console navigation, and YouTube for the selected video and playback. Keep native LG YouTube and direct Xbox HDMI for the first experiment. These journeys have credible existing control paths without replacing either operating system. A persistent graphical overlay is a separate, less certain hardware experiment.
 
@@ -44,6 +44,12 @@ These song names are illustrative requests, not preselected results. The final d
 PyYtLounge exposes pause, play, seek, next/previous and playback events. Relative seeking needs a fresh position; next/previous depend on the receiver's queue/history. Keep queue editing outside the baseline: the inspected wrapper does not expose an enqueue method. [Playback API](https://pyytlounge.readthedocs.io/en/latest/pyytlounge.html)
 
 LG's native app is the recommended first host because music then does not depend on console startup. Xbox YouTube is a plausible second host using the same kind of playback adapter, but it is a distinct receiver with its own pairing. Xbox's general launch call takes an app's product ID, not a song or arbitrary content URI. [Xbox launch implementation](https://raw.githubusercontent.com/tr4nt0r/python-xbox/main/src/pythonxbox/api/provider/smartglass/__init__.py)
+
+## Journey 3: the room becomes ambient
+
+Required scope, added September 30. Start on LG Home with Room Ambient closed. After the configured activation condition, the TV opens our slideshow without a manual app launch. Leave it running, dismiss it deliberately, then resume normal TV use without immediate unwanted reopening. Verify that active YouTube playback and Xbox HDMI remain uninterrupted.
+
+A Home-only timer is an interim approach: its trigger measures time on Home, not all remote inactivity. The native idle guard is a separate part of this journey, keeping photos visible after launch. Manual LG setup is acceptable if it enables the desired behavior. The [ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) defines completion, everyday recovery and remaining feasibility work.
 
 ## What “control inside apps” actually means
 

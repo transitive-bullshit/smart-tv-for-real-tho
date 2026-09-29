@@ -1,8 +1,16 @@
 # Implementation status
 
-Updated September 29, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier entries below are historical observations, not current instructions to pause for every manual test.
+Updated September 30, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier dated entries below are historical observations, not current instructions to pause for every manual test.
 
-The current objective is an autonomous polished demo build with a single cohesive room-testing session. The user explicitly deferred piecemeal hardware checks. See [demo session](demo-session.md) and the six journeys embedded in the controller.
+The current objective includes a polished live-device demo and ongoing personal use of Room Ambient on the owner's TV. Automatic activation is required scope; manual setup is acceptable. The six existing controller journeys are joined by a required ambient journey documented in [the demo session](demo-session.md), not yet implemented in the controller. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
+
+## Latest ambient milestone: September 30
+
+- Room Ambient 0.0.8 is installed. Saved guard preferences, controller preservation, bounded re-registration recovery and session diagnostics are implemented. The latest checks passed 77 TypeScript and 21 Python tests, format/lint/types, browser and TV builds.
+- The user confirmed the guard is checked after the no-override reopen, hid controls with Back once, and later reported that the photos remain visible with no clock seen so far. The elapsed interval is unknown and observation continues. This verifies the observed saved-on state, not indefinite suppression or automatic launch.
+- Automatic activation from LG Home is **required and unimplemented**. A Home-only timer is a proposed interim approach; true idle detection and possible manual/native setup remain to investigate. The current observation tests staying open, not activation from Home.
+
+The following demo-build table reflects the September 29 milestone; the ambient record above and linked owning documents contain newer results.
 
 | Area | Current result | Remaining batch check |
 | --- | --- | --- |

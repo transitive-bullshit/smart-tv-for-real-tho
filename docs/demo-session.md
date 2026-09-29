@@ -2,6 +2,8 @@
 
 September 29, 2026. The user requested autonomous implementation and one cohesive test session instead of per-feature TV checks. The original hardware gates remain evidence to collect in that session; they no longer block building the animated HUD.
 
+September 30 scope update: include automatic Room Ambient activation in the demo and validate it for ongoing personal use. Journey 7 below is required but unimplemented; it is not yet part of the controller's six saved rehearsal scripts. Manual TV setup is acceptable. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the completion criteria.
+
 ## Before sitting down
 
 The controller runs at http://localhost:3210/. The exact TV client is previewed at http://localhost:3210/hud/?preview=1. The visual lab is a local illustration when a preview state is selected, and follows actual display events in Live feed mode. It does not send commands to the TV.
@@ -30,8 +32,11 @@ The controller includes expandable scripts and saved result/notes fields for all
 | 4. Change your mind | Interrupt a request → new destination wins → useful error → recover | 2 min |
 | 5. The HUD in the room | Voice states → YouTube/Xbox → motion comparison → remote focus → Hide | 3 min |
 | 6. One continuous take | Two complete rehearsals, then one uncut recording | 2 × 90 sec plus recording |
+| 7. The room becomes ambient (planned) | LG Home → automatic slideshow → sustained display → deliberate exit without immediate reopening | Configured activation delay plus observation |
 
 Choose at least two artist/song requests not used during development. Use **Export session notes** after the batch. Notes are stored locally in the browser, and export includes the latest 100 software trace events without diagnostic detail, credentials, or transcripts. It does not contain all historical traces: use `pnpm timings` for the server's full ignored trace log. A software event timestamp is not the time the physical picture appeared.
+
+For Journey 7, begin on LG Home with Room Ambient closed. Record the actual trigger and elapsed delay; a Home-only timer must be described as such. A guard test that starts inside Room Ambient is separate evidence. Follow the ambient acceptance checks for repeated activation, dismissal, active-media protection and everyday recovery. Longer personal-use observation remains part of completion even if the filmed sequence is short.
 
 For the original three-transition gate, repeat Journey 2 three times and close/reopen native YouTube using the Room diagnostic before one run. Record each run separately in the note, including any timeout. For the final recording, use a wide view that includes the TV and your spoken request, then show the correction and return to Xbox in the same uncut take. Keep real loading time visible. No postproduction overlay is needed.
 

@@ -1,6 +1,6 @@
 # Smart TV, for real tho
 
-A personal voice interface for the room: native LG YouTube, direct Xbox HDMI, room volume, and conversational corrections. The laptop runs the controller; the TV continues using its native apps.
+A personal voice interface and ambient screen for the room: native LG YouTube, direct Xbox HDMI, room volume, conversational corrections and personal artwork. The goals include a compelling demo and ongoing use on the owner's real TV. The laptop runs the controller; the TV continues using its native apps.
 
 ## Run locally
 
@@ -41,7 +41,11 @@ Read [one-session testing and filming](docs/demo-session.md), [the agent tool in
 
 ## Personal ambient screen
 
+**Automatic ambient activation is required scope for the demo and daily use.** The next journey starts on LG Home and opens Room Ambient after the chosen idle/activation condition. Manual TV setup is acceptable; a Home-only timer is an interim candidate. Automatic activation is not implemented yet. See [scope and acceptance](docs/ambient-screensaver.md#scope-and-acceptance).
+
 Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion and cover framing. **Room Ambient 0.0.8** loads 15 scenes from content-addressed R2 URLs, including all 13 September 30 Midjourney upscales converted to full-resolution JPEGs. Only the structured catalog is tracked. It prefetches 12 scenes ahead, caches at most 16 compressed images / 32 MiB, and keeps current/next decoded; failed downloads retry then silently skip. See [storage and upload instructions](docs/ambient-screensaver.md#r2-storage-and-prefetch-007). Each image plays once per shuffled round, with at least five intervening scenes before any repeat across rounds. The expanded collection is verified in the browser and by the user on the live TV, alongside the slideshow, transitions, persistent scene titles and focal-point control. Back closes settings first, then exits directly without the system prompt; both steps are user-verified on the TV. The rendered film direction has been removed. The private guard preference is now remembered on the TV, controller launches preserve it, and diagnostics retain idle counts across hide/show. Guard registration responded on TV; screensaver suppression and long idle behavior remain unverified; this is a foreground app, not LG's global idle provider.
+
+The user verified that the guard remains checked after reopening 0.0.8 and that the photos are still visible during an ongoing idle observation. Elapsed time is unknown; long-run suppression and automatic activation have not passed their checks.
 
 [Feasibility, implementation and live checks](docs/ambient-screensaver.md). Build the installable package with `pnpm tv:package-ambient`. After TV client edits, run `pnpm build:ambient` and reload the browser preview; Vite does not need restarting. The TV itself requires a package update through the controller.
 
