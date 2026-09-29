@@ -1,6 +1,6 @@
 # Room Ambient: custom screensaver spike
 
-September 29, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Implemented and prepared locally; physical TV verification is pending.** The existing assistant overlay remains a separate app.
+September 29, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Live testing started September 29; installed successfully, initial image startup failure under investigation.** The existing assistant overlay remains a separate app.
 
 ## Feasibility and the useful boundary
 
@@ -34,7 +34,7 @@ Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open 
 - Local controls for image, timing, zoom, focus X/Y, focus marker, progress scrubbing, pause, previous/next, and clean full-screen view. Live adjustments apply to that app instance only and reset on reload. They do not change the packaged film or an already-running TV app.
 - A separate 60-second H.264 / yuv420p / 1920×1080 / 30 fps film with the default moves baked in. It crosses from the second scene back into the first before looping; the final/initial image positions match closely. A native decoder restart gap is still possible and must be checked on TV.
 - Image mode honors `prefers-reduced-motion` with still frames/direct cuts. The optional film retains its baked-in motion; choose images for a still experience.
-- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.1`. There are no system file edits, root dependencies, background services or automatic entry rules.
+- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.2`. There are no system file edits, root dependencies, background services or automatic entry rules.
 - Controller buttons for a fixed package install, image launch, film launch, and close. Launch sets room volume to zero, pauses connected foreground YouTube, hides/disables automatic restoration of the assistant panel, then opens Room Ambient. It does not promise to pause an Xbox game.
 - Back exits through the webOS platform navigation hook. Home is OS-controlled. OK reveals the controls; left/right switch scenes when controls are hidden. Browser shortcuts: H toggles controls, Space pauses, arrows switch scenes. Hardware key routing and the exact destination after Back remain pending.
 
@@ -69,12 +69,12 @@ pnpm tv:package-ambient
 
 Film rendering requires `ffmpeg` on PATH, already present on this Mac. The render script uses the shared defaults and focal points, hashes its inputs, and reuses an up-to-date render. To change the film, edit `tv/ambient-src/model.ts` and rerun the package command. The two originals are tracked; generated bundles, MP4 and IPK are ignored and reproducible. No new npm packages or API keys are required.
 
-Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.1_all.ipk`. `pnpm build` builds both clients and the main controller, without requiring ffmpeg in CI. `pnpm dev` builds the static clients at startup; after client edits run `pnpm build:ambient` and reload the preview. Server/bridge edits continue using the existing dev watcher.
+Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.2_all.ipk`. `pnpm build` builds both clients and the main controller, without requiring ffmpeg in CI. `pnpm dev` builds the static clients at startup; after client edits run `pnpm build:ambient` and reload the preview. Server/bridge edits continue using the existing dev watcher.
 
 Equivalent manual device commands, **for the joint TV session only**:
 
 ```sh
-pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.1_all.ipk
+pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.2_all.ipk
 pnpm tv:cli ares-launch --device smart-tv it.transitivebullsh.smarttv.ambient --params '{"mode":"images","guard":false}'
 pnpm tv:cli ares-launch --device smart-tv it.transitivebullsh.smarttv.ambient --params '{"mode":"video","guard":false}'
 pnpm tv:cli ares-launch --device smart-tv --close it.transitivebullsh.smarttv.ambient
@@ -84,7 +84,7 @@ Controller preview assets use an exact file allowlist and support byte ranges fo
 
 ## One shared TV session
 
-No TV commands or installation were run during preparation. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
+Initial preparation did not touch the TV. The user subsequently authorized installation and live testing; see the session evidence below. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
 
 1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, guard unchecked. Observe one full two-image cycle: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Back exits; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
 2. **Baseline idle:** reopen images with guard off. Leave it untouched and time any stock screensaver takeover. Stop the initial observation at 10 minutes if none occurs and record “not seen within 10 minutes,” not “disabled.” Note whether visibility diagnostics changed. Allow this passive interval while doing other work; only inspect at its end.
@@ -104,3 +104,11 @@ Prefer the image engine if the scoped guard proves reliable; otherwise keep the 
 | Quick Access registration                            | Pending |
 
 Local verification completed: 62 TypeScript tests and 21 Python tests pass, including cover bounds/focal visibility, HTTP byte ranges, live-mode gating, mute/pause ordering, newer-source cancellation, fixed app targeting, and private subscription cleanup/rejection. Format, lint, TypeScript and full builds pass. Chrome preview exercised image selection, end framing, focus toggles, missing-native-bridge diagnostics, and actual film playback/seek. ffprobe confirms one silent H.264 video stream, 1920×1080 at 30 fps, exactly 60 seconds (~34 MB). The webOS IPK was built locally. Browser rendering or an API's acceptance is never substituted for the physical observations above.
+
+## Live session: September 29
+
+- Installed 0.0.1 successfully through the controller's fixed install endpoint. Set room volume to zero; SSAP subsequently observed `it.transitivebullsh.smarttv.ambient` as foreground.
+- User saw the desk image at its unscaled size, without the focal point, and the error “A bundled image is missing.” This is a failed slideshow/framing test, not a pass. Both JPEGs were verified present in the IPK.
+- Code diagnosis: `Promise.all(image.decode())` gated the entire animation/cover loop. A rejected decode promise prevented all image transforms from ever running and was incorrectly reported as a missing file. The exact native rejection reason was not captured; a displayed image alone does not prove both JPEGs load.
+- 0.0.2 starts rendering independently, uses actual image load events/natural dimensions, isolates an individual failed image, and shows per-image load diagnostics. Two regression tests cover a usable image despite a rejecting optional decode method and an isolated load failure. 64 TypeScript and 21 Python tests pass, plus format/lint/types and package build. The next live launch determines whether this resolves the native failure or exposes a separate image format/size issue.
+- Direct CLI access from the Codex process reported `EHOSTUNREACH` on developer port 9922 even though the existing controller successfully installed the app. Continue using the controller's fixed install endpoint; this is not evidence that the TV itself is offline.

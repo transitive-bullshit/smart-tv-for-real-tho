@@ -1,4 +1,5 @@
 import { coverFrame, defaults, slides, smooth } from './model.js'
+import { loadImage } from './load-image.js'
 import { screenSaverGuard } from './guard.js'
 import './style.css'
 
@@ -34,10 +35,11 @@ const focus = slides.map((slide) => ({
   y: slide.y as number
 }))
 const reduced = matchMedia('(prefers-reduced-motion: reduce)')
+const available: number[] = []
 const photos = slides.map((slide) => {
   const img = new Image()
   img.alt = slide.title
-  img.src = 'media/' + slide.file
+  img.style.opacity = '0'
   img.style.width = slide.width + 'px'
   img.style.height = slide.height + 'px'
   el('photos').append(img)
@@ -97,7 +99,16 @@ function syncLabels() {
   el('y-value').textContent = Math.round(focus[current]!.y * 100) + '%'
   el('play').textContent = paused ? 'Play' : 'Pause'
 }
+function adjacentScene(direction = 1) {
+  const indices = mode === 'video' ? slides.map((_, index) => index) : available
+  return (
+    indices[
+      (indices.indexOf(current) + direction + indices.length) % indices.length
+    ] ?? current
+  )
+}
 function scene(index: number) {
+  if (mode === 'images' && !available.includes(index)) return
   current = (index + slides.length) % slides.length
   elapsed = 0
   scrubbing = false
@@ -217,8 +228,8 @@ input('progress').oninput = () => {
 input('guard').onchange = updateGuard
 el('hide').onclick = () => showControls(false)
 el('reveal').onclick = () => showControls(true)
-el('previous').onclick = () => scene(current - 1)
-el('next').onclick = () => scene(current + 1)
+el('previous').onclick = () => scene(adjacentScene(-1))
+el('next').onclick = () => scene(adjacentScene())
 el('play').onclick = () => {
   void play()
 }
@@ -330,10 +341,10 @@ document.addEventListener('keydown', (event) => {
     void play()
   } else if (event.key === 'ArrowRight') {
     event.preventDefault()
-    scene(current + 1)
+    scene(adjacentScene())
   } else if (event.key === 'ArrowLeft') {
     event.preventDefault()
-    scene(current - 1)
+    scene(adjacentScene(-1))
   }
 })
 reduced.addEventListener('change', () => {
@@ -360,22 +371,27 @@ let last = performance.now()
 function tick(now: number) {
   const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
   last = now
-  if (!document.hidden && mode === 'images') {
+  if (!document.hidden && mode === 'images' && available.length > 0) {
     if (!paused) elapsed += dt
     if (!scrubbing && elapsed >= seconds + defaults.fade) {
       elapsed -= seconds
-      current = (current + 1) % slides.length
+      current = adjacentScene()
       syncLabels()
     }
-    const next = (current + 1) % slides.length
+    const next = adjacentScene()
     const fade =
       scrubbing || reduced.matches
         ? 0
         : smooth((elapsed - seconds) / defaults.fade)
     photos[current]!.style.zIndex = '0'
-    photos[next]!.style.zIndex = '1'
+    if (next !== current) photos[next]!.style.zIndex = '1'
     const frame = draw(current, elapsed / (seconds + defaults.fade), 1)
-    draw(next, Math.max(0, elapsed - seconds) / (seconds + defaults.fade), fade)
+    if (next !== current)
+      draw(
+        next,
+        Math.max(0, elapsed - seconds) / (seconds + defaults.fade),
+        fade
+      )
     el('focus').hidden = !input('show-focus').checked || !controls
     el('focus').style.left = frame.x + focus[current]!.x * frame.width + 'px'
     el('focus').style.top = frame.y + focus[current]!.y * frame.height + 'px'
@@ -398,7 +414,27 @@ syncLabels()
 showControls(controls)
 void setMode(new URLSearchParams(location.search).get('mode') ?? 'images')
 parseLaunch(platform?.launchParams)
-void Promise.all(photos.map((photo) => photo.decode()))
-  .then(() => requestAnimationFrame(tick))
-  .catch(() => toast('A bundled image is missing. Rebuild the app package.'))
+photos.forEach((photo, index) => {
+  void loadImage(photo, 'media/' + slides[index]!.file)
+    .then(({ width, height }) => {
+      available.push(index)
+      available.sort((a, b) => a - b)
+      if (available.length === 1) {
+        current = index
+        elapsed = 0
+        syncLabels()
+      }
+      log(slides[index]!.file + ' loaded: ' + width + '×' + height)
+      el('image-status').textContent =
+        available.length + '/' + slides.length + ' images loaded'
+    })
+    .catch((err: unknown) => {
+      const message =
+        err instanceof Error ? err.message : 'Image loading failed'
+      log(message)
+      el('image-status').textContent = message
+      toast('Could not load ' + slides[index]!.title + '. See diagnostics.')
+    })
+})
+requestAnimationFrame(tick)
 if (native) toast('Room Ambient · Back to leave · OK for controls')

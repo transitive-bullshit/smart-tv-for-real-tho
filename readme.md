@@ -41,7 +41,7 @@ Read [one-session testing and filming](docs/demo-session.md), [the agent tool in
 
 ## Personal ambient screen
 
-Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion, cover framing and a silent film alternative. The controller can install/open the separate **Room Ambient 0.0.1** foreground TV app. It is prepared locally; screensaver suppression, native playback and remote behavior await the shared TV session. This does not yet replace LG's global idle screensaver.
+Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion, cover framing and a silent film alternative. The controller can install/open the separate **Room Ambient 0.0.2** foreground TV app. It is prepared locally; screensaver suppression, native playback and remote behavior await the shared TV session. This does not yet replace LG's global idle screensaver.
 
 [Feasibility, implementation and one-session checks](docs/ambient-screensaver.md). Build the installable package with `pnpm tv:package-ambient` (requires ffmpeg for the generated film).
 
