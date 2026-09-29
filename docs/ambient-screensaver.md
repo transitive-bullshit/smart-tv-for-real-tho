@@ -1,6 +1,6 @@
 # Room Ambient: custom screensaver spike
 
-September 29, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.3 is installed on the live TV. The image slideshow, cover framing, transitions, persistent titles and focal-point control are user-verified. The private guard registration responded on the TV; idle suppression remains unverified.** The existing assistant overlay remains a separate app.
+September 29, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.4 is installed on the live TV. The image slideshow, cover framing, transitions, persistent titles and focal-point control are user-verified. The private guard registration responded on the TV; idle suppression remains unverified.** The existing assistant overlay remains a separate app.
 
 ## Feasibility and the useful boundary
 
@@ -33,9 +33,9 @@ Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open 
 - Local controls for image, timing, zoom, focus X/Y, focus marker, progress scrubbing, pause, previous/next, and clean full-screen view. Live adjustments apply to that app instance only and reset on reload. Browser changes do not change an already-running TV app.
 - The lower-left scene title remains visible in clean view, independently of controls. The scene counter and decorative subtitle have been removed.
 - The slideshow honors `prefers-reduced-motion` with still frames/direct cuts.
-- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.3`. There are no system file edits, root dependencies, background services or automatic entry rules.
+- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.4`. There are no system file edits, root dependencies, background services or automatic entry rules.
 - Controller buttons for a fixed package install, slideshow launch, and close. Launch sets room volume to zero, pauses connected foreground YouTube, hides/disables automatic restoration of the assistant panel, then opens Room Ambient. It does not promise to pause an Xbox game.
-- Back exits through the webOS platform navigation hook. Home is OS-controlled. OK reveals the controls; left/right switch scenes when controls are hidden. Browser shortcuts: H toggles controls, Space pauses, arrows switch scenes. Remote OK explicitly toggles focused checkboxes (HTML checkboxes otherwise use Space). The user verified the controls and focal marker after this fix; the guard result and exact destination after Back still need a dedicated check.
+- In 0.0.4, Back hides the settings panel first without stopping playback or the guard; a second press from clean view calls `window.close()` to exit directly. Repeated keydown events are ignored so holding Back does not run both actions. The old `platformBack()` path caused LG's confirmation prompt. LG documents `window.close()` as the direct exit alternative; physical confirmation on this firmware is pending. [LG Back-button guide](https://webostv.developer.lge.com/develop/guides/back-button) Home is OS-controlled. OK reveals the controls; left/right switch scenes when controls are hidden. Browser shortcuts: H toggles controls, Space pauses, arrows switch scenes. Remote OK explicitly toggles focused checkboxes (HTML checkboxes otherwise use Space). The user verified the controls and focal marker after this fix; guard idle suppression and the new direct-exit behavior still need a dedicated physical check.
 
 The TV assets use a small standalone TypeScript/CSS client, separate from the React controller. The image engine only animates transforms and opacity; at most two photos are composited. The app uses a 1920×1080 logical canvas, rendering the bundled originals with cover transforms. LG's UI resolution and its UHD video plane are distinct. [LG app resolution](https://webostv.developer.lge.com/develop/specifications/app-resolution)
 
@@ -67,14 +67,14 @@ pnpm tv:package-ambient
 
 The two originals are tracked; generated bundles and IPK are ignored and reproducible. No ffmpeg, new npm packages or API keys are required.
 
-Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.3_all.ipk`. `pnpm build` builds both TV clients and the main controller. `pnpm dev` builds the static TV clients at startup; after ambient client or HTML edits run `pnpm build:ambient` and reload the preview. Vite does not need restarting. Rebuild before opening the preview so HTML and JavaScript agree. Server/bridge edits use the existing dev watcher.
+Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.4_all.ipk`. `pnpm build` builds both TV clients and the main controller. `pnpm dev` builds the static TV clients at startup; after ambient client or HTML edits run `pnpm build:ambient` and reload the preview. Vite does not need restarting. Rebuild before opening the preview so HTML and JavaScript agree. Server/bridge edits use the existing dev watcher.
 
 The installed TV package is separate from the browser preview. Rebuild with `pnpm tv:package-ambient`, close the running app, install through the controller, then launch it again. Reuse the same app ID for updates; do not create another ambient app.
 
 Equivalent manual device commands:
 
 ```sh
-pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.3_all.ipk
+pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.4_all.ipk
 pnpm tv:cli ares-launch --device smart-tv it.transitivebullsh.smarttv.ambient --params '{"guard":false}'
 pnpm tv:cli ares-launch --device smart-tv --close it.transitivebullsh.smarttv.ambient
 ```
@@ -87,7 +87,7 @@ Controller preview assets use an exact file allowlist. Neither arbitrary local f
 
 Initial preparation did not touch the TV. The user subsequently authorized installation and live testing; see the session evidence below. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
 
-1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, guard unchecked. Observe one full two-image cycle: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Check the title remains in clean view and both checkboxes toggle with remote OK. Back exits; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
+1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, guard unchecked. Observe one full two-image cycle: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Check the title remains in clean view and both checkboxes toggle with remote OK. Back hides settings; Back again should exit without a prompt; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
 2. **Baseline idle:** reopen images with guard off. Leave it untouched and time any stock screensaver takeover. Stop the initial observation at 10 minutes if none occurs and record “not seen within 10 minutes,” not “disabled.” Note whether visibility diagnostics changed. Allow this passive interval while doing other work; only inspect at its end.
 3. **Private guard, if useful:** launch images with guard on. Inspect diagnostics once, then return to clean view and leave it untouched past the baseline timeout plus two minutes (or the same 10-minute observation if no baseline was established). If the guard is denied or times out, record that limitation and keep the slideshow available on demand; do not reintroduce video. After leaving the app, check that normal LG idle behavior still returns.
 4. **Optional remote entry:** while our app is open, hold an unused number 1–8 and register it if offered. Hold that number from Home to reopen. Hold 0 to inspect/remove Quick Access assignments; 9 is reserved for Quick Help. If this remote lacks accessible number keys or LG refuses the sideloaded app, skip the shortcut. [LG Quick Access instructions](https://www.lg.com/us/simroom/tvs/user-guide/2024/set-up-quick-access-shortcuts)
@@ -116,3 +116,7 @@ Local verification for 0.0.3: 63 TypeScript tests and 21 Python tests pass, incl
 - During edits, the browser briefly served updated HTML with the previous static bundle. The removed playback selector caused `Cannot set properties of null (setting 'onchange')`, stopping image initialization. Rebuilt the ambient client and refreshed the user's Chrome tab; images render again without restarting Vite.
 - Installed and relaunched 0.0.3; fresh TV state confirms the ambient app foreground and volume zero. The user confirmed the title and focal-point control work, and then reported “registration responded - waiting for an idle request.” This confirms a registration response, not yet a veto or prevention of the stock screensaver.
 - Removed only `it.transitivebullsh.smarttv.overlayprobe` through the fixed cleanup endpoint. A fresh installed-app catalog confirms it is gone; `it.transitivebullsh.smarttv.ambient` and `it.transitivebullsh.smarttv.display` remain. There were no duplicate ambient IDs.
+
+## Back navigation update: 0.0.4
+
+The user confirmed that 0.0.3 asks whether to exit on Back, even while settings are open. Version 0.0.4 handles settings dismissal before app exit and replaces the system Back call with direct close. Hiding settings preserves the guard and playback state. Installed and relaunched on the TV with the guard enabled; fresh device state confirms the ambient app foreground and volume zero. All 63 TypeScript tests, 21 Python tests, formatting, lint, types, production builds and package build pass. Browser Escape hides settings while retaining the scene/title, and Enter reopens them. The remote two-press check and confirmation-free exit await user feedback.

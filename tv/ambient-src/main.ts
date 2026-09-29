@@ -4,8 +4,8 @@ import { screenSaverGuard } from './guard.js'
 import './style.css'
 
 interface PlatformWindow extends Window {
-  webOSSystem?: { launchParams?: string; platformBack?: () => void }
-  PalmSystem?: { launchParams?: string; platformBack?: () => void }
+  webOSSystem?: { launchParams?: string }
+  PalmSystem?: { launchParams?: string }
 }
 const platform =
   (window as PlatformWindow).webOSSystem ??
@@ -75,6 +75,8 @@ function showControls(show: boolean) {
   chrome.hidden = !show
   el('reveal').hidden = show || native
   if (show && native) el('scene').focus()
+  else if (!show && document.activeElement instanceof HTMLElement)
+    document.activeElement.blur()
 }
 function syncLabels() {
   const slide = slides[current]!
@@ -118,13 +120,17 @@ function play() {
   }
   syncLabels()
 }
-function exit() {
-  cleanupGuard()
+function back() {
+  if (controls) {
+    showControls(false)
+    return
+  }
   if (native) {
-    if (platform?.platformBack) platform.platformBack()
-    else window.close()
+    cleanupGuard()
+    // platformBack() asks for confirmation; close the packaged app directly.
+    window.close()
   } else if (document.fullscreenElement) void document.exitFullscreen()
-  else showControls(!controls)
+  else showControls(true)
 }
 function launch(params: unknown) {
   if (!params || typeof params !== 'object') return
@@ -223,7 +229,8 @@ document.addEventListener('webOSRelaunch', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.keyCode === 461 || event.key === 'Escape') {
     event.preventDefault()
-    exit()
+    event.stopPropagation()
+    if (!event.repeat) back()
     return
   }
   if (

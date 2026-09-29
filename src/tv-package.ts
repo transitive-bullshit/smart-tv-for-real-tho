@@ -4,7 +4,7 @@ import { promisify } from 'node:util'
 const exec = promisify(execFile)
 const packages = {
   display: { version: '0.0.4', command: 'tv:package-display' },
-  ambient: { version: '0.0.3', command: 'tv:package-ambient' }
+  ambient: { version: '0.0.4', command: 'tv:package-ambient' }
 } as const
 const installing = new Map<
   string,
