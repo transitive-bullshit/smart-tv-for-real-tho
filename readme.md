@@ -64,5 +64,6 @@ Commands already delivered to a vendor cannot be recalled. Cancellation prevents
 - [Current status](docs/implementation-status.md): evidence, limitations and next steps.
 - [Hardware runbook](docs/runbook.md): probes, recovery, timing and filming.
 - [Native overlay experiment](docs/overlay-experiment.md): `pnpm tv:package`, Developer Mode setup and the static compatibility probe.
+- [Overlay graphics](docs/overlay-graphics.md) and [assistant visual references](docs/assistant-visual-references.md): rendering limits, designer-built orbs and proposed adaptation.
 - [Journeys](docs/journeys.md) and [feasibility research](docs/feasibility.md).
 - [Agent guidance](AGENTS.md).
