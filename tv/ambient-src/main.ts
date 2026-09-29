@@ -1,5 +1,5 @@
 import { coverFrame, defaults, slides, smooth } from './model.js'
-import { loadImage } from './load-image.js'
+import { PhotoPool } from './photo-pool.js'
 import { screenSaverGuard } from './guard.js'
 import './style.css'
 
@@ -31,16 +31,55 @@ const focus = slides.map((slide) => ({
   y: slide.y as number
 }))
 const reduced = matchMedia('(prefers-reduced-motion: reduce)')
-const available: number[] = []
-const photos = slides.map((slide) => {
-  const img = new Image()
-  img.alt = slide.title
-  img.style.opacity = '0'
-  img.style.width = slide.width + 'px'
-  img.style.height = slide.height + 'px'
-  el('photos').append(img)
-  return img
-})
+const available: number[] = slides.map((_, index) => index)
+const verified = new Set<number>()
+let requestedScene: number | undefined
+const photos = new PhotoPool(
+  el('photos'),
+  (index) => {
+    verified.add(index)
+    log(slides[index]!.file + ' loaded')
+    if (requestedScene === index) scene(index)
+    updateImageStatus()
+  },
+  (index, error) => {
+    const position = available.indexOf(index)
+    if (position >= 0) available.splice(position, 1)
+    const message =
+      error instanceof Error ? error.message : 'Image loading failed'
+    log(message)
+    toast('Could not load ' + slides[index]!.title + '. See diagnostics.')
+    el<HTMLSelectElement>('scene').options[index]!.disabled = true
+    if (requestedScene === index) requestedScene = undefined
+    if (current === index && available.length) {
+      current = available[0]!
+      elapsed = 0
+    }
+    syncLabels()
+    preparePhotos()
+    updateImageStatus()
+  }
+)
+function updateImageStatus() {
+  el('image-status').textContent =
+    verified.size +
+    '/' +
+    slides.length +
+    ' images visited · ' +
+    (slides.length - available.length) +
+    ' unavailable'
+}
+function preparePhotos() {
+  photos.retain(
+    available.length
+      ? [
+          current,
+          adjacentScene(),
+          ...(requestedScene === undefined ? [] : [requestedScene])
+        ]
+      : []
+  )
+}
 function log(message: string) {
   events.push({ at: new Date().toISOString(), message })
   if (events.length > 100) events.shift()
@@ -102,10 +141,15 @@ function adjacentScene(direction = 1) {
 }
 function scene(index: number) {
   if (!available.includes(index)) return
+  requestedScene = index
+  preparePhotos()
+  if (!photos.get(index)) return
+  requestedScene = undefined
   current = (index + slides.length) % slides.length
   elapsed = 0
   scrubbing = false
   syncLabels()
+  preparePhotos()
 }
 function updateMotionNote() {
   el('motion-note').textContent = reduced.matches
@@ -218,6 +262,7 @@ document.addEventListener('visibilitychange', () => {
 })
 window.addEventListener('pagehide', () => {
   cleanupGuard()
+  photos.retain([])
 })
 document.addEventListener('webOSLaunch', (event) =>
   launch((event as CustomEvent).detail)
@@ -306,29 +351,39 @@ function draw(index: number, time: number, opacity: number) {
     point.y,
     reduced.matches ? 0 : zoom * smooth(time)
   )
-  photos[index]!.style.transform =
-    `translate3d(${frame.x}px,${frame.y}px,0) scale(${frame.width / slide.width})`
-  photos[index]!.style.opacity = String(opacity)
+  const image = photos.get(index)
+  if (!image) return frame
+  image.hidden = false
+  image.style.transform = `translate3d(${frame.x}px,${frame.y}px,0) scale(${frame.width / slide.width})`
+  image.style.opacity = String(opacity)
   return frame
 }
 let last = performance.now()
 function tick(now: number) {
   const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
   last = now
-  if (!document.hidden && available.length > 0) {
+  if (!document.hidden && photos.get(current)) {
     if (!paused) elapsed += dt
-    if (!scrubbing && elapsed >= seconds + defaults.fade) {
+    if (!photos.get(adjacentScene()) && !scrubbing)
+      elapsed = Math.min(elapsed, seconds)
+    if (
+      !scrubbing &&
+      elapsed >= seconds + defaults.fade &&
+      requestedScene === undefined
+    ) {
       elapsed -= seconds
       current = adjacentScene()
       syncLabels()
+      preparePhotos()
     }
     const next = adjacentScene()
     const fade =
       scrubbing || reduced.matches
         ? 0
         : smooth((elapsed - seconds) / defaults.fade)
-    photos[current]!.style.zIndex = '0'
-    if (next !== current) photos[next]!.style.zIndex = '1'
+    photos.get(current)!.style.zIndex = '0'
+    const nextPhoto = photos.get(next)
+    if (next !== current && nextPhoto) nextPhoto.style.zIndex = '1'
     const frame = draw(current, elapsed / (seconds + defaults.fade), 1)
     if (next !== current)
       draw(
@@ -344,33 +399,15 @@ function tick(now: number) {
   }
   requestAnimationFrame(tick)
 }
+slides.forEach((slide, index) => {
+  el<HTMLSelectElement>('scene').add(new Option(slide.title, String(index)))
+})
 el('controller').hidden = native
 el('fullscreen').textContent = native ? 'Clean view' : 'Full screen'
 syncLabels()
 showControls(controls)
 updateMotionNote()
 parseLaunch(platform?.launchParams)
-photos.forEach((photo, index) => {
-  void loadImage(photo, 'media/' + slides[index]!.file)
-    .then(({ width, height }) => {
-      available.push(index)
-      available.sort((a, b) => a - b)
-      if (available.length === 1) {
-        current = index
-        elapsed = 0
-        syncLabels()
-      }
-      log(slides[index]!.file + ' loaded: ' + width + '×' + height)
-      el('image-status').textContent =
-        available.length + '/' + slides.length + ' images loaded'
-    })
-    .catch((err: unknown) => {
-      const message =
-        err instanceof Error ? err.message : 'Image loading failed'
-      log(message)
-      el('image-status').textContent = message
-      toast('Could not load ' + slides[index]!.title + '. See diagnostics.')
-    })
-})
+preparePhotos()
 requestAnimationFrame(tick)
 if (native) toast('Room Ambient · Back to leave · OK for controls')

@@ -1,6 +1,6 @@
 # Room Ambient: custom screensaver spike
 
-Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.4 is installed on the live TV. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration responded on the TV; idle suppression remains unverified.** The existing assistant overlay remains a separate app.
+Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.5 is installed on the live TV with 15 scenes. The user confirmed all new images look great on the live TV. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration responded on the TV; idle suppression remains unverified.** The existing assistant overlay remains a separate app.
 
 ## Feasibility and the useful boundary
 
@@ -26,18 +26,18 @@ LG also says there is no screensaver-event API. `visibilitychange` is useful for
 
 Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open ambient lab** on the controller.
 
-- Two bundled user-supplied originals: `starship.jpeg` and `ethereal-desk.jpg`. No remote image service, vision API, or network connection is needed for playback in the installed app.
+- Fifteen bundled scenes: the original `starship.jpeg` and `ethereal-desk.jpg`, plus all 13 Midjourney upscales from September 30. The new images are full-resolution 2912×1632 JPEGs. No remote image service, vision API, or network connection is needed for playback in the installed app. [Source manifest](ambient-images.json)
 - Cover framing with no exposed edges; default 8% zoom and soft 3-second dissolves. A new scene starts every 30 seconds after the initial scene. Motion continues through each dissolve.
-- Hand-selected focal points: rocket `(0.49, 0.45)`, person/desk `(0.513, 0.855)`. Coordinates are fractions of the original image. This is curated focus, not a claimed automatic focal-point detector.
+- Hand-selected focal points: rocket `(0.49, 0.45)`, person/desk `(0.513, 0.855)`. Coordinates are fractions of the original image. The 13 added scenes also have hand-selected focus near the person/desk, plus short scene titles. This is curated focus, not a claimed automatic focal-point detector.
 - The focal point stays in the same relative screen position as the image gently enlarges around it. The person stays visible near the bottom while the huge structure retains its scale; we do not dramatically zoom or move the person to the center.
 - Local controls for image, timing, zoom, focus X/Y, focus marker, progress scrubbing, pause, previous/next, and clean full-screen view. Live adjustments apply to that app instance only and reset on reload. Browser changes do not change an already-running TV app.
 - The lower-left scene title remains visible in clean view, independently of controls. The scene counter and decorative subtitle have been removed.
 - The slideshow honors `prefers-reduced-motion` with still frames/direct cuts.
-- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.4`. There are no system file edits, root dependencies, background services or automatic entry rules.
+- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.5`. There are no system file edits, root dependencies, background services or automatic entry rules.
 - Controller buttons for a fixed package install, slideshow launch, and close. Launch sets room volume to zero, pauses connected foreground YouTube, hides/disables automatic restoration of the assistant panel, then opens Room Ambient. It does not promise to pause an Xbox game.
 - In 0.0.4, Back hides the settings panel first without stopping playback or the guard; a second press from clean view calls `window.close()` to exit directly. Repeated keydown events are ignored so holding Back does not run both actions. The old `platformBack()` path caused LG's confirmation prompt. LG documents `window.close()` as the direct exit alternative; the user confirmed this works without an exit prompt on September 30. [LG Back-button guide](https://webostv.developer.lge.com/develop/guides/back-button) Home is OS-controlled. OK reveals the controls; left/right switch scenes when controls are hidden. Browser shortcuts: H toggles controls, Space pauses, arrows switch scenes. Remote OK explicitly toggles focused checkboxes (HTML checkboxes otherwise use Space). The user verified the controls and focal marker after this fix; guard idle suppression still needs a dedicated physical check.
 
-The TV assets use a small standalone TypeScript/CSS client, separate from the React controller. The image engine only animates transforms and opacity; at most two photos are composited. The app uses a 1920×1080 logical canvas, rendering the bundled originals with cover transforms. LG's UI resolution and its UHD video plane are distinct. [LG app resolution](https://webostv.developer.lge.com/develop/specifications/app-resolution)
+The TV assets use a small standalone TypeScript/CSS client, separate from the React controller. The image engine only animates transforms and opacity; at most two photos are composited. The image pool retains current/next scenes and temporarily one pending manual selection, then releases old image elements and sources. Automatic playback holds the current image if the next one is still loading; late results from superseded selections are ignored. The shared catalog drives both the scene picker and the server’s exact media allowlist. The app uses a 1920×1080 logical canvas, rendering the bundled originals with cover transforms. LG's UI resolution and its UHD video plane are distinct. [LG app resolution](https://webostv.developer.lge.com/develop/specifications/app-resolution)
 
 ## Private hook probe
 
@@ -65,16 +65,16 @@ pnpm build:ambient
 pnpm tv:package-ambient
 ```
 
-The two originals are tracked; generated bundles and IPK are ignored and reproducible. No ffmpeg, new npm packages or API keys are required.
+All 15 display JPEGs are tracked; generated bundles and IPK are ignored and reproducible. Downloaded PNG sources live in ignored `.local/midjourney/2026-09-30/originals/`. No ffmpeg, new npm packages or API keys are required.
 
-Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.4_all.ipk`. `pnpm build` builds both TV clients and the main controller. `pnpm dev` builds the static TV clients at startup; after ambient client or HTML edits run `pnpm build:ambient` and reload the preview. Vite does not need restarting. Rebuild before opening the preview so HTML and JavaScript agree. Server/bridge edits use the existing dev watcher.
+Package output: `build/tv/it.transitivebullsh.smarttv.ambient_0.0.5_all.ipk`. `pnpm build` builds both TV clients and the main controller. `pnpm dev` builds the static TV clients at startup; after ambient client or HTML edits run `pnpm build:ambient` and reload the preview. Vite does not need restarting. Rebuild before opening the preview so HTML and JavaScript agree. Server/bridge edits use the existing dev watcher.
 
 The installed TV package is separate from the browser preview. Rebuild with `pnpm tv:package-ambient`, close the running app, install through the controller, then launch it again. Reuse the same app ID for updates; do not create another ambient app.
 
 Equivalent manual device commands:
 
 ```sh
-pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.4_all.ipk
+pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.ambient_0.0.5_all.ipk
 pnpm tv:cli ares-launch --device smart-tv it.transitivebullsh.smarttv.ambient --params '{"guard":false}'
 pnpm tv:cli ares-launch --device smart-tv --close it.transitivebullsh.smarttv.ambient
 ```
@@ -87,7 +87,7 @@ Controller preview assets use an exact file allowlist. Neither arbitrary local f
 
 Initial preparation did not touch the TV. The user subsequently authorized installation and live testing; see the session evidence below. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
 
-1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, guard unchecked. Observe one full two-image cycle: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Check the title remains in clean view and both checkboxes toggle with remote OK. Back hides settings; Back again should exit without a prompt; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
+1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, guard unchecked. Observe several scene transitions and select added scenes from the picker: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Check the title remains in clean view and both checkboxes toggle with remote OK. Back hides settings; Back again should exit without a prompt; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
 2. **Baseline idle:** reopen images with guard off. Leave it untouched and time any stock screensaver takeover. Stop the initial observation at 10 minutes if none occurs and record “not seen within 10 minutes,” not “disabled.” Note whether visibility diagnostics changed. Allow this passive interval while doing other work; only inspect at its end.
 3. **Private guard, if useful:** launch images with guard on. Inspect diagnostics once, then return to clean view and leave it untouched past the baseline timeout plus two minutes (or the same 10-minute observation if no baseline was established). If the guard is denied or times out, record that limitation and keep the slideshow available on demand; do not reintroduce video. After leaving the app, check that normal LG idle behavior still returns.
 4. **Optional remote entry:** while our app is open, hold an unused number 1–8 and register it if offered. Hold that number from Home to reopen. Hold 0 to inspect/remove Quick Access assignments; 9 is reserved for Quick Help. If this remote lacks accessible number keys or LG refuses the sideloaded app, skip the shortcut. [LG Quick Access instructions](https://www.lg.com/us/simroom/tvs/user-guide/2024/set-up-quick-access-shortcuts)
@@ -98,6 +98,7 @@ The image engine is the selected visual experience regardless of the guard resul
 | --- | --- |
 | Image motion, crops and dissolves | User confirmed 0.0.2 works perfectly; both images, person visible, correct cover framing and transition |
 | Permanent title and focal-point control | User confirmed 0.0.3 works with controls hidden and the remote toggle fixed |
+| Expanded collection | User confirmed all 13 new images look great on the live TV in 0.0.5 |
 | Back navigation | User confirmed 0.0.4: first Back hides settings; second Back exits without confirmation |
 | App reopen | Controller relaunch previously verified; exact return destination for the new direct exit was not separately reported |
 | Installed app cleanup | Catalog shows one Room Ambient plus Smart TV Live Activity; obsolete Smart TV Overlay Probe removed |
@@ -121,3 +122,12 @@ Local verification for 0.0.3: 63 TypeScript tests and 21 Python tests pass, incl
 ## Back navigation update: 0.0.4
 
 The user confirmed that 0.0.3 asks whether to exit on Back, even while settings are open. Version 0.0.4 handles settings dismissal before app exit and replaces the system Back call with direct close. Hiding settings preserves the guard and playback state. Installed and relaunched on the TV with the guard enabled; fresh device state confirms the ambient app foreground and volume zero. All 63 TypeScript tests, 21 Python tests, formatting, lint, types, production builds and package build pass. Browser Escape hides settings while retaining the scene/title, and Enter reopens them. On September 30, the user confirmed “this is working perfectly” in response to the OK → Back → Back check: settings dismiss first, then the app exits without LG’s confirmation prompt. This verifies the requested navigation behavior; it does not establish long-run screensaver suppression.
+
+## Midjourney collection: September 30 / 0.0.5
+
+- Used the authenticated Midjourney Organize page with **Today → Upscaled**, in Asia/Bangkok. The final selection contained 13 jobs; Create no longer showed processing/queue counts. Downloaded the first 12 as a ZIP, then the final completed upscale separately. No generation, upscale or rerun jobs were submitted by this import.
+- Preserved all 13 original PNGs locally (98,487,866 bytes total). Converted with ImageMagick to sRGB JPEG, quality 90, 4:4:4 sampling and baseline encoding, without resizing or cropping. The JPEGs total 17,395,742 bytes, about 82% smaller. Exact source job URLs and output dimensions are in [the manifest](ambient-images.json).
+- Added titles and focal points after inspecting the images. The existing two scenes remain, giving 15 scenes total. Default timing remains 30 seconds with a 3-second dissolve and gentle 8% focal zoom.
+- Replaced all-images-at-once startup with a bounded image pool. Unit checks cover cycling the full catalog while releasing old sources and ignoring completion/error events from cancelled selections.
+- All 65 TypeScript tests, 21 Python tests, format, lint, types, production build and TV package build pass. Chrome rendered all 15 scenes at their expected dimensions with two retained image elements per scene and no console errors. Automatic playback advanced from the last new scenes back to the originals; diagnostics read 15/15 visited and 0 unavailable.
+- Version 0.0.5 installed through the existing local controller and launched with the private guard enabled and room volume zero. Fresh device state confirms the ambient app foreground and volume zero. The user then confirmed: “The live TV connection worked and all of the new images look great.”
