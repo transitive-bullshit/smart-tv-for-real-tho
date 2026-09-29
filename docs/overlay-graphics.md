@@ -4,11 +4,11 @@ Researched September 29, 2026 for LG 86UA8450PSA, webOS 25, firmware 33.31.61. T
 
 ## What runs today
 
-The TV client is a packaged web app. [Its manifest](../tv/display/appinfo.json) requests a transparent 1920×1080 web surface with the experimental `overlay` window type. [Its page](../tv/display/index.html) draws HTML text and inline SVG arcs; [CSS](../tv/display/display.css) supplies gradients, borders, transforms, opacity and keyframe animations. [JavaScript](../tv/display/display.js) changes text and state attributes from the authenticated controller feed. No React, Canvas or WebGL runtime is currently loaded on the TV. The laptop controller uses React/Vite.
+The TV client is a packaged web app. [Its manifest](../tv/display/appinfo.json) requests a transparent 1920×1080 web surface with the experimental `overlay` window type. The 0.0.4 build adds a local React bundle: Thinking Orbs' Canvas 2D engine draws the orb, and Voice Glow draws the restrained light using Canvas/SVG/CSS. HTML text and the authenticated feed client remain. No WebGL renderer is required by the selected design. See [visual lab implementation](visual-lab.md).
 
-The approximately 750-pixel corner panel is a layout choice, not an API size cap. The page occupies the application viewport; we can design edge graphics, multiple panels or a full-viewport composition within that surface. Transparent regions reveal the underlying native picture. The existing overlay and in-place text updates have physical evidence; the 0.0.3 animation package is built but not installed. See [the evidence ledger](implementation-status.md).
+The approximately 750-pixel corner panel is a layout choice, not an API size cap. Transparent regions reveal the underlying native picture. Baseline overlay and in-place text updates have physical evidence; the 0.0.4 renderer is built and browser-checked but not installed. See [the evidence ledger](implementation-status.md).
 
-Polling waits 500 ms after each completed request. That limits the freshness of incoming state, not local animation frame rate: CSS motion runs independently on the TV. The current voice glyph reflects listening/speaking state, not measured audio amplitude. Actual amplitude-driven motion would require additional audio-envelope telemetry from the laptop.
+Polling now waits 100 ms after each completed request. Existing laptop streams supply bounded amplitude telemetry at up to 10 Hz, with freshness checks; the TV animates locally. Actual TV frame timing and microphone-to-TV latency remain unmeasured.
 
 ## Supported platform and likely rendering options
 
@@ -33,7 +33,7 @@ LG maps webOS TV 25 to Chromium 120. LG no longer publishes comprehensive per-AP
 
 **Lifecycle:** richer graphics do not remove the observed app-launch loading screen or source-transition dismissal. We have no evidence that the startup interruption was caused by insufficient shader/GPU performance. Keep source restoration and graphics smoothness as separate test results. [Local physical evidence](overlay-experiment.md)
 
-## Recommended next experiment
+## Original graphics probe proposal (before design selection)
 
 Keep HTML/SVG for legible text and controls, and add one transparent WebGL canvas for a distinctive energy orb or flowing particle field. Start around a 512×512 effect buffer, then adjust based on measured performance. Retain the existing SVG/static fallback. The 512 size and 30/60-fps comparison below are proposed test settings, not measured device limits.
 

@@ -10,6 +10,7 @@ import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
 import { Coordinator } from './coordinator.js'
 import { DisplayState, startDisplayFeed } from './display.js'
+import { visualOptionsSchema } from './visual-options.js'
 import { createSession } from './realtime.js'
 import { YouTubeSearch } from './search.js'
 import { displayDeviceStatus, installDisplay } from './tv-package.js'
@@ -30,6 +31,10 @@ const origins = new Set([
 ])
 const traces: Trace[] = []
 const displayState = new DisplayState()
+const savedAppearance = visualOptionsSchema.safeParse(
+  await readLocal('display-appearance.json')
+)
+if (savedAppearance.success) displayState.appearance = savedAppearance.data
 await mkdir('.local', { recursive: true, mode: 0o700 })
 let logWrites = Promise.resolve()
 function trace(event: Trace) {
@@ -179,7 +184,9 @@ const server = createServer(async (req, res) => {
     '/hud/': ['index.html', 'text/html'],
     '/hud/index.html': ['index.html', 'text/html'],
     '/hud/display.js': ['display.js', 'text/javascript'],
-    '/hud/display.css': ['display.css', 'text/css']
+    '/hud/display.css': ['display.css', 'text/css'],
+    '/hud/assets/visuals.js': ['assets/visuals.js', 'text/javascript'],
+    '/hud/assets/visuals.css': ['assets/visuals.css', 'text/css']
   }
   if (req.method === 'GET' && hudAssets[path]) {
     const [file, type] = hudAssets[path]
@@ -293,6 +300,11 @@ const server = createServer(async (req, res) => {
       json(res, await pending)
     } else if (req.method === 'GET' && path === '/api/display/frame') {
       json(res, displayState.snapshot(config.mode))
+    } else if (req.method === 'POST' && path === '/api/display/appearance') {
+      const appearance = visualOptionsSchema.parse(await body(req))
+      await writeLocal('display-appearance.json', appearance)
+      displayState.appearance = appearance
+      json(res, { saved: true })
     } else if (req.method === 'GET' && path === '/api/display/device-status') {
       json(res, await displayDeviceStatus())
     } else if (req.method === 'POST' && path === '/api/display/install') {
@@ -313,6 +325,24 @@ const server = createServer(async (req, res) => {
       displayState.motion = options.motion
       displayState.autoRestore = options.autoRestore
       json(res, { saved: true })
+    } else if (req.method === 'POST' && path === '/api/display/audio') {
+      const event = z
+        .object({
+          session: z.string().uuid(),
+          sequence: z.number().int().nonnegative(),
+          input: z.number().min(0).max(1),
+          output: z.number().min(0).max(1)
+        })
+        .strict()
+        .parse(await body(req))
+      json(res, {
+        accepted: displayState.audio(
+          event.session,
+          event.sequence,
+          event.input,
+          event.output
+        )
+      })
     } else if (req.method === 'POST' && path === '/api/display/voice') {
       const event = z
         .object({

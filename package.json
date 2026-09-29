@@ -17,7 +17,7 @@
     "fix:lint": "oxlint --fix",
     "prepare": "simple-git-hooks",
     "dev": "tsx watch --include bridge/main.py --env-file-if-exists=.env src/server.ts",
-    "build": "vite build",
+    "build": "pnpm build:visuals && vite build",
     "bridge:sync": "uv sync --frozen --project bridge",
     "test:unit": "tsx --test tests/*.test.ts",
     "test:bridge": "uv run --frozen --project bridge python -m unittest discover -s bridge -p 'test_*.py'",
@@ -26,16 +26,21 @@
     "tv:package": "pnpm tv:cli ares-package tv/overlay-probe --outdir build/tv",
     "tv:preview": "vite tv/overlay-probe --host 127.0.0.1 --port 3211 --strictPort",
     "tv:cli": "pnpm --package=@webos-tools/cli@3.2.6 dlx",
-    "tv:package-display": "pnpm tv:cli ares-package tv/display --outdir build/tv",
-    "tv:preview-display": "vite tv/display --host 127.0.0.1 --port 3213 --strictPort",
+    "tv:package-display": "pnpm build:visuals && pnpm tv:cli ares-package tv/display --outdir build/tv",
+    "tv:preview-display": "pnpm build:visuals && vite tv/display --host 127.0.0.1 --port 3213 --strictPort",
     "dev:stable": "tsx --env-file-if-exists=.env src/server.ts",
-    "dev:restart": "node -e \"require('node:fs').utimesSync('src/server.ts',new Date(),new Date())\""
+    "dev:restart": "node -e \"require('node:fs').utimesSync('src/server.ts',new Date(),new Date())\"",
+    "build:visuals": "vite build --config tv/visuals.config.ts",
+    "predev": "pnpm build:visuals",
+    "predev:stable": "pnpm build:visuals"
   },
   "dependencies": {
     "ky": "^2.0.2",
     "p-map": "^7.0.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "thinking-orbs": "0.3.2",
+    "voice-glow": "0.2.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

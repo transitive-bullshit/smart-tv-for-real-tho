@@ -9,7 +9,9 @@
     />
     <title>Smart TV · Room HUD</title>
     <link rel="stylesheet" href="display.css" />
+    <link rel="stylesheet" href="assets/visuals.css" />
     <script src="display.js" defer></script>
+    <script src="assets/visuals.js" defer></script>
   </head>
   <body data-visual="idle" data-motion="full">
     <div class="preview-scene" aria-hidden="true">
@@ -20,48 +22,15 @@
         ></span
       ><span class="scene-number">03</span>
     </div>
-    <div class="preview-controls" id="preview-controls" hidden>
-      <span>OVERLAY LAB · LOCAL PREVIEW</span>
-      <label
-        >State
-        <select id="preview-state">
-          <option value="live">Live feed</option>
-          <option value="idle">Idle</option>
-          <option value="listening">Listening</option>
-          <option value="working">Working</option>
-          <option value="speaking">Speaking</option>
-          <option value="success">Success</option>
-          <option value="error">Error</option>
-        </select></label
-      >
-      <label
-        >Motion
-        <select id="preview-motion">
-          <option>full</option>
-          <option>subtle</option>
-          <option>static</option>
-        </select></label
-      >
-    </div>
+    <div id="preview-controls" hidden></div>
+    <div id="visual-root"></div>
     <main class="hud" id="hud" aria-labelledby="title">
       <div class="hud-top">
         <span class="brand">S / TV <span>PERSONAL INTELLIGENCE</span></span
         ><span class="connection" id="connection">STANDBY</span>
       </div>
       <div class="hud-body">
-        <div class="core" aria-hidden="true">
-          <svg class="orbit outer" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="74" />
-            <path d="M80 6 A74 74 0 0 1 154 80 M80 154 A74 74 0 0 1 6 80" />
-          </svg>
-          <svg class="orbit inner" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="58" />
-            <path d="M23 68 A58 58 0 0 1 104 27 M137 92 A58 58 0 0 1 56 133" />
-          </svg>
-          <div class="nucleus"><i></i><i></i><i></i><i></i><i></i></div>
-          <span class="core-cross top"></span
-          ><span class="core-cross bottom"></span>
-        </div>
+        <div class="core" id="orb-root" aria-hidden="true"></div>
         <div class="copy" aria-live="polite">
           <p class="phase" id="phase">ROOM LINK</p>
           <h1 id="title">Your room.<br />Your software.</h1>
@@ -75,6 +44,7 @@
           ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span
         ><button id="dismiss" type="button">BACK <span>/ DISMISS</span></button>
       </div>
+      <div id="glow-root" aria-hidden="true"></div>
       <p id="status" class="sr-only">Waiting for controller</p>
     </main>
   </body>

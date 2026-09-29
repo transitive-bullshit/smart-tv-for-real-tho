@@ -1,6 +1,6 @@
 {
   "id": "it.transitivebullsh.smarttv.display",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "vendor": "Travis Fischer",
   "type": "web",
   "main": "index.html",

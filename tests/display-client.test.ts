@@ -153,7 +153,7 @@ void test('idle heartbeats do not extend panel expiry; fresh activity does', asy
   const timer = (delay: number) =>
     [...c.timers].find(([, value]) => value.delay === delay)!
   const poll = async () => {
-    const [id, value] = timer(500)
+    const [id, value] = timer(100)
     c.timers.delete(id)
     value.run()
     await flush()

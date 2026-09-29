@@ -186,3 +186,11 @@ A fixed, loopback-only install action was added to reuse the controller's existi
 The user subsequently confirmed the TV is turned off. Device checks and installation are deferred until it is back on. Continue local work and commit completed milestones regularly.
 
 Local milestone checks: 55 TypeScript and 20 Python tests pass, plus formatting, lint, type checks, the browser build, and TV package build. Added regressions for idle-heartbeat dismissal, actual voice-event projection, and a late SDP response after reconnect. Browser inspection confirmed the preview states and persisted rehearsal notes; the temporary UI note was cleared. No physical-device result was added.
+
+## September 29: Thinking Orbs + Voice Glow and local exploration
+
+Built TV package 0.0.4 using the actual pinned Libraries.dev packages, a shared React/Canvas renderer, and a local visual lab. Nine patterns can follow configurable assistant states or stay pinned; four room presets vary palette/density/motion independently. Glow, size, speed, particles, static motion, synthetic/manual levels and contrasting backdrops are adjustable. Browser-local choices persist; a separate appearance-save action updates the authenticated display feed without launching the TV.
+
+Existing laptop microphone/WebRTC audio now supplies normalized level telemetry. No additional microphone is opened and no audio samples are sent to the display feed. Session ordering, phase gating and short freshness expiry prevent old levels from animating a new session. Native frame polling is 100 ms; local rendering is independent.
+
+Validation: 57 TypeScript and 20 Python tests, formatting/lint/type checks, browser build and TV package build pass. Browser checks covered independent pattern/style/state controls, mapping, persistence, static motion and bright backdrop; no console errors were reported. See [visual lab details](visual-lab.md). TV remains off: no installation, native performance, transparency or actual voice-response claim is added.

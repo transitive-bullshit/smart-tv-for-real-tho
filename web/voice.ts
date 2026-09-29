@@ -1,7 +1,11 @@
 import { api } from './api.js'
 import { VoiceTools } from './voice-tools.js'
+import { AudioMeter } from './audio-meter.js'
 
 export class Voice {
+  private meter?: AudioMeter
+  private audioTelemetry?: ReturnType<typeof setInterval>
+  private audioSequence = 0
   private pc?: RTCPeerConnection
   private channel?: RTCDataChannel
   private stream?: MediaStream
@@ -49,6 +53,7 @@ export class Voice {
     const connection = (this.connection = new AbortController())
     const current = () => this.connection === connection
     try {
+      this.meter = new AudioMeter()
       const pc = (this.pc = new RTCPeerConnection())
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true }
@@ -58,6 +63,7 @@ export class Voice {
         throw new Error('Voice connection superseded.')
       }
       this.stream = stream
+      this.meter?.attach('input', stream)
       for (const track of stream.getTracks()) {
         track.enabled = openMic
         pc.addTrack(track, stream)
@@ -65,7 +71,9 @@ export class Voice {
       this.audio.autoplay = true
       pc.ontrack = (event) => {
         if (!current()) return
-        this.audio.srcObject = event.streams[0] ?? null
+        this.audio.srcObject =
+          event.streams[0] ?? new MediaStream([event.track])
+        this.meter?.attach('output', this.audio.srcObject as MediaStream)
         void this.audio.play().catch(() => {
           if (current()) this.status('Click Talk to enable assistant audio.')
         })
@@ -160,6 +168,35 @@ export class Voice {
       connection.signal.throwIfAborted()
       this.displaySession = displaySession
       this.present('ready')
+      let audioInFlight = false
+      this.audioTelemetry = setInterval(() => {
+        if (
+          !current() ||
+          !displaySession ||
+          audioInFlight ||
+          !['listening', 'speaking'].includes(this.displayPhase)
+        )
+          return
+        audioInFlight = true
+        const levels = this.meter?.sample() ?? { input: 0, output: 0 }
+        void fetch('/api/display/audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session: displaySession,
+            sequence: ++this.audioSequence,
+            ...levels
+          }),
+          signal: AbortSignal.any([
+            connection.signal,
+            AbortSignal.timeout(1000)
+          ])
+        })
+          .catch(() => {})
+          .finally(() => {
+            audioInFlight = false
+          })
+      }, 100)
       this.displayHeartbeat = setInterval(
         () => this.present(this.displayPhase),
         10000
@@ -227,6 +264,9 @@ export class Voice {
   }
   close() {
     clearInterval(this.displayHeartbeat)
+    clearInterval(this.audioTelemetry)
+    this.meter?.close()
+    this.meter = undefined
     this.present('offline')
     this.displaySession = undefined
     this.connection?.abort()

@@ -6,10 +6,10 @@ September 29, 2026. The user requested autonomous implementation and one cohesiv
 
 The controller runs at http://localhost:3210/. The exact TV client is previewed at http://localhost:3210/hud/?preview=1. The visual lab is a local illustration when a preview state is selected, and follows actual display events in Live feed mode. It does not send commands to the TV.
 
-Build the TV client with `pnpm tv:package-display`. The controller's **Install TV update · 0.0.3** button installs only that fixed package to the saved `smart-tv` developer profile. It runs in the existing controller environment, avoiding a new Terminal process with different LAN permissions. The fixed CLI fallback is:
+Build the TV client with `pnpm tv:package-display`. The controller's **Install TV update · 0.0.4** button installs only that fixed package to the saved `smart-tv` developer profile. It runs in the existing controller environment, avoiding a new Terminal process with different LAN permissions. The fixed CLI fallback is:
 
 ```sh
-pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.display_0.0.3_all.ipk
+pnpm tv:cli ares-install --device smart-tv build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk
 ```
 
 Current installation status: package built, installation not completed. A read-only check through the controller reported a Developer Mode connection timeout, and LG control startup also timed out. Direct Codex CLI access reports EHOSTUNREACH, as earlier. The user subsequently confirmed the TV is turned off. No further device checks or installation attempts will run until it is available; the timeout is not evidence that the Developer key expired. When the room is available, turn on the TV and verify Developer Mode before another install attempt. One immediate install retry was rejected by automatic approval review pending diagnosis; subsequent actions were read-only diagnostics, not a bypass.
@@ -37,7 +37,7 @@ For the original three-transition gate, repeat Journey 2 three times and close/r
 
 ## HUD behavior and comparison
 
-The 0.0.3 package renders a compact cyan/amber panel, segmented orbit graphics and a voice-state glyph. These are CSS/SVG graphics, not measured audio amplitude. Listening/speaking states come from microphone interaction and Realtime audio events; work/result states come from the actual coordinator. Resolved video/game labels come from validated local request context. Routine technical caveats stay in controller diagnostics.
+The 0.0.4 package renders the selected Thinking Orbs pattern and a restrained Voice Glow inside the compact panel. Canvas/SVG/CSS visuals use real input/output amplitude telemetry from the laptop, with a synthetic signal available only in the local preview. See [the visual lab](visual-lab.md) for presets and state mappings. Listening/speaking states come from microphone interaction and Realtime audio events; work/result states come from the actual coordinator. Resolved video/game labels come from validated local request context. Routine technical caveats stay in controller diagnostics.
 
 Full mode rotates the orbital arcs while listening/working and animates the voice glyph while listening/speaking. Subtle keeps only the voice motion; Static stops animation. The client's reduced-motion media query overrides animation, and hidden-page animation stops. There are no external fonts, canvas/WebGL loops, large blur filters, or image fetches in the native package. Browser preview confirms appearance, not TV GPU performance.
 

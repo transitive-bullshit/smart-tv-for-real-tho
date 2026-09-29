@@ -2,6 +2,8 @@
 
 Researched September 29, 2026. This is a design and source review, not an implemented renderer selection. The TV was off; no installation, graphics benchmark or hardware compatibility claim follows from these findings. See [graphics capabilities](overlay-graphics.md) for the current client and platform limits.
 
+The user selected Thinking Orbs + restrained Voice Glow. See [the implemented visual lab](visual-lab.md). The shortlist below preserves the research and earlier recommendation.
+
 ## Recommendation
 
 Compare two directions before implementation:

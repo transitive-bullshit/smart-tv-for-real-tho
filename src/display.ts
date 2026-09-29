@@ -2,6 +2,8 @@ import { randomBytes, timingSafeEqual } from 'node:crypto'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import type { Trace } from './contracts.js'
+import { defaultVisualOptions } from './visual-options.js'
+import type { VisualOptions } from './visual-options.js'
 
 export type VoicePhase =
   | 'ready'
@@ -21,6 +23,9 @@ export interface DisplayFrame {
   motion: MotionMode
   source: string
   detail: string
+  appearance: VisualOptions
+  inputLevel: number
+  outputLevel: number
 }
 const titles: Record<string, string> = {
   find_youtube_video: 'Finding your video',
@@ -57,7 +62,16 @@ const working = new Set([
 // Projects only selected display text. Credentials and raw trace details never enter the feed.
 export class DisplayState {
   private requestId = ''
-  private frame?: Omit<DisplayFrame, 'visual' | 'motion' | 'source' | 'detail'>
+  private frame?: Omit<
+    DisplayFrame,
+    | 'visual'
+    | 'motion'
+    | 'source'
+    | 'detail'
+    | 'appearance'
+    | 'inputLevel'
+    | 'outputLevel'
+  >
   private dismissRequested = true
   private voiceSession = ''
   private voiceSequence = -1
@@ -65,6 +79,8 @@ export class DisplayState {
   private voiceAt = 0
   private intent = ''
   private source = 'ROOM'
+  appearance: VisualOptions = structuredClone(defaultVisualOptions)
+  private levels = { input: 0, output: 0, at: 0, sequence: -1 }
   motion: MotionMode = 'full'
   autoRestore = false
   get visible() {
@@ -91,6 +107,7 @@ export class DisplayState {
             : 'ROOM'
   }
   startVoice(session: string) {
+    this.levels = { input: 0, output: 0, at: 0, sequence: -1 }
     this.voiceSession = session
     this.voiceSequence = -1
     this.voicePhase = 'ready'
@@ -107,6 +124,28 @@ export class DisplayState {
     this.voiceSequence = sequence
     this.voicePhase = phase
     this.voiceAt = now
+    return true
+  }
+  audio(
+    session: string,
+    sequence: number,
+    input: number,
+    output: number,
+    now = Date.now()
+  ) {
+    if (
+      session !== this.voiceSession ||
+      !session ||
+      sequence <= this.levels.sequence
+    )
+      return false
+    if (
+      ![input, output].every(
+        (value) => Number.isFinite(value) && value >= 0 && value <= 1
+      )
+    )
+      return false
+    this.levels = { input, output, at: now, sequence }
     return true
   }
   update(event: Trace) {
@@ -177,7 +216,16 @@ export class DisplayState {
       visual,
       motion: this.motion,
       source: this.source,
-      detail: recent ? this.intent : ''
+      detail: recent ? this.intent : '',
+      appearance: structuredClone(this.appearance),
+      inputLevel:
+        voice === 'listening' && now - this.levels.at < 750
+          ? this.levels.input
+          : 0,
+      outputLevel:
+        voice === 'speaking' && now - this.levels.at < 750
+          ? this.levels.output
+          : 0
     }
   }
 }

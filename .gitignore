@@ -14,3 +14,5 @@ coverage/
 bridge/.venv/
 __pycache__/
 *.pyc
+
+tv/display/assets/

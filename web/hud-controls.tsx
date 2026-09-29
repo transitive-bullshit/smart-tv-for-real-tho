@@ -32,7 +32,7 @@ export function HudControls({
   return (
     <section className='panel hud-controls'>
       <div>
-        <p className='eyebrow'>THE NATIVE OVERLAY / 0.0.3</p>
+        <p className='eyebrow'>THE NATIVE OVERLAY / 0.0.4</p>
         <h2>A little future. In your living room.</h2>
         <p>Voice-reactive light, clear intent, and your content underneath.</p>
       </div>
@@ -75,8 +75,8 @@ export function HudControls({
               )
             }
           >
-            <option value='full'>Full · orbital motion</option>
-            <option value='subtle'>Subtle · voice only</option>
+            <option value='full'>Full · expressive motion</option>
+            <option value='subtle'>Subtle · slower motion</option>
             <option value='static'>Static · no animation</option>
           </select>
         </label>
@@ -115,11 +115,11 @@ export function HudControls({
         {busy
           ? 'Working…'
           : installed
-            ? 'TV update installed · 0.0.3'
-            : 'Install TV update · 0.0.3'}
+            ? 'TV update installed · 0.0.4'
+            : 'Install TV update · 0.0.4'}
       </button>
       <p className='muted'>
-        Install TV panel 0.0.3 once for the new visuals. Hide also turns off
+        Install TV panel 0.0.4 once for the new visuals. Hide also turns off
         automatic restoration. Back on the remote dismisses the current panel.
       </p>
       {error && <p role='alert'>{error}</p>}

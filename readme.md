@@ -31,9 +31,11 @@ No developer mode is needed for these controls. See [room facts](docs/room.md) a
 
 ## Demo build
 
-The controller now includes **Start demo session**, a native cyan/amber HUD with full/subtle/static motion, source-transition restoration, and six full rehearsal journeys with local notes/export. Open [the visual lab](http://localhost:3210/hud/?preview=1) to inspect the actual TV client without changing the TV.
+The controller now includes **Start demo session**, a native Thinking Orbs + Voice Glow HUD with full/subtle/static motion, source-transition restoration, and six full rehearsal journeys with local notes/export. Open [the visual lab](http://localhost:3210/hud/?preview=1) to inspect the actual TV client without changing the TV.
 
-Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.3; installation currently awaits a reachable TV Developer Mode connection. Use the controller's **Install TV update** action once available. New native animation/restoration, extended playback settings and complete rehearsals will be tested together, per the user's request. No physical performance or recording success is inferred from a browser preview.
+Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.4; installation currently awaits a reachable TV Developer Mode connection. Use the controller's **Install TV update** action once available. New native animation/restoration, extended playback settings and complete rehearsals will be tested together, per the user's request. No physical performance or recording success is inferred from a browser preview.
+
+Explore nine orb patterns, four design directions, state mappings and restrained audio glow in [the visual lab](http://localhost:3210/hud/?preview=1). [Visual lab usage and implementation](docs/visual-lab.md) explains local choices, real voice levels and saving a look for the TV.
 
 Read [one-session testing and filming](docs/demo-session.md), [the agent tool inventory](docs/agent-tools.md), and [implementation status](docs/implementation-status.md). Keep unattended tests at volume zero.
 

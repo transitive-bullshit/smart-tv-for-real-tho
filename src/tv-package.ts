@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
 const exec = promisify(execFile)
-const packagePath = 'build/tv/it.transitivebullsh.smarttv.display_0.0.3_all.ipk'
+const packagePath = 'build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk'
 let installing: Promise<{ installed: boolean; version: string }> | undefined
 // Fixed installed app/device/package only. No caller-supplied executable, path, or arguments.
 export function installDisplay() {
@@ -18,7 +18,7 @@ export function installDisplay() {
         ['tv:cli', 'ares-install', '--device', 'smart-tv', packagePath],
         { timeout: 45000, maxBuffer: 262144 }
       )
-      return { installed: true, version: '0.0.3' }
+      return { installed: true, version: '0.0.4' }
     } catch (err) {
       const failure = err as {
         code?: string | number

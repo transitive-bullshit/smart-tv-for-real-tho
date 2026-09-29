@@ -65,11 +65,14 @@ void test('LAN feed requires a token and cannot serve controls, config or creden
   assert.equal(ok.headers.get('cache-control'), 'no-store')
   const frame = (await ok.json()) as Record<string, unknown>
   assert.deepEqual(Object.keys(frame).sort(), [
+    'appearance',
     'detail',
     'dismiss',
+    'inputLevel',
     'message',
     'mode',
     'motion',
+    'outputLevel',
     'phase',
     'source',
     'title',
@@ -133,4 +136,27 @@ void test('voice events reject old sessions and reordered events; listening expi
   state.voice('current', 3, 'speaking', 200)
   assert.equal(state.snapshot('live', 210).dismiss, true)
   assert.equal(state.autoRestore, false)
+})
+
+void test('audio levels are session checked, ordered, bounded, phase gated and short lived', () => {
+  const state = new DisplayState()
+  state.startVoice('current')
+  state.voice('current', 0, 'listening', 100)
+  assert.equal(state.audio('old', 1, 0.5, 0.9, 100), false)
+  assert.equal(state.audio('current', 2, 0.4, 0.8, 100), true)
+  assert.equal(state.audio('current', 1, 0.9, 0.9, 101), false)
+  assert.equal(state.audio('current', 3, NaN, 0, 101), false)
+  assert.equal(state.audio('current', 3, 2, 0, 101), false)
+  assert.equal(state.snapshot('live', 102).inputLevel, 0.4)
+  assert.equal(state.snapshot('live', 102).outputLevel, 0)
+  state.voice('current', 1, 'speaking', 103)
+  assert.equal(state.snapshot('live', 104).inputLevel, 0)
+  assert.equal(state.snapshot('live', 104).outputLevel, 0.8)
+  assert.equal(state.snapshot('live', 851).outputLevel, 0)
+  state.startVoice('new')
+  state.voice('new', 0, 'speaking', 900)
+  assert.equal(state.snapshot('live', 901).outputLevel, 0)
+  state.hide()
+  state.audio('new', 0, 0, 0.5, 900)
+  assert.equal(state.snapshot('live', 901).dismiss, true)
 })

@@ -12,10 +12,12 @@ let lastActivity = 0
 const preview =
   ['localhost', '127.0.0.1'].includes(window.location?.hostname) &&
   new URLSearchParams(window.location.search).has('preview')
-const controls = document.getElementById('preview-controls')
-const stateChoice = document.getElementById('preview-state')
-const motionChoice = document.getElementById('preview-motion')
 function render(frame) {
+  if (preview)
+    status.textContent =
+      frame.preview === false
+        ? 'Live controller preview'
+        : 'Local visual preview · no device commands'
   title.textContent = frame.title
   message.textContent = frame.message
   document.getElementById('detail').textContent = frame.detail ?? ''
@@ -30,7 +32,7 @@ function render(frame) {
       error: 'ATTENTION'
     }[frame.visual] ?? 'ROOM LINK'
   document.getElementById('connection').textContent =
-    preview && stateChoice.value !== 'live'
+    preview && frame.preview !== false
       ? 'PREVIEW'
       : frame.mode === 'simulation'
         ? 'SIMULATION'
@@ -50,7 +52,8 @@ function render(frame) {
   )
     ? frame.motion
     : 'full'
-  if (frame.visual !== 'idle' && frame.updatedAt > lastActivity) {
+  window.roomVisuals?.update(frame)
+  if (!preview && frame.visual !== 'idle' && frame.updatedAt > lastActivity) {
     lastActivity = frame.updatedAt
     clearTimeout(expiry)
     expiry = setTimeout(dismiss, 300000)
@@ -72,6 +75,7 @@ function dismiss() {
     document.getElementById('hud').style.opacity = '0'
     return
   }
+  window.roomVisuals?.stop()
   window.close()
 }
 button.addEventListener('click', dismiss)
@@ -155,6 +159,12 @@ function connect(params) {
             : 'Live controller activity') + ' · Back to dismiss'
       } catch (err) {
         if (run !== generation || stopped) return
+        window.roomVisuals?.update({
+          visual: 'error',
+          motion: 'static',
+          inputLevel: 0,
+          outputLevel: 0
+        })
         document.body.dataset.visual = 'error'
         document.getElementById('detail').textContent = ''
         title.textContent = 'Controller unavailable'
@@ -165,7 +175,7 @@ function connect(params) {
       } finally {
         clearTimeout(timeout)
         if (again && run === generation && !stopped)
-          retry = setTimeout(poll, 500)
+          retry = setTimeout(poll, 100)
       }
     }
     void poll()
@@ -181,50 +191,13 @@ document.addEventListener('webOSRelaunch', (event) => connect(event.detail))
 
 if (preview) {
   document.body.classList.add('preview')
-  controls.hidden = false
+  document.getElementById('preview-controls').hidden = false
   clearTimeout(expiry)
-  const examples = {
-    idle: ['Your room. Your software.', 'Ready when you are.', ''],
-    listening: ['I’m listening.', 'Say what you have in mind.', ''],
-    working: ['Finding your video', 'On it.', 'Jamiroquai · Virtual Insanity'],
-    speaking: ['Right here with you.', 'Playing Virtual Insanity.', ''],
-    success: [
-      'Playing your selection',
-      'Done',
-      'Jamiroquai · Virtual Insanity'
-    ],
-    error: ['Connection interrupted', 'Reconnect from the controller.', '']
-  }
-  async function previewFrame() {
-    if (stopped) return
-    try {
-      if (stateChoice.value === 'live') {
-        const response = await fetch('/api/display/frame', {
-          cache: 'no-store'
-        })
-        if (!response.ok) throw new Error('Unavailable')
-        render(await response.json())
-      } else {
-        const [heading, text, detail] = examples[stateChoice.value]
-        render({
-          title: heading,
-          message: text,
-          detail,
-          visual: stateChoice.value,
-          motion: motionChoice.value,
-          source: 'YOUTUBE',
-          mode: 'simulation'
-        })
-      }
-    } catch {
-      render({
-        title: 'Controller offline',
-        message: 'Choose a preview state above.',
-        visual: 'error',
-        motion: 'static'
-      })
+  window.roomHud = {
+    render,
+    show() {
+      stopped = false
+      document.getElementById('hud').style.opacity = '1'
     }
-    retry = setTimeout(previewFrame, 500)
   }
-  void previewFrame()
 }
