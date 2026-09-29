@@ -22,6 +22,35 @@ A full-screen 60-second rendered film was tested and rejected by the user for vi
 
 LG also says there is no screensaver-event API. `visibilitychange` is useful for suspending our app and releasing subscriptions; it does not prove why the app became hidden and cannot measure TV-wide inactivity. We do not infer room inactivity from an idle voice session. [LG screensaver detection discussion](https://forum.webostv.developer.lge.com/t/screensaver-detection/28202)
 
+## Clock takeover: settings and diagnosis
+
+September 30 report: after leaving the TV for a while, the user sees a monochrome clock and instructions to press a button other than Power to restore the picture. We have not established which app preceded it or whether the guard was enabled. The likely explanation is LG's stock idle screensaver; this is a diagnosis from the reported appearance, not a measured device state. A visible clock means the panel is still displaying content.
+
+Do not conflate these behaviors:
+
+| Behavior | Meaning and relevant setting |
+| --- | --- |
+| Idle screensaver | LG can interrupt a non-video app after inactivity. Our image animation does not exempt it. LG staff says the general screensaver off switch was limited to non-OLED webOS 5 and earlier. [LG screensaver guide](https://webostv.developer.lge.com/develop/guides/screensaver), [LG staff answer](https://forum.webostv.developer.lge.com/t/deactivate-screen-saber-on-smart-tvs/4804) |
+| Always Ready | A separate mode entered through Power, with wallpaper and some standby features. Where available, disable **All Settings → General → Always Ready → Enable the function** to make Power turn the TV off normally. This does not establish suppression of the idle screensaver. [LG webOS 25 guide, Always Ready](https://kr.eguide.lgappstv.com/manual/w25/w25_aja06/eng.html) |
+| Screen Off / automatic power-off | **General → Energy Saving → Screen Off** blanks the picture while retaining audio. **Auto Power Off** in that menu instead shuts down after no button activity, on supported models. [LG webOS 25 guide, Energy Saving](https://kr.eguide.lgappstv.com/manual/w25/w25_kr05/engk.html) |
+
+These are official webOS 25 menu references, not a verified inventory of this Thailand model's menus. Availability and wording depend on model/region/firmware.
+
+### Next on-TV pass
+
+1. Open **Room Ambient**, press **OK**, and enable **Try private screensaver guard**. Press **Back once** to hide settings, leaving the slideshow running. Alternatively check **Try private idle guard with the slideshow** in the laptop controller before **Show slideshow on TV**. The two controls belong to different app instances; a browser preview checkbox does not affect the TV.
+2. Leave the remote untouched beyond the previously observed takeover time. If unknown, use an initial 10-minute observation, then extend it if the reported interruption normally occurs later. Check whether the photos remain visible and inspect the guard status afterward. **Registration responded · waiting for an idle request** establishes only registration. **Idle veto acknowledged × N** records a response to an actual idle request, but physical visibility remains the acceptance check. Dismissing a clock can re-register the guard through `visibilitychange`, so the status after waking may differ from the status before takeover. [Guard source](../tv/ambient-src/guard.ts), [lifecycle and launch code](../tv/ambient-src/main.ts)
+3. For conventional power-off, disable **Always Ready**, if present. For eventual shutdown, check **All Settings → General → Energy Saving → Auto Power Off** and choose an offered interval. This does not guarantee shutdown before the idle clock appears; these are independent timers. Do not broadly disable Energy Saving as a supposed screensaver fix.
+4. If that inactivity option is absent, use **All Settings → General → System → Time & Timer → Timers → Sleep Timer**, or **Power Off Timer** for a scheduled shutdown. The separate **Auto Power Off after 4 Hours** in this menu is documented for timer-triggered starts, not as a universal idle policy. [LG webOS 25 guide, Time & Timer](https://kr.eguide.lgappstv.com/manual/w25/w25_a11/eng.html)
+
+**Screen Saver Promotion** under **General → System → Additional Settings → Screen Saver Settings** controls advertisements only. Some firmware exposes **Screen Saver Standby Time** there too; record the available choices before changing the test baseline. A longer delay postpones takeover rather than selecting Room Ambient. Older menus put Promotion directly under Additional Settings. [LG webOS 25 screensaver settings](https://kr.eguide.lgappstv.com/manual/w25/w25_u68/enga.html), [earlier webOS 25 menu](https://kr.eguide.lgappstv.com/manual/w25/w25_us25/enga.html)
+
+### App-side limitation and next development step
+
+Version 0.0.7 initializes the guard unchecked and does not persist that checkbox. Explicit launch parameters can enable it; a fresh launch from the LG app tile does not inherit the previous selection. The controller also initializes its guard checkbox to false. This is a plausible configuration cause, not a confirmed explanation for this report. [Native initialization](../tv/ambient-src/main.ts), [native checkbox](../tv/ambient/index.html), [controller](../web/ambient-controls.tsx), [launch schema](../src/ambient-options.ts)
+
+After verifying suppression, the next small change should remember the user's guard preference across native launches and avoid unintentionally overriding it from the controller. This is **proposed**, not implemented in this research pass. Automatic entry from Home/YouTube/Xbox is a separate feature; no current checkbox or LG setting registers our app as a system-wide replacement. LG staff says a custom screensaver API is not currently planned. [LG custom screensaver answer](https://forum.webostv.developer.lge.com/t/how-can-i-create-a-custom-screen-saver-app/28169)
+
 ## What is built
 
 Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open ambient lab** on the controller.
