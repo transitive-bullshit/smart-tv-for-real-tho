@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
 import { z } from 'zod'
+import type { AmbientCommand } from './ambient-options.js'
 import { argsSchemas, emptyState, stateSchema } from './contracts.js'
 import type {
   Candidate,
@@ -196,6 +197,66 @@ export class Coordinator {
           : err instanceof Error
             ? err.message
             : 'Overlay probe failed.'
+      this.log(op, outcome, message)
+      return { requestId: id, outcome, message }
+    }
+  }
+  async controlAmbient(command: AmbientCommand): Promise<Result> {
+    const id = randomUUID()
+    if (this.config.mode !== 'live')
+      return {
+        requestId: id,
+        outcome: 'failed',
+        message: 'Ambient TV commands require live device mode.'
+      }
+    this.cancel()
+    this.candidates = []
+    const op: Operation = {
+      id,
+      action: 'ambient_' + command.action,
+      started: Date.now(),
+      generation: this.generation,
+      signal: AbortSignal.any([
+        this.media.signal,
+        AbortSignal.timeout(this.config.timeoutMs)
+      ])
+    }
+    this.log(op, 'intent_ready')
+    try {
+      const before = await this.read(op)
+      if (!before.tv.connected)
+        throw new Error('Reconnect the LG before opening Room Ambient.')
+      if (command.action === 'launch') {
+        await this.effect(op, 'tv.volume', { level: 0 })
+        if (
+          before.tv.appId === this.config.youtubeAppId &&
+          before.youtube.connected
+        )
+          await this.effect(op, 'youtube.pause')
+      }
+      await this.effect(op, 'tv.ambient', command)
+      const after = await this.read(op)
+      this.log(op, 'accepted')
+      return {
+        requestId: id,
+        outcome: 'accepted',
+        message:
+          'Ambient ' +
+          command.action +
+          ' accepted. Check the TV picture and idle behavior.',
+        data: { before, after }
+      }
+    } catch (err) {
+      const outcome =
+        op.generation !== this.generation ? 'superseded' : 'failed'
+      const message =
+        outcome === 'superseded'
+          ? 'Superseded by a newer request.'
+          : op.signal.aborted
+            ? 'Ambient command timed out. Check the TV before retrying.'
+            : err instanceof Error
+              ? err.message
+              : 'Ambient command failed.'
       this.log(op, outcome, message)
       return { requestId: id, outcome, message }
     }

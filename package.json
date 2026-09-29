@@ -17,7 +17,7 @@
     "fix:lint": "oxlint --fix",
     "prepare": "simple-git-hooks",
     "dev": "tsx watch --include bridge/main.py --env-file-if-exists=.env src/server.ts",
-    "build": "pnpm build:visuals && vite build",
+    "build": "pnpm build:visuals && pnpm build:ambient && vite build",
     "bridge:sync": "uv sync --frozen --project bridge",
     "test:unit": "tsx --test tests/*.test.ts",
     "test:bridge": "uv run --frozen --project bridge python -m unittest discover -s bridge -p 'test_*.py'",
@@ -31,8 +31,11 @@
     "dev:stable": "tsx --env-file-if-exists=.env src/server.ts",
     "dev:restart": "node -e \"require('node:fs').utimesSync('src/server.ts',new Date(),new Date())\"",
     "build:visuals": "vite build --config tv/visuals.config.ts",
-    "predev": "pnpm build:visuals",
-    "predev:stable": "pnpm build:visuals"
+    "predev": "pnpm build:visuals && pnpm build:ambient",
+    "predev:stable": "pnpm build:visuals && pnpm build:ambient",
+    "build:ambient": "vite build --config tv/ambient.config.ts",
+    "ambient:render": "tsx scripts/render-ambient.ts",
+    "tv:package-ambient": "pnpm build:ambient && pnpm ambient:render && pnpm tv:cli ares-package tv/ambient --outdir build/tv"
   },
   "dependencies": {
     "ky": "^2.0.2",

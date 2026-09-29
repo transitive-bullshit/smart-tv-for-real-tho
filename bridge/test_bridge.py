@@ -283,3 +283,25 @@ class PlaybackControlsTests(unittest.IsolatedAsyncioTestCase):
         await listener.ad_state_changed(NS(is_skip_enabled=True))
         await listener.disconnected(object())
         self.assertFalse(b.ad_eligible)
+
+class AmbientTests(unittest.IsolatedAsyncioTestCase):
+    async def test_ambient_launch_is_fixed_validated_and_checks_acceptance(self):
+        bridge = Bridge()
+        app_id = "it.transitivebullsh.smarttv.ambient"
+        bridge.tv = NS(
+            is_connected=lambda: True,
+            get_apps=AsyncMock(return_value=[{"id": app_id}]),
+            launch_app_with_params=AsyncMock(return_value={"returnValue": True}),
+            close_app=AsyncMock(return_value={"returnValue": True}),
+        )
+        await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "video", "guard": True, "id": "other.app"})
+        bridge.tv.launch_app_with_params.assert_awaited_once_with(app_id, {"mode": "video", "guard": False})
+        with self.assertRaisesRegex(SetupError, "Invalid ambient"):
+            await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "external"})
+        bridge.tv.get_apps.return_value = []
+        with self.assertRaisesRegex(SetupError, "Install Room Ambient"):
+            await bridge.dispatch("tv.ambient", {"action": "launch"})
+        bridge.tv.close_app.return_value = {"returnValue": False}
+        with self.assertRaisesRegex(SetupError, "did not confirm"):
+            await bridge.dispatch("tv.ambient", {"action": "close"})
+        bridge.tv.close_app.assert_awaited_once_with(app_id)

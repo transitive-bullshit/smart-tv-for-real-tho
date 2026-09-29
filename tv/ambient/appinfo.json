@@ -1,0 +1,12 @@
+{
+  "id": "it.transitivebullsh.smarttv.ambient",
+  "version": "0.0.1",
+  "vendor": "Travis Fischer",
+  "type": "web",
+  "main": "index.html",
+  "title": "Room Ambient",
+  "icon": "icon.png",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true,
+  "requiredACG": []
+}

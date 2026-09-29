@@ -16,3 +16,6 @@ __pycache__/
 *.pyc
 
 tv/display/assets/
+
+tv/ambient/assets/
+tv/ambient/media/*.mp4

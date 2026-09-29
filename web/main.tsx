@@ -11,6 +11,7 @@ import type {
 import { api } from './api.js'
 import { Voice } from './voice.js'
 import { Journeys } from './journeys.js'
+import { AmbientControls } from './ambient-controls.js'
 import { HudControls } from './hud-controls.js'
 import type { DisplayFrame, MotionMode } from '../src/display.js'
 import './style.css'
@@ -342,6 +343,7 @@ function App() {
             </p>
           )}
           <HudControls display={status?.display} refresh={refresh} />
+          <AmbientControls live={status?.config.mode === 'live'} />
           <Journeys traces={status?.traces ?? []} />
           <details className='panel'>
             <summary>Controller feedback</summary>

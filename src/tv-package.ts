@@ -2,23 +2,33 @@ import { execFile } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
 const exec = promisify(execFile)
-const packagePath = 'build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk'
-let installing: Promise<{ installed: boolean; version: string }> | undefined
+const packages = {
+  display: { version: '0.0.4', command: 'tv:package-display' },
+  ambient: { version: '0.0.1', command: 'tv:package-ambient' }
+} as const
+const installing = new Map<
+  string,
+  Promise<{ installed: boolean; version: string }>
+>()
 // Fixed installed app/device/package only. No caller-supplied executable, path, or arguments.
-export function installDisplay() {
-  installing ??= (async () => {
+export const installDisplay = () => installPackage('display')
+export const installAmbient = () => installPackage('ambient')
+function installPackage(target: keyof typeof packages) {
+  const existing = installing.get(target)
+  if (existing) return existing
+  const { version, command } = packages[target]
+  const packagePath = `build/tv/it.transitivebullsh.smarttv.${target}_${version}_all.ipk`
+  const pending = (async () => {
     await access(packagePath).catch(() => {
-      throw new Error(
-        'Build the TV package first with pnpm tv:package-display.'
-      )
+      throw new Error('Build the TV package first with pnpm ' + command + '.')
     })
     try {
       await exec(
         'pnpm',
         ['tv:cli', 'ares-install', '--device', 'smart-tv', packagePath],
-        { timeout: 45000, maxBuffer: 262144 }
+        { timeout: target === 'ambient' ? 120000 : 45000, maxBuffer: 262144 }
       )
-      return { installed: true, version: '0.0.4' }
+      return { installed: true, version }
     } catch (err) {
       const failure = err as {
         code?: string | number
@@ -46,9 +56,10 @@ export function installDisplay() {
       )
     }
   })().finally(() => {
-    installing = undefined
+    installing.delete(target)
   })
-  return installing
+  installing.set(target, pending)
+  return pending
 }
 
 export async function displayDeviceStatus() {

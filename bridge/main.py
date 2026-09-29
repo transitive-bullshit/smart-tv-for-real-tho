@@ -27,6 +27,7 @@ logging.disable(logging.CRITICAL)
 ROOT = Path(__file__).resolve().parent.parent / ".local"
 CLIENT_ID = os.environ.get("XBOX_CLIENT_ID", "388ea51c-0b25-4029-aae2-17df49d23905")
 REDIRECT = "http://localhost:8080/auth/callback"
+AMBIENT_APP_ID = "it.transitivebullsh.smarttv.ambient"
 OVERLAY_APP_ID = "it.transitivebullsh.smarttv.overlayprobe"
 DISPLAY_APP_ID = "it.transitivebullsh.smarttv.display"
 
@@ -299,6 +300,22 @@ class Bridge:
                 result = await self.tv.close_app("youtube.leanback.v4")
                 if not isinstance(result, dict) or result.get("returnValue") is not True:
                     raise SetupError("LG did not accept closing native YouTube. Check the TV before retrying.")
+                return dict(accepted=True)
+            if method == "tv.ambient":
+                action = p.get("action")
+                mode = p.get("mode", "images")
+                guard = p.get("guard", False)
+                if action not in ("launch", "close") or mode not in ("images", "video") or not isinstance(guard, bool):
+                    raise SetupError("Invalid ambient command.")
+                if action == "launch":
+                    apps = await self.tv.get_apps() or []
+                    if AMBIENT_APP_ID not in [a["id"] for a in apps]:
+                        raise SetupError("Install Room Ambient using Developer Mode first.")
+                    result = await self.tv.launch_app_with_params(AMBIENT_APP_ID, {"mode": mode, "guard": guard and mode == "images"})
+                else:
+                    result = await self.tv.close_app(AMBIENT_APP_ID)
+                if not isinstance(result, dict) or result.get("returnValue") is not True:
+                    raise SetupError("LG did not confirm the ambient command. Check the TV.")
                 return dict(accepted=True)
             if method == "tv.overlay":
                 action = p.get("action")

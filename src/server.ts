@@ -5,6 +5,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import pMap from 'p-map'
 import { createServer as createViteServer } from 'vite'
 import { z } from 'zod'
+import { serveAmbient } from './ambient-assets.js'
+import { ambientCommandSchema } from './ambient-options.js'
 import { Bridge } from './bridge.js'
 import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
@@ -13,7 +15,11 @@ import { DisplayState, startDisplayFeed } from './display.js'
 import { visualOptionsSchema } from './visual-options.js'
 import { createSession } from './realtime.js'
 import { YouTubeSearch } from './search.js'
-import { displayDeviceStatus, installDisplay } from './tv-package.js'
+import {
+  displayDeviceStatus,
+  installDisplay,
+  installAmbient
+} from './tv-package.js'
 import { Simulation } from './simulation.js'
 import { readConfig, readLocal, secretsSchema, writeLocal } from './storage.js'
 
@@ -180,6 +186,7 @@ const server = createServer(async (req, res) => {
     return
   }
   const path = new URL(req.url ?? '/', 'http://' + host).pathname
+  if (await serveAmbient(req, res, path)) return
   const hudAssets: Record<string, [string, string]> = {
     '/hud/': ['index.html', 'text/html'],
     '/hud/index.html': ['index.html', 'text/html'],
@@ -314,6 +321,18 @@ const server = createServer(async (req, res) => {
       if (config.mode !== 'live')
         throw new Error('Exit simulation before installing on TV.')
       json(res, await installDisplay())
+    } else if (req.method === 'POST' && path === '/api/ambient/install') {
+      z.object({})
+        .strict()
+        .parse(await body(req))
+      if (config.mode !== 'live')
+        throw new Error('Exit simulation before installing on TV.')
+      json(res, await installAmbient())
+    } else if (req.method === 'POST' && path === '/api/ambient/control') {
+      const command = ambientCommandSchema.parse(await body(req))
+      if (config.mode === 'live' && command.action === 'launch')
+        displayState.hide()
+      json(res, await coordinator.controlAmbient(command))
     } else if (req.method === 'POST' && path === '/api/display/options') {
       const options = z
         .object({
