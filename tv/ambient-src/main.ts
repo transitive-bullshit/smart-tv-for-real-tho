@@ -1,5 +1,6 @@
 import { coverFrame, defaults, slides, smooth } from './model.js'
 import { PhotoPool } from './photo-pool.js'
+import { AmbientPlaylist } from './playlist.js'
 import { screenSaverGuard } from './guard.js'
 import './style.css'
 
@@ -18,7 +19,6 @@ const chrome = el('chrome')
 const events: { at: string; message: string }[] = []
 const started = performance.now()
 let cleanupGuard = () => {}
-let current = 0
 let elapsed = 0
 let seconds: number = defaults.seconds
 let zoom: number = defaults.zoom
@@ -32,19 +32,23 @@ const focus = slides.map((slide) => ({
 }))
 const reduced = matchMedia('(prefers-reduced-motion: reduce)')
 const available: number[] = slides.map((_, index) => index)
+const playlist = new AmbientPlaylist(available)
+let current = playlist.current!
 const verified = new Set<number>()
 let requestedScene: number | undefined
+let requestedDirection: -1 | 0 | 1 = 0
 const photos = new PhotoPool(
   el('photos'),
   (index) => {
     verified.add(index)
     log(slides[index]!.file + ' loaded')
-    if (requestedScene === index) scene(index)
+    if (requestedScene === index) scene(index, requestedDirection)
     updateImageStatus()
   },
   (index, error) => {
     const position = available.indexOf(index)
     if (position >= 0) available.splice(position, 1)
+    playlist.remove(index)
     const message =
       error instanceof Error ? error.message : 'Image loading failed'
     log(message)
@@ -52,7 +56,7 @@ const photos = new PhotoPool(
     el<HTMLSelectElement>('scene').options[index]!.disabled = true
     if (requestedScene === index) requestedScene = undefined
     if (current === index && available.length) {
-      current = available[0]!
+      current = playlist.current!
       elapsed = 0
     }
     syncLabels()
@@ -131,21 +135,19 @@ function syncLabels() {
   el('y-value').textContent = Math.round(focus[current]!.y * 100) + '%'
   el('play').textContent = paused ? 'Play' : 'Pause'
 }
-function adjacentScene(direction = 1) {
-  const indices = available
-  return (
-    indices[
-      (indices.indexOf(current) + direction + indices.length) % indices.length
-    ] ?? current
-  )
+function adjacentScene(direction: -1 | 1 = 1) {
+  return playlist.peek(direction) ?? current
 }
-function scene(index: number) {
+function scene(index: number, direction: -1 | 0 | 1 = 0) {
   if (!available.includes(index)) return
   requestedScene = index
+  requestedDirection = direction
   preparePhotos()
   if (!photos.get(index)) return
   requestedScene = undefined
-  current = (index + slides.length) % slides.length
+  if (direction && playlist.peek(direction) === index) playlist.move(direction)
+  else playlist.select(index)
+  current = playlist.current!
   elapsed = 0
   scrubbing = false
   syncLabels()
@@ -154,7 +156,7 @@ function scene(index: number) {
 function updateMotionNote() {
   el('motion-note').textContent = reduced.matches
     ? 'Reduced motion is on: still images and direct cuts.'
-    : 'Cover framing · 3-second dissolves · original images bundled locally.'
+    : 'Shuffled playlist · cover framing · 3-second dissolves.'
 }
 function play() {
   paused = !paused
@@ -216,8 +218,8 @@ input('progress').oninput = () => {
 input('guard').onchange = updateGuard
 el('hide').onclick = () => showControls(false)
 el('reveal').onclick = () => showControls(true)
-el('previous').onclick = () => scene(adjacentScene(-1))
-el('next').onclick = () => scene(adjacentScene())
+el('previous').onclick = () => scene(adjacentScene(-1), -1)
+el('next').onclick = () => scene(adjacentScene(), 1)
 el('play').onclick = () => {
   play()
 }
@@ -332,10 +334,10 @@ document.addEventListener('keydown', (event) => {
     play()
   } else if (event.key === 'ArrowRight') {
     event.preventDefault()
-    scene(adjacentScene())
+    scene(adjacentScene(), 1)
   } else if (event.key === 'ArrowLeft') {
     event.preventDefault()
-    scene(adjacentScene(-1))
+    scene(adjacentScene(-1), -1)
   }
 })
 reduced.addEventListener('change', updateMotionNote)
@@ -372,7 +374,8 @@ function tick(now: number) {
       requestedScene === undefined
     ) {
       elapsed -= seconds
-      current = adjacentScene()
+      playlist.move()
+      current = playlist.current!
       syncLabels()
       preparePhotos()
     }
