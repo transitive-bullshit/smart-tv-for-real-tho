@@ -6,6 +6,49 @@ from main import Bridge, Listener, SetupError
 from aiowebostv.exceptions import WebOsTvResponseTypeError
 
 class BridgeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_automatic_ambient_fresh_check_refuses_other_sources_and_power_transitions(self):
+        bridge = Bridge()
+        bridge.tv = NS(is_connected=lambda: True,
+            get_current_app=AsyncMock(return_value="com.webos.app.home"),
+            get_power_state=AsyncMock(return_value={"state": "Screen Saver"}),
+            launch_app_with_params=AsyncMock(return_value={"returnValue": True}))
+        for app, power in [
+            ("youtube.leanback.v4", {"state": "Screen Saver"}),
+            ("com.webos.app.hdmi3", {"state": "Screen Saver"}),
+            ("com.webos.app.home", {"state": "Active"}),
+            ("com.webos.app.home", {"state": "Screen Off"}),
+            ("com.webos.app.home", {"state": "Power Off"}),
+            ("com.webos.app.home", {"state": "Screen Saver", "processing": "Request Power Off"}),
+            ("com.webos.app.home", {"state": "Screen Saver", "processing": "Request Screen Saver"}),
+        ]:
+            bridge.tv.get_current_app.return_value = app
+            bridge.tv.get_power_state.return_value = power
+            result = await bridge.dispatch("tv.ambient_auto_launch", {"expectedAppId": "com.webos.app.home"})
+            self.assertFalse(result["accepted"])
+        bridge.tv.launch_app_with_params.assert_not_awaited()
+        bridge.tv.get_power_state.return_value = {"state": "Screen Saver"}
+        self.assertTrue((await bridge.dispatch("tv.ambient_auto_launch", {"expectedAppId": "com.webos.app.home"}))["accepted"])
+        bridge.tv.launch_app_with_params.assert_awaited_once_with("it.transitivebullsh.smarttv.ambient", {})
+
+    async def test_automatic_ambient_does_not_treat_rejection_as_success(self):
+        bridge = Bridge()
+        bridge.tv = NS(is_connected=lambda: True,
+            get_current_app=AsyncMock(return_value="com.webos.app.home"),
+            get_power_state=AsyncMock(return_value={"state": "Screen Saver"}),
+            launch_app_with_params=AsyncMock(return_value={"returnValue": False}))
+        with self.assertRaisesRegex(SetupError, "did not confirm"):
+            await bridge.dispatch("tv.ambient_auto_launch", {"expectedAppId": "com.webos.app.home"})
+        with self.assertRaisesRegex(SetupError, "Home-qualified"):
+            await bridge.dispatch("tv.ambient_auto_launch", {"expectedAppId": "com.webos.app.hdmi3"})
+
+    async def test_background_reconnect_never_initiates_new_pairing(self):
+        bridge = Bridge()
+        bridge.tv_connect = AsyncMock()
+        with patch("main.load", return_value={}):
+            with self.assertRaisesRegex(SetupError, "existing TV pairing"):
+                await bridge.dispatch("tv.reconnect", {})
+        bridge.tv_connect.assert_not_awaited()
+
     async def test_saved_youtube_auth_round_trip(self):
         # Regression: wrapper.store_auth_state and load_auth_state disagree in 3.4.0.
         a, b = YtLoungeApi("a"), YtLoungeApi("b")

@@ -2,7 +2,7 @@
 
 September 29, 2026. The user requested autonomous implementation and one cohesive test session instead of per-feature TV checks. The original hardware gates remain evidence to collect in that session; they no longer block building the animated HUD.
 
-September 30 scope update: include automatic Room Ambient activation in the demo and validate it for ongoing personal use. Journey 7 below is required but unimplemented; it is not yet part of the controller's six saved rehearsal scripts. Manual TV setup is acceptable. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the completion criteria.
+September 30 scope update: include automatic Room Ambient activation in the demo and validate it for ongoing personal use. Journey 7 below now has a controller-side launcher awaiting natural-idle verification; it is not yet part of the controller's six saved rehearsal scripts. Manual TV setup is acceptable. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the completion criteria.
 
 ## Before sitting down
 
@@ -32,7 +32,7 @@ The controller includes expandable scripts and saved result/notes fields for all
 | 4. Change your mind | Interrupt a request → new destination wins → useful error → recover | 2 min |
 | 5. The HUD in the room | Voice states → YouTube/Xbox → motion comparison → remote focus → Hide | 3 min |
 | 6. One continuous take | Two complete rehearsals, then one uncut recording | 2 × 90 sec plus recording |
-| 7. The room becomes ambient (planned) | LG Home → automatic slideshow → sustained display → deliberate exit without immediate reopening | Configured activation delay plus observation |
+| 7. The room becomes ambient (awaiting verification) | LG Home → automatic slideshow → sustained display → deliberate exit without immediate reopening | Configured activation delay plus observation |
 
 Choose at least two artist/song requests not used during development. Use **Export session notes** after the batch. Notes are stored locally in the browser, and export includes the latest 100 software trace events without diagnostic detail, credentials, or transcripts. It does not contain all historical traces: use `pnpm timings` for the server's full ignored trace log. A software event timestamp is not the time the physical picture appeared.
 

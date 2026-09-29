@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
 import { z } from 'zod'
 import type { AmbientCommand } from './ambient-options.js'
+import type { AmbientObservation } from './ambient-auto.js'
 import { argsSchemas, emptyState, stateSchema } from './contracts.js'
 import type {
   Candidate,
@@ -260,6 +261,33 @@ export class Coordinator {
       this.log(op, outcome, message)
       return { requestId: id, outcome, message }
     }
+  }
+  async launchAmbientIfIdle(
+    observation: AmbientObservation,
+    cancelled: AbortSignal
+  ): Promise<boolean> {
+    const generation = this.generation
+    const signal = AbortSignal.any([
+      this.media.signal,
+      cancelled,
+      AbortSignal.timeout(8000)
+    ])
+    return this.sourceLane.run(signal, async () => {
+      if (this.config.mode !== 'live' || generation !== this.generation)
+        return false
+      // The bridge freshly checks foreground + power state inside this lane.
+      const result = z
+        .object({ accepted: z.boolean() })
+        .parse(
+          await this.devices.request(
+            'tv.ambient_auto_launch',
+            { expectedAppId: observation.appId },
+            signal
+          )
+        )
+      signal.throwIfAborted()
+      return result.accepted
+    })
   }
   async restoreDisplay(
     display: { url: string; token: string },

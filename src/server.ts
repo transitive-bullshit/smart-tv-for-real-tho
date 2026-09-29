@@ -7,6 +7,7 @@ import { createServer as createViteServer } from 'vite'
 import { z } from 'zod'
 import { serveAmbient } from './ambient-assets.js'
 import { ambientCommandSchema } from './ambient-options.js'
+import { AmbientAuto, ambientAutoConfigSchema } from './ambient-auto.js'
 import { Bridge } from './bridge.js'
 import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
@@ -44,7 +45,10 @@ const savedAppearance = visualOptionsSchema.safeParse(
 if (savedAppearance.success) displayState.appearance = savedAppearance.data
 await mkdir('.local', { recursive: true, mode: 0o700 })
 let logWrites = Promise.resolve()
+let automaticAmbient: AmbientAuto | undefined
 function trace(event: Trace) {
+  if (event.phase === 'intent_ready' && event.action !== 'get_room_state')
+    automaticAmbient?.activity()
   const entry = { ...event, mode: config.mode }
   displayState.update(entry)
   traces.push(entry)
@@ -80,6 +84,38 @@ function makeCoordinator() {
   )
 }
 let coordinator = makeCoordinator()
+let automaticConfig = ambientAutoConfigSchema.parse(
+  (await readLocal('ambient-auto.json')) ?? {}
+)
+automaticAmbient = new AmbientAuto(
+  {
+    read: (signal) =>
+      coordinator.devices.request('tv.ambient_state', {}, signal),
+    launch: async (observation, signal) => {
+      const accepted = await coordinator.launchAmbientIfIdle(
+        observation,
+        signal
+      )
+      if (accepted) displayState.hide()
+      return accepted
+    },
+    reconnect: async () => {
+      if (config.mode === 'live')
+        await coordinator.devices.request('tv.reconnect')
+    }
+  },
+  (detail) =>
+    trace({
+      at: Date.now(),
+      requestId: 'ambient-auto',
+      action: 'ambient_auto',
+      phase: 'status',
+      elapsedMs: 0,
+      detail
+    }),
+  automaticConfig
+)
+automaticAmbient.configure(automaticConfig, config.mode === 'live')
 let boot: unknown[] = []
 async function reconnect() {
   if (config.mode === 'simulation') {
@@ -329,6 +365,17 @@ const server = createServer(async (req, res) => {
       if (config.mode !== 'live')
         throw new Error('Exit simulation before removing a TV app.')
       json(res, await uninstallOverlayProbe())
+    } else if (req.method === 'GET' && path === '/api/ambient/automatic') {
+      json(res, automaticAmbient.status())
+    } else if (req.method === 'POST' && path === '/api/ambient/automatic') {
+      const next = ambientAutoConfigSchema.parse(await body(req))
+      await writeLocal('ambient-auto.json', next)
+      automaticConfig = next
+      automaticAmbient.configure(next, config.mode === 'live')
+      json(res, automaticAmbient.status())
+    } else if (req.method === 'GET' && path === '/api/ambient/diagnostics') {
+      if (config.mode !== 'live') throw new Error('Live TV mode is required.')
+      json(res, await coordinator.devices.request('tv.ambient_state'))
     } else if (req.method === 'POST' && path === '/api/ambient/install') {
       z.object({})
         .strict()
@@ -385,19 +432,26 @@ const server = createServer(async (req, res) => {
         })
         .strict()
         .parse(await body(req))
-      json(res, {
-        accepted: displayState.voice(event.session, event.sequence, event.phase)
-      })
+      const accepted = displayState.voice(
+        event.session,
+        event.sequence,
+        event.phase
+      )
+      if (accepted && event.phase === 'listening') automaticAmbient.activity()
+      json(res, { accepted })
     } else if (req.method === 'POST' && path === '/api/cancel') {
+      automaticAmbient.activity()
       coordinator.cancel()
       json(res, { cancelled: true })
     } else if (req.method === 'POST' && path === '/api/config') {
       const next = configSchema.parse(await body(req))
       await writeLocal('config.json', next)
+      automaticAmbient.stop()
       coordinator.cancel()
       coordinator.devices.close()
       config = next
       coordinator = makeCoordinator()
+      automaticAmbient.configure(automaticConfig, config.mode === 'live')
       calls.clear()
       displayState.reset()
       void reconnect()
@@ -408,11 +462,13 @@ const server = createServer(async (req, res) => {
       await writeLocal('secrets.json', secrets)
       json(res, { saved: true })
     } else if (req.method === 'POST' && path === '/api/setup') {
+      automaticAmbient.activity()
       if (config.mode !== 'live')
         throw new Error('Exit simulation before pairing real devices.')
       const { action, ...params } = setupSchema.parse(await body(req))
       json(res, await coordinator.devices.request(action, params))
     } else if (req.method === 'POST' && path === '/api/display/overlay') {
+      automaticAmbient.activity()
       const { action } = z
         .object({ action: z.enum(['launch', 'close']) })
         .strict()
@@ -530,6 +586,7 @@ server.listen(port, '127.0.0.1', () =>
   console.log('Smart TV (' + config.mode + '): http://localhost:' + port)
 )
 async function shutdown() {
+  automaticAmbient?.stop()
   coordinator.cancel()
   coordinator.devices.close()
   server.close()

@@ -1,6 +1,6 @@
 # Room Ambient: personal screensaver
 
-Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.8 is installed and launched on the live TV. It remembers the guard preference, preserves it through controller launches, and exposes session-wide idle diagnostics. Fresh API state confirms Room Ambient foreground and volume zero after closing and reopening without an override. The user verified the guard remains checked after reopening and reports continued photos without the clock so far; elapsed time is unknown and sustained suppression remains unverified.** Version 0.0.7 moved the 15-scene collection to R2 with bounded prefetching; remote-image playback is browser-verified. The user confirmed all new images look great on the live TV in 0.0.5. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration previously responded on the TV; that alone does not prove idle suppression. The existing assistant overlay remains a separate app.
+Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.8 is installed and launched on the live TV. It remembers the guard preference, preserves it through controller launches, and exposes session-wide idle diagnostics. Fresh API state confirms Room Ambient foreground and volume zero after closing and reopening without an override. The user verified the guard remains checked after reopening and now reports several hours of continued slideshow playback with no clock takeover. The duration is an estimate; the stock timeout and actual veto count were not measured.** Version 0.0.7 moved the 15-scene collection to R2 with bounded prefetching; remote-image playback is browser-verified. The user confirmed all new images look great on the live TV in 0.0.5. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration previously responded on the TV; that alone does not prove idle suppression. The existing assistant overlay remains a separate app.
 
 ## Scope and acceptance
 
@@ -8,7 +8,7 @@ Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firm
 
 The intended journey is **LG Home → inactivity/activation condition → Room Ambient → normal TV use**. Starting inside the slideshow tests whether it stays visible; it does not demonstrate automatic activation. The owner accepts manual TV setup if needed. Investigate available native/private mechanisms and documented manual configuration on this exact firmware; the absence of a public provider API does not settle every alternative's feasibility. No working native automatic integration or compatible system modification has been established.
 
-The first implementation candidate is a configurable, opt-in Home-only timer in the existing laptop controller. Before launch, require fresh connected state and Home still foreground; cancel on source changes, explicit commands or stale/disconnected state. Respect deliberate dismissal with a configurable cooldown. This measures time on Home, not complete remote inactivity, and can interrupt someone browsing Home. Record that limitation and the always-running laptop dependency if selected. It is an interim milestone, not evidence of native screensaver registration. More accurate idle detection and other idle contexts remain investigation work; keep active playback and games untouched.
+The first implementation uses LG’s paired power-state API in the laptop controller: observe active Home, then a stable `Screen Saver` state, recheck, and launch Room Ambient. It is opt-in and currently enabled for the owner’s live test. The controller must remain running on an awake Mac. This is not native provider registration. A Home-duration timer remains a possible fallback, not the implemented trigger; it would measure time on Home rather than remote inactivity. See [automatic activation](#automatic-activation) for setup, safeguards and current hardware evidence.
 
 Acceptance checks for the personal-use milestone:
 
@@ -18,7 +18,7 @@ Acceptance checks for the personal-use milestone:
 4. **Everyday recovery:** verify the chosen mechanism through TV standby/wake and a controller restart. Document whether the laptop must stay running and what happens when it is asleep, disconnected or restarted; native slideshow playback itself is independent of the laptop. Include Developer Mode session upkeep and recovery from image/network failures in the runbook.
 5. **Usable setup and escape:** document necessary manual steps and an easy way to disable automatic activation or exit the slideshow. Retain the owner's chosen actual power-off behavior. A longer clock delay or one successful filmed run alone does not satisfy ongoing use.
 
-These are requirements, not completed functionality. Current evidence: 0.0.8's saved-on guard state is user-verified after reopening; the user reports photos still visible without the clock during an ongoing, unmeasured idle interval. Sustained suppression and automatic entry remain open. Continue that observation without restarting or navigating the TV for documentation work.
+Current evidence: 0.0.8’s saved-on guard state is user-verified after reopening. The owner subsequently reported several hours of advancing photos with no clock takeover. This supports sustained display on this TV; the exact interval and veto count remain unmeasured. Automatic entry, repeatability and standby recovery still require the checks above.
 
 ## Feasibility and the useful boundary
 
@@ -26,10 +26,10 @@ We can own the full-screen ambient experience in a normal Developer Mode app: sh
 
 | Approach | What it gives us | Evidence / remaining question |
 | --- | --- | --- |
-| Foreground image app | Full visual control, original photos, adjustable focal points and timing | User verified images, framing and transitions on this TV. Native idle interruption remains to test. |
-| Private foreground guard | Requests that LG leave our visible image app alone when its idle timer fires | Two open-source implementations; exact TV permissions/effectiveness unknown. Optional probe; remembered after opt-in, off before the first opt-in. |
+| Foreground image app | Full visual control, original photos, adjustable focal points and timing | User verified images, framing, transitions and several hours without a clock takeover with the guard enabled. |
+| Private foreground guard | Requests that LG leave our visible image app alone when its idle timer fires | Opt-in, remembered; owner reports several hours of uninterrupted photos on 0.0.8. Exact veto count was not captured. |
 | Remote shortcut | One-button entry into our app | LG documents Quick Access; verify registration for this sideloaded app and remote. |
-| Automatic activation | Open Room Ambient after an eligible idle/activation condition, starting with LG Home | Required scope; unimplemented. Native/private/manual setup remains to investigate; a Home-only timer is an interim candidate. |
+| Automatic activation | Open Room Ambient after an eligible idle/activation condition, starting with LG Home | Implemented paired-controller launcher using LG’s Screen Saver signal after Home. Natural Home → Screen Saver power transition observed after ten minutes; automatic handoff remains to verify. |
 | Native system-wide replacement | Own LG's system screensaver across idle contexts | No public provider-registration API; alternate mechanisms and firmware compatibility remain unresolved. |
 | Root / system modification | Potential replacement of the actual screensaver | Existing homebrew requires root; not assessed as compatible with this firmware and not implemented. |
 
@@ -40,6 +40,41 @@ The public exception is actual full-screen video. OLED-only Type 2/3 settings ar
 A full-screen 60-second rendered film was tested and rejected by the user for visual quality. Version 0.0.3 removes the video element, render script, bundled MP4 and film controls. The documented video exception is background research, not our selected implementation.
 
 LG also says there is no screensaver-event API. `visibilitychange` is useful for suspending our app and releasing subscriptions; it does not prove why the app became hidden and cannot measure TV-wide inactivity. We do not infer room inactivity from an idle voice session. [LG screensaver detection discussion](https://forum.webostv.developer.lge.com/t/screensaver-detection/28202)
+
+## Automatic activation
+
+### Selected approach and alternatives
+
+The laptop watches the paired SSAP endpoints `com.webos.service.tvpower/power/getPowerState` and `com.webos.applicationManager/getForegroundAppInfo`. Our installed `aiowebostv` dependency exposes both. `Screen Saver` is a known power-state value in other paired controllers; shutdown can also pass through that value, so the raw `processing` field matters. [lgtv2 command reference](https://github.com/hobbyquaker/lgtv2/blob/master/README.md), [maintainer device observations](https://github.com/hobbyquaker/lgtv2/blob/master/ROADMAP.md), [aiowebostv implementation](https://github.com/home-assistant-libs/aiowebostv/blob/main/aiowebostv/webos_client.py)
+
+No documented menu selects an arbitrary Developer Mode app as the default screensaver. The webOS 25 manual describes Promotion and Standby Time settings, not a third-party provider selector. LG staff says there is no planned custom-provider API. These sources do not establish that every private mechanism is impossible. [LG webOS 25 manual](https://kr.eguide.lgappstv.com/manual/w25/w25_a11/eng.html), [LG custom-provider answer](https://forum.webostv.developer.lge.com/t/how-can-i-create-a-custom-screen-saver-app/28169)
+
+A TV-only JS service could be a later experiment. LG documents background service lifetimes, but its staff does not promise user-service startup on boot; permission to monitor/launch across apps also remains unverified here. The existing native system-replacement project requires root. We have not assessed a compatible root path or installed system modifications. [LG service lifecycle](https://webostv.developer.lge.com/develop/guides/js-service-faq), [LG startup clarification](https://forum.webostv.developer.lge.com/t/i-am-created-a-service-but-not-able-to-start-service-when-app-is-going-to-background-foreground-and-reboot-tv/24840), [custom-screensaver](https://github.com/webosbrew/custom-screensaver)
+
+### Implementation
+
+- [Idle policy and watcher](../src/ambient-auto.ts) make one read at a time, approximately every two seconds. There is no launch based solely on elapsed time on Home. Only active Home arms the policy; observing YouTube, HDMI, an unknown source, a power transition, stale data or a connection gap disarms it.
+- A subsequent `Screen Saver` state must remain eligible for at least four seconds with no `processing` transition before a launch is attempted. The foreground must still be Home or LG’s known screensaver app ID. `Request Screen Saver` and the hardware-observed `Screen Saver Ready` retain prior Home eligibility but never launch by themselves. On this TV’s measured idle transition, foreground remains Home.
+- [Coordinator](../src/coordinator.ts) serializes automatic launch with source commands. [Bridge](../bridge/main.py) freshly rechecks the exact foreground and idle power state immediately before launching the fixed ambient app ID. No Wake-on-LAN, simulated input, screen-on command or power-setting change is sent. An automatic launch preserves the saved guard preference and current volume.
+- Controller commands and voice listening cancel pending automatic work. Leaving Room Ambient or using a controller command starts a configurable cooldown (one minute by default). Only a newly observed active Home state can rearm after cooldown. One launch attempt is allowed per eligible idle transition; a rejected launch does not loop over the clock.
+- Observation failures disarm; reconnect attempts use the existing saved pairing at most once per 30 seconds. Simulation, disabled configuration and server shutdown stop the watcher. Restart/laptop sleep loses eligibility; it requires fresh Home observation before acting again. This deliberately avoids launching into a clock that was already present before the controller started.
+- The enabled preference and cooldown live in ignored `.local/ambient-auto.json`. Diagnostics show current app/power/processing, accepted launch count and a bounded event list. State changes and failures also enter `.local/trace.jsonl`; identical polls are not logged repeatedly. These are development diagnostics, not voice responses.
+
+### One-time setup and live test
+
+1. Keep Room Ambient **0.0.8** installed, its saved guard enabled, and Developer Mode valid. No new TV package is needed for this controller-only feature.
+2. On the awake Mac, run `pnpm dev` (development) or `pnpm dev:stable` (normal use) on the same LAN. In the controller’s **Room Ambient → Automatic ambient**, enable **Open Room Ambient when LG Home enters its screensaver**. This preference persists across controller restarts. Browser tab presence is not required; the server is.
+3. Start on LG Home with Room Ambient closed. Leave the remote untouched and record the elapsed interval. The controller should read **Armed on LG Home**. LG decides when to idle; this is not a one-minute launch timer. The one-minute setting is the dismissal cooldown.
+4. Expect Room Ambient shortly after LG reports a stable screensaver state. The stock clock may appear briefly during the handoff. Confirm the actual TV shows advancing photos, not just an accepted launch in diagnostics. If the clock remains, leave it visible and capture the displayed app/power/processing diagnostic values before pressing anything.
+5. Press Back to exit Room Ambient. It should remain dismissed through the cooldown and wait for a new Home → idle transition. Repeat automatic entry twice more; separately check active YouTube, Xbox and standby/wake. Do not use a short Sleep Timer as a substitute for LG’s idle timer.
+6. To disable automatic opening, clear that checkbox. To stop all controller automation, stop the server. The native slideshow already on-screen continues independently. Normal Power/standby is excluded by the launcher.
+
+### Evidence so far
+
+- Owner report: 0.0.8 kept advancing photos for an estimated few hours without LG’s clock taking over. Saved guard was on.
+- Live read-only probe returned `Active`, no processing transition, and the ambient app ID. After sending Home it returned `com.webos.app.home`, `Active`, no processing transition; volume remained zero. The background ambient app was then explicitly closed to release its guard for the natural-idle test.
+- First natural-idle recording: Home at `1790725186398`; `Active` with processing `Screen Saver Ready` at `1790725784497`; `Screen Saver` with processing null at `1790725786606`. Foreground remained Home. This is approximately **600 seconds** from entering Home. The first conservative policy disarmed on the then-unknown Ready value, so it correctly made zero launches; the policy and regression now recognize that exact transition. A second Home test exercises the corrected handoff.
+- Policy/source/power/cancellation tests pass; the automatic control is browser-visible and enabled with a one-minute cooldown. Natural Home → screensaver → ambient activation is still awaiting physical verification. No native registration or completed three-run acceptance is claimed.
 
 ## Clock takeover: settings and diagnosis
 
@@ -66,7 +101,7 @@ These are official webOS 25 menu references, not a verified inventory of this Th
 
 ### App-side limitation and next development step
 
-Version 0.0.7 initialized the guard unchecked, did not persist it, and the controller sent false by default. Version 0.0.8 fixes those confirmed configuration defects: the native app saves both on and off in localStorage; launch parameters override only when explicitly supplied, and the controller defaults to preserving the TV preference. Storage failures retain the selection for the session and appear in diagnostics. This is not yet proof that LG will honor the guard. [Native initialization](../tv/ambient-src/main.ts), [native checkbox](../tv/ambient/index.html), [controller](../web/ambient-controls.tsx), [launch schema](../src/ambient-options.ts)
+Version 0.0.7 initialized the guard unchecked, did not persist it, and the controller sent false by default. Version 0.0.8 fixes those confirmed configuration defects: the native app saves both on and off in localStorage; launch parameters override only when explicitly supplied, and the controller defaults to preserving the TV preference. Storage failures retain the selection for the session and appear in diagnostics. The subsequent owner report of several hours of uninterrupted photos is positive physical evidence, although no timed stock baseline or veto count was captured. [Native initialization](../tv/ambient-src/main.ts), [native checkbox](../tv/ambient/index.html), [controller](../web/ambient-controls.tsx), [launch schema](../src/ambient-options.ts)
 
 Automatic entry from Home/YouTube/Xbox is a separate feature; no current checkbox or LG setting registers our app as a system-wide replacement. LG staff says a custom screensaver API is not currently planned. [LG custom screensaver answer](https://forum.webostv.developer.lge.com/t/how-can-i-create-a-custom-screen-saver-app/28169)
 
@@ -82,7 +117,7 @@ Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open 
 - Local controls for image, timing, zoom, focus X/Y, focus marker, progress scrubbing, pause, previous/next, and clean full-screen view. Framing and playback adjustments apply to that app instance only and reset on reload; the guard preference is remembered on that device. Browser changes do not change an already-running TV app.
 - The lower-left scene title remains visible in clean view, independently of controls. The scene counter and decorative subtitle have been removed.
 - The slideshow honors `prefers-reduced-motion` with still frames/direct cuts.
-- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.8`. There are no system file edits, root dependencies, background services or automatic entry rules.
+- A normal, opaque, foreground webOS app: `it.transitivebullsh.smarttv.ambient`, version `0.0.8`. There are no system file edits, root dependencies or TV background services. Automatic entry is handled separately by the laptop controller.
 - Controller buttons for a fixed package install, slideshow launch, and close. Launch sets room volume to zero, pauses connected foreground YouTube, hides/disables automatic restoration of the assistant panel, then opens Room Ambient. It does not promise to pause an Xbox game.
 - In 0.0.4, Back hides the settings panel first without stopping playback or the guard; a second press from clean view calls `window.close()` to exit directly. Repeated keydown events are ignored so holding Back does not run both actions. The old `platformBack()` path caused LG's confirmation prompt. LG documents `window.close()` as the direct exit alternative; the user confirmed this works without an exit prompt on September 30. [LG Back-button guide](https://webostv.developer.lge.com/develop/guides/back-button) Home is OS-controlled. OK reveals the controls; left/right switch scenes when controls are hidden. Browser shortcuts: H toggles controls, Space pauses, arrows switch scenes. Remote OK explicitly toggles focused checkboxes (HTML checkboxes otherwise use Space). The user verified the controls and focal marker after this fix; guard idle suppression still needs a dedicated physical check.
 

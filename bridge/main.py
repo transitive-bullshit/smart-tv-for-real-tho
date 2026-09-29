@@ -214,6 +214,19 @@ class Bridge:
             await self.auth_runner.cleanup()
             self.auth_runner = None
 
+    async def ambient_state(self):
+        """Fresh, read-only idle diagnostics; never wake a TV or send remote input."""
+        tv = self.tv
+        if not tv or not tv.is_connected():
+            raise SetupError("LG disconnected. Waiting for its paired connection.")
+        async with asyncio.timeout(4):
+            app, power = await asyncio.gather(tv.get_current_app(), tv.get_power_state())
+        if tv is not self.tv or not tv.is_connected():
+            raise SetupError("LG connection changed during the idle check.")
+        if not isinstance(power, dict) or not isinstance(power.get("state"), str):
+            raise SetupError("LG did not expose a usable power state.")
+        return dict(observedAt=now(), appId=app, powerState=power["state"], processing=power.get("processing"))
+
     async def state(self, include_xbox=True):
         tv = dict(connected=False, observedAt=0, appId=None, volume=None, soundOutput=None)
         async def read_tv():
@@ -271,6 +284,12 @@ class Bridge:
             return dict(lgPaired=bool(load("lg.json")), youtubePaired=bool(load("youtube.json")), xboxAuthorized=bool(load("xbox.json")))
         if method == "state":
             return await self.state(p.get("includeXbox", True))
+        if method == "tv.reconnect":
+            pairing = load("lg.json") or {}
+            if not pairing.get("key"):
+                raise SetupError("Automatic reconnect requires an existing TV pairing.")
+            await self.tv_connect()
+            return dict(connected=True)
         if method == "tv.connect":
             await self.tv_connect(p.get("host"))
             try:
@@ -296,6 +315,21 @@ class Bridge:
         if method.startswith("tv."):
             if not self.tv or not self.tv.is_connected():
                 raise SetupError("LG disconnected. Reconnect in setup.")
+            if method == "tv.ambient_state":
+                return await self.ambient_state()
+            if method == "tv.ambient_auto_launch":
+                expected = p.get("expectedAppId")
+                if expected not in ("com.webos.app.home", "com.webos.app.screensaver"):
+                    raise SetupError("Automatic ambient requires a Home-qualified screensaver.")
+                # Last check occurs immediately before the only side effect.
+                # Never wake the panel or override Screen Off / standby / shutdown.
+                state = await self.ambient_state()
+                if state["appId"] != expected or state["powerState"] != "Screen Saver" or state["processing"]:
+                    return dict(accepted=False)
+                result = await self.tv.launch_app_with_params(AMBIENT_APP_ID, {})
+                if not isinstance(result, dict) or result.get("returnValue") is not True:
+                    raise SetupError("LG did not confirm automatic ambient launch.")
+                return dict(accepted=True)
             if method == "tv.close_youtube":
                 result = await self.tv.close_app("youtube.leanback.v4")
                 if not isinstance(result, dict) or result.get("returnValue") is not True:
