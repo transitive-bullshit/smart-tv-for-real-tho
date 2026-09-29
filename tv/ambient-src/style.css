@@ -236,6 +236,14 @@ summary {
   line-height: 1.5;
   color: #e6cba7;
 }
+#guard-history {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: #abb8b6;
+  line-height: 1.6;
+}
 #reveal {
   position: absolute;
   bottom: 24px;

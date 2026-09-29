@@ -6,6 +6,38 @@ import type { Devices } from '../src/contracts.js'
 import { Coordinator } from '../src/coordinator.js'
 import { coverFrame, slides } from '../tv/ambient-src/model.js'
 import { screenSaverGuard } from '../tv/ambient-src/guard.js'
+import { AmbientPreferences } from '../tv/ambient-src/preferences.js'
+
+void test('saved guard opt-in and opt-out survive fresh app instances; omitted launch preserves them', () => {
+  const values = new Map<string, string>()
+  const storage = () => ({
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value)
+    }
+  })
+  const report = () => {}
+  const first = new AmbientPreferences(storage, report)
+  assert.equal(first.guard, false)
+  first.setGuard(true)
+  assert.equal(new AmbientPreferences(storage, report).guard, true)
+  assert.deepEqual(ambientCommandSchema.parse({ action: 'launch' }), {
+    action: 'launch'
+  })
+  const second = new AmbientPreferences(storage, report)
+  second.setGuard(false)
+  assert.equal(new AmbientPreferences(storage, report).guard, false)
+  const messages: string[] = []
+  const unavailable = new AmbientPreferences(
+    () => {
+      throw new Error('denied')
+    },
+    (m) => messages.push(m)
+  )
+  unavailable.setGuard(true)
+  assert.equal(unavailable.guard, true)
+  assert.match(messages.at(-1)!, /this session.*storage unavailable/)
+})
 
 void test('cover motion never exposes edges or crops its focal point across aspect ratios', () => {
   for (const slide of slides)
@@ -80,6 +112,7 @@ void test('ambient launch is live-only, mutes before source change, and preserve
     ['state', 'tv.volume', 'youtube.pause', 'tv.ambient', 'state']
   )
   assert.deepEqual(calls[1]?.[1], { level: 0 })
+  assert.deepEqual(calls[3]?.[1], { action: 'launch' })
   assert.deepEqual(result.data, { before: room, after: room })
   assert.equal(
     ambientCommandSchema.safeParse({
@@ -89,6 +122,75 @@ void test('ambient launch is live-only, mutes before source change, and preserve
     }).success,
     false
   )
+})
+
+void test('duplicate private guard registration retries once and acknowledges only confirmed veto replies', () => {
+  const bridges: FakeBridge[] = []
+  const messages: string[] = []
+  const events: (string | undefined)[] = []
+  class FakeBridge {
+    cancelled = false
+    params: Record<string, unknown> = {}
+    onservicecallback = (_raw: string) => {}
+    constructor() {
+      bridges.push(this)
+    }
+    call(_uri: string, params: string) {
+      this.params = JSON.parse(params) as Record<string, unknown>
+    }
+    cancel() {
+      this.cancelled = true
+    }
+    receive(data: unknown) {
+      this.onservicecallback(JSON.stringify(data))
+    }
+  }
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: { PalmServiceBridge: FakeBridge }
+  })
+  const report = (message: string, event?: string) => {
+    messages.push(message)
+    events.push(event)
+  }
+  let stop = () => {}
+  try {
+    stop = screenSaverGuard(report)
+    bridges[0]!.receive({ returnValue: false, errorCode: -3 })
+    assert.equal(bridges[0]!.cancelled, true)
+    assert.notEqual(
+      bridges[1]!.params.clientName,
+      bridges[0]!.params.clientName
+    )
+    bridges[1]!.receive({ returnValue: true, subscribed: true })
+    bridges[1]!.receive({ timestamp: 456 })
+    assert.deepEqual(bridges[2]!.params, {
+      clientName: bridges[1]!.params.clientName,
+      timestamp: 456,
+      ack: false
+    })
+    assert.equal(events.at(-1), 'request')
+    bridges[2]!.receive({})
+    assert.equal(events.at(-1), 'failure')
+    assert.equal(events.includes('acknowledged'), false)
+    bridges[2]!.receive({ returnValue: true })
+    assert.equal(events.includes('acknowledged'), false)
+    assert.equal(bridges[1]!.cancelled, true)
+    stop = screenSaverGuard(report)
+    bridges[3]!.receive({ errorCode: -3 })
+    bridges[4]!.receive({ errorCode: -3 })
+    assert.equal(bridges.length, 5)
+    assert.match(messages.at(-1)!, /rejected/)
+    stop = screenSaverGuard(report)
+    bridges[5]!.receive({ returnValue: true, subscribed: false })
+    assert.match(messages.at(-1)!, /did not retain/)
+    assert.equal(bridges[5]!.cancelled, true)
+  } finally {
+    stop()
+    if (original) Object.defineProperty(globalThis, 'window', original)
+    else Reflect.deleteProperty(globalThis, 'window')
+  }
 })
 void test('a newer source command wins over an in-flight ambient launch', async () => {
   let release!: () => void

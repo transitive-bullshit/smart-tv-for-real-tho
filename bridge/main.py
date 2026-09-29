@@ -303,14 +303,14 @@ class Bridge:
                 return dict(accepted=True)
             if method == "tv.ambient":
                 action = p.get("action")
-                guard = p.get("guard", False)
-                if action not in ("launch", "close") or "mode" in p or not isinstance(guard, bool):
+                if action not in ("launch", "close") or "mode" in p or ("guard" in p and not isinstance(p["guard"], bool)):
                     raise SetupError("Invalid ambient command.")
                 if action == "launch":
                     apps = await self.tv.get_apps() or []
                     if AMBIENT_APP_ID not in [a["id"] for a in apps]:
                         raise SetupError("Install Room Ambient using Developer Mode first.")
-                    result = await self.tv.launch_app_with_params(AMBIENT_APP_ID, {"guard": guard})
+                    params = {"guard": p["guard"]} if "guard" in p else {}
+                    result = await self.tv.launch_app_with_params(AMBIENT_APP_ID, params)
                 else:
                     result = await self.tv.close_app(AMBIENT_APP_ID)
                 if not isinstance(result, dict) or result.get("returnValue") is not True:

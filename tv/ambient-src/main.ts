@@ -3,6 +3,8 @@ import { ImageCache, imageCacheLimits } from './image-cache.js'
 import { PhotoPool } from './photo-pool.js'
 import { AmbientPlaylist } from './playlist.js'
 import { screenSaverGuard } from './guard.js'
+import type { GuardEvent } from './guard.js'
+import { AmbientPreferences } from './preferences.js'
 import './style.css'
 
 interface PlatformWindow extends Window {
@@ -20,6 +22,11 @@ const chrome = el('chrome')
 const events: { at: string; message: string }[] = []
 const started = performance.now()
 let cleanupGuard = () => {}
+let guardRunning = false
+const guardCounts = { requests: 0, acknowledged: 0, failures: 0, hidden: 0 }
+const guardEvents: { at: string; message: string }[] = []
+const preferences = new AmbientPreferences(() => localStorage, reportGuard)
+input('guard').checked = preferences.guard
 let elapsed = 0
 let seconds: number = defaults.seconds
 let zoom: number = defaults.zoom
@@ -110,22 +117,36 @@ function toast(message: string) {
     el('toast').hidden = true
   }, 5500)
 }
-function updateGuard() {
+function reportGuard(message: string, event?: GuardEvent) {
+  if (event === 'request') guardCounts.requests++
+  if (event === 'acknowledged') guardCounts.acknowledged++
+  if (event === 'failure') guardCounts.failures++
+  el('guard-status').textContent = message
+  el('guard-summary').textContent =
+    `This session: ${guardCounts.requests} idle requests · ${guardCounts.acknowledged} vetoes acknowledged · ${guardCounts.failures} errors · ${guardCounts.hidden} hides`
+  guardEvents.push({ at: new Date().toISOString(), message })
+  if (guardEvents.length > 30) guardEvents.shift()
+  el('guard-history').textContent = guardEvents
+    .slice(-8)
+    .map(
+      (event) => new Date(event.at).toLocaleTimeString() + ' · ' + event.message
+    )
+    .join('\n')
+  log(message)
+}
+function releaseGuard() {
   cleanupGuard()
   cleanupGuard = () => {}
-  const report = (message: string) => {
-    el('guard-status').textContent = message
-    log(message)
+  guardRunning = false
+}
+function updateGuard() {
+  if (document.hidden || !input('guard').checked) {
+    releaseGuard()
+    reportGuard(document.hidden ? 'Guard released · app hidden' : 'Guard off')
+  } else if (!guardRunning) {
+    guardRunning = true
+    cleanupGuard = screenSaverGuard(reportGuard)
   }
-  if (document.hidden) {
-    report('Guard released · app hidden')
-    return
-  }
-  if (!input('guard').checked) {
-    report('Guard off')
-    return
-  }
-  cleanupGuard = screenSaverGuard(report)
 }
 function showControls(show: boolean) {
   updateImageStatus()
@@ -187,16 +208,21 @@ function back() {
     return
   }
   if (native) {
-    cleanupGuard()
+    releaseGuard()
     // platformBack() asks for confirmation; close the packaged app directly.
     window.close()
   } else if (document.fullscreenElement) void document.exitFullscreen()
   else showControls(true)
 }
 function launch(params: unknown) {
-  if (!params || typeof params !== 'object') return
-  const data = params as Record<string, unknown>
-  if (typeof data.guard === 'boolean') input('guard').checked = data.guard
+  const data =
+    params && typeof params === 'object'
+      ? (params as Record<string, unknown>)
+      : {}
+  if (typeof data.guard === 'boolean') {
+    input('guard').checked = data.guard
+    preferences.setGuard(data.guard)
+  }
   paused = false
   syncLabels()
   updateGuard()
@@ -206,6 +232,7 @@ function parseLaunch(raw?: string) {
     launch(JSON.parse(raw || '{}'))
   } catch {
     log('Ignored malformed launch parameters')
+    updateGuard()
   }
 }
 el<HTMLSelectElement>('scene').onchange = (event) =>
@@ -230,7 +257,10 @@ input('progress').oninput = () => {
   elapsed = Number(input('progress').value) * (seconds + defaults.fade)
   syncLabels()
 }
-input('guard').onchange = updateGuard
+input('guard').onchange = () => {
+  preferences.setGuard(input('guard').checked)
+  updateGuard()
+}
 el('hide').onclick = () => showControls(false)
 el('reveal').onclick = () => showControls(true)
 el('previous').onclick = () => scene(adjacentScene(-1), -1)
@@ -251,6 +281,9 @@ el('export').onclick = () => {
       JSON.stringify(
         {
           guard: input('guard').checked,
+          version: '0.0.8',
+          guardCounts,
+          guardEvents,
           seconds,
           zoom,
           focus,
@@ -276,15 +309,19 @@ document.addEventListener('visibilitychange', () => {
     ? 'Hidden · animation suspended'
     : 'Visible · ' + new Date().toLocaleTimeString()
   log('Visibility: ' + !document.hidden)
+  if (document.hidden) guardCounts.hidden++
   preparePhotos()
   updateGuard()
 })
 window.addEventListener('pagehide', () => {
-  cleanupGuard()
+  releaseGuard()
   photos.retain([])
   imageCache.clear()
 })
-window.addEventListener('pageshow', preparePhotos)
+window.addEventListener('pageshow', () => {
+  preparePhotos()
+  updateGuard()
+})
 document.addEventListener('webOSLaunch', (event) =>
   launch((event as CustomEvent).detail)
 )

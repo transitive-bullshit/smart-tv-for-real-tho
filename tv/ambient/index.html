@@ -95,7 +95,7 @@
           Shuffled playlist · cover framing · 3-second dissolves.
         </p>
         <details>
-          <summary>TV experiment & diagnostics</summary>
+          <summary>TV experiment & diagnostics · 0.0.8</summary>
           <p>
             Foreground ambient app. Automatic TV-wide idle activation is a
             separate, unsupported integration.
@@ -104,7 +104,13 @@
             ><input id="guard" type="checkbox" /> Try private screensaver
             guard</label
           >
+          <p>
+            Remembered on this device. Only active while Room Ambient is
+            visible.
+          </p>
           <output id="guard-status" aria-live="polite">Guard off</output>
+          <p id="guard-summary">This session: no idle requests yet</p>
+          <pre id="guard-history"></pre>
           <p id="image-status">Loading images…</p>
           <p id="lifecycle">Visible</p>
           <button id="export">Export diagnostics</button>

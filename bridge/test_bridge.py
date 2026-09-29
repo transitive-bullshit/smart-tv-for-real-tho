@@ -296,6 +296,12 @@ class AmbientTests(unittest.IsolatedAsyncioTestCase):
         )
         await bridge.dispatch("tv.ambient", {"action": "launch", "guard": True, "id": "other.app"})
         bridge.tv.launch_app_with_params.assert_awaited_once_with(app_id, {"guard": True})
+        await bridge.dispatch("tv.ambient", {"action": "launch"})
+        bridge.tv.launch_app_with_params.assert_awaited_with(app_id, {})
+        await bridge.dispatch("tv.ambient", {"action": "launch", "guard": False})
+        bridge.tv.launch_app_with_params.assert_awaited_with(app_id, {"guard": False})
+        with self.assertRaisesRegex(SetupError, "Invalid ambient"):
+            await bridge.dispatch("tv.ambient", {"action": "launch", "guard": None})
         with self.assertRaisesRegex(SetupError, "Invalid ambient"):
             await bridge.dispatch("tv.ambient", {"action": "launch", "mode": "video"})
         bridge.tv.get_apps.return_value = []
