@@ -39,6 +39,12 @@ Explore nine orb patterns, four design directions, state mappings and restrained
 
 Read [one-session testing and filming](docs/demo-session.md), [the agent tool inventory](docs/agent-tools.md), and [implementation status](docs/implementation-status.md). Keep unattended tests at volume zero.
 
+## Personal ambient screen
+
+Open [the ambient lab](http://localhost:3210/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion, cover framing and a silent film alternative. The controller can install/open the separate **Room Ambient 0.0.1** foreground TV app. It is prepared locally; screensaver suppression, native playback and remote behavior await the shared TV session. This does not yet replace LG's global idle screensaver.
+
+[Feasibility, implementation and one-session checks](docs/ambient-screensaver.md). Build the installable package with `pnpm tv:package-ambient` (requires ffmpeg for the generated film).
+
 ## Development checks
 
 ```sh
