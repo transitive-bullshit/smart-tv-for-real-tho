@@ -14,7 +14,9 @@ export class PhotoPool {
   constructor(
     private container: HTMLElement,
     private loaded: (index: number) => void,
-    private failed: (index: number, error: unknown) => void
+    private failed: (index: number, error: unknown) => void,
+    private source: (index: number) => Promise<string> = (index) =>
+      Promise.resolve(slides[index]!.url)
   ) {}
 
   get(index: number) {
@@ -40,7 +42,8 @@ export class PhotoPool {
       const photo = { image, abort: new AbortController(), ready: false }
       this.photos.set(index, photo)
       this.container.append(image)
-      void loadImage(image, 'media/' + slide.file, photo.abort.signal)
+      void this.source(index)
+        .then((source) => loadImage(image, source, photo.abort.signal))
         .then(() => {
           if (this.photos.get(index) !== photo) return
           photo.ready = true

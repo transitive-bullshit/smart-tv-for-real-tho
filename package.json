@@ -34,7 +34,8 @@
     "predev": "pnpm build:visuals && pnpm build:ambient",
     "predev:stable": "pnpm build:visuals && pnpm build:ambient",
     "build:ambient": "vite build --config tv/ambient.config.ts",
-    "tv:package-ambient": "pnpm build:ambient && pnpm tv:cli ares-package tv/ambient --outdir build/tv"
+    "tv:package-ambient": "pnpm build:ambient && pnpm tv:cli ares-package tv/ambient --outdir build/tv",
+    "ambient:upload": "tsx --env-file=.env scripts/ambient-upload.ts"
   },
   "dependencies": {
     "ky": "^2.0.2",
@@ -46,6 +47,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1142.0",
     "@fisch0920/config": "^2.2.0",
     "@fisch0920/oxlint-plugin-anti-slop": "^0.2.1",
     "@types/node": "^26.6.2",

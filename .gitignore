@@ -18,3 +18,6 @@ __pycache__/
 tv/display/assets/
 
 tv/ambient/assets/
+
+# Ambient photos live in blob storage; keep local import sources under .local/.
+tv/ambient/media/

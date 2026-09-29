@@ -42,6 +42,13 @@ export class AmbientPlaylist {
     return this.order[Math.max(0, this.position + direction)]
   }
 
+  upcoming(count: number) {
+    if (!this.scenes.length) return []
+    while (this.order.length < this.position + count)
+      this.order.push(...shuffledRound(this.scenes, this.order, this.random))
+    return this.order.slice(this.position, this.position + count)
+  }
+
   move(direction: -1 | 1 = 1) {
     if (this.peek(direction) === undefined) return
     this.position = Math.max(0, this.position + direction)

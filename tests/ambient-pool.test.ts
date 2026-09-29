@@ -55,6 +55,7 @@ void test('cycling the catalog releases old sources and retains only the current
   for (let index = 0; index < slides.length; index++) {
     const next = (index + 1) % slides.length
     pool.retain([index, next])
+    await settle()
     const active = TestPhoto.created.filter((image) => !image.removed)
     assert.equal(active.length, 2)
     for (const image of active) image.finish()
@@ -74,6 +75,7 @@ void test('a superseded scene cannot report a late load or failure after rapid s
   pool.retain([0, 1, 2])
   const cancelled = TestPhoto.created[2]!
   pool.retain([0, 1, 3])
+  await settle()
   assert.equal(TestPhoto.created.filter((image) => !image.removed).length, 3)
   cancelled.finish()
   cancelled.dispatchEvent(new Event('error'))

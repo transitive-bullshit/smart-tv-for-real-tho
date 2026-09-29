@@ -1,19 +1,12 @@
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { slides } from '../tv/ambient-src/model.js'
 
 const assets: Record<string, [string, string]> = {
   '/ambient/': ['index.html', 'text/html'],
   '/ambient/index.html': ['index.html', 'text/html'],
   '/ambient/assets/ambient.js': ['assets/ambient.js', 'text/javascript'],
-  '/ambient/assets/ambient.css': ['assets/ambient.css', 'text/css'],
-  ...Object.fromEntries(
-    slides.map((slide) => [
-      '/ambient/media/' + slide.file,
-      ['media/' + slide.file, 'image/jpeg']
-    ])
-  )
+  '/ambient/assets/ambient.css': ['assets/ambient.css', 'text/css']
 }
 export async function serveAmbient(
   req: IncomingMessage,

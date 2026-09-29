@@ -1,4 +1,5 @@
 import { coverFrame, defaults, slides, smooth } from './model.js'
+import { ImageCache, imageCacheLimits } from './image-cache.js'
 import { PhotoPool } from './photo-pool.js'
 import { AmbientPlaylist } from './playlist.js'
 import { screenSaverGuard } from './guard.js'
@@ -37,33 +38,37 @@ let current = playlist.current!
 const verified = new Set<number>()
 let requestedScene: number | undefined
 let requestedDirection: -1 | 0 | 1 = 0
+const imageCache = new ImageCache(slides, excludeScene)
 const photos = new PhotoPool(
   el('photos'),
   (index) => {
     verified.add(index)
-    log(slides[index]!.file + ' loaded')
+    log(slides[index]!.id + ' loaded')
     if (requestedScene === index) scene(index, requestedDirection)
     updateImageStatus()
   },
-  (index, error) => {
-    const position = available.indexOf(index)
-    if (position >= 0) available.splice(position, 1)
-    playlist.remove(index)
-    const message =
-      error instanceof Error ? error.message : 'Image loading failed'
-    log(message)
-    toast('Could not load ' + slides[index]!.title + '. See diagnostics.')
-    el<HTMLSelectElement>('scene').options[index]!.disabled = true
-    if (requestedScene === index) requestedScene = undefined
-    if (current === index && available.length) {
-      current = playlist.current!
-      elapsed = 0
-    }
-    syncLabels()
-    preparePhotos()
-    updateImageStatus()
-  }
+  excludeScene,
+  (index) => imageCache.get(index)
 )
+function excludeScene(index: number, error: unknown) {
+  const position = available.indexOf(index)
+  if (position < 0) return
+  available.splice(position, 1)
+  imageCache.exclude(index)
+  playlist.remove(index)
+  const message =
+    error instanceof Error ? error.message : 'Image loading failed'
+  log(slides[index]!.id + ': ' + message)
+  console.error('Ambient image skipped:', slides[index]!.id, message)
+  el<HTMLSelectElement>('scene').options[index]!.disabled = true
+  if (requestedScene === index) requestedScene = undefined
+  if (current === index && available.length) current = playlist.current!
+  elapsed = 0
+  syncLabels()
+  preparePhotos()
+  updateImageStatus()
+}
+
 function updateImageStatus() {
   el('image-status').textContent =
     verified.size +
@@ -71,19 +76,28 @@ function updateImageStatus() {
     slides.length +
     ' images visited · ' +
     (slides.length - available.length) +
-    ' unavailable'
+    ' unavailable · ' +
+    imageCache.stats.cached +
+    ' cached JPEGs · ' +
+    (imageCache.stats.bytes / 1048576).toFixed(1) +
+    ' MiB reserved'
 }
 function preparePhotos() {
-  photos.retain(
-    available.length
+  const priority =
+    available.length && !document.hidden
       ? [
           current,
           adjacentScene(),
           ...(requestedScene === undefined ? [] : [requestedScene])
         ]
       : []
+  imageCache.plan(
+    priority,
+    priority.length ? playlist.upcoming(imageCacheLimits.ahead + 1) : []
   )
+  photos.retain(priority)
 }
+
 function log(message: string) {
   events.push({ at: new Date().toISOString(), message })
   if (events.length > 100) events.shift()
@@ -114,6 +128,7 @@ function updateGuard() {
   cleanupGuard = screenSaverGuard(report)
 }
 function showControls(show: boolean) {
+  updateImageStatus()
   controls = show
   chrome.hidden = !show
   el('reveal').hidden = show || native
@@ -239,6 +254,7 @@ el('export').onclick = () => {
           seconds,
           zoom,
           focus,
+          imageCache: imageCache.stats,
           elapsedSeconds: (performance.now() - started) / 1000,
           events
         },
@@ -260,12 +276,15 @@ document.addEventListener('visibilitychange', () => {
     ? 'Hidden · animation suspended'
     : 'Visible · ' + new Date().toLocaleTimeString()
   log('Visibility: ' + !document.hidden)
+  preparePhotos()
   updateGuard()
 })
 window.addEventListener('pagehide', () => {
   cleanupGuard()
   photos.retain([])
+  imageCache.clear()
 })
+window.addEventListener('pageshow', preparePhotos)
 document.addEventListener('webOSLaunch', (event) =>
   launch((event as CustomEvent).detail)
 )
@@ -361,9 +380,14 @@ function draw(index: number, time: number, opacity: number) {
   return frame
 }
 let last = performance.now()
+let lastStatus = 0
 function tick(now: number) {
   const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
   last = now
+  if (controls && now - lastStatus > 1000) {
+    updateImageStatus()
+    lastStatus = now
+  }
   if (!document.hidden && photos.get(current)) {
     if (!paused) elapsed += dt
     if (!photos.get(adjacentScene()) && !scrubbing)
