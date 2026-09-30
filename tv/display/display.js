@@ -9,8 +9,10 @@ let retry
 let expiry
 let stopped = false
 let lastActivity = 0
+const hostname = window.location?.hostname ?? ''
 const preview =
-  ['localhost', '127.0.0.1'].includes(window.location?.hostname) &&
+  (['localhost', '127.0.0.1'].includes(hostname) ||
+    hostname.endsWith('.localhost')) &&
   new URLSearchParams(window.location.search).has('preview')
 function render(frame) {
   if (preview)

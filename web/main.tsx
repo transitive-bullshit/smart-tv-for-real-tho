@@ -159,7 +159,7 @@ function App() {
           {mode === 'live' ? 'LIVE DEVICE MODE' : 'SIMULATION · NO HARDWARE'}
         </div>
         <a href={display ? '/' : '/hud/?preview=1'}>
-          {display ? 'Operator' : 'Visual lab'} ↗
+          {display ? 'Operator' : 'Visual lab'}
         </a>
       </header>
       <section className='hero' aria-live='polite'>
@@ -720,7 +720,7 @@ function App() {
                           target='_blank'
                           rel='noopener noreferrer'
                         >
-                          Continue to Microsoft sign-in ↗
+                          Continue to Microsoft sign-in
                         </a>
                       </p>
                     )}

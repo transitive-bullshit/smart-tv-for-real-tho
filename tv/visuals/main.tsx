@@ -30,9 +30,8 @@ declare global {
     roomHud?: { render: (frame: Frame) => void; show: () => void }
   }
 }
-const preview =
-  ['localhost', '127.0.0.1'].includes(location.hostname) &&
-  new URLSearchParams(location.search).has('preview')
+// display.js owns preview detection and exposes this API before the bundle runs.
+const preview = Boolean(window.roomHud)
 const preferenceKey = 'smart-tv.visual-lab.v1'
 let frame: Frame = { visual: 'idle', motion: 'full' }
 let audio = { input: 0, output: 0, at: 0 }
@@ -381,7 +380,7 @@ function App() {
                   rel='noreferrer'
                   aria-label='Thinking Orbs source'
                 >
-                  ↗
+                  Source
                 </a>
               </div>
               <section>

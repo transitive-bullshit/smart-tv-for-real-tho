@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm'
 
 const script = await readFile('tv/display/display.js', 'utf8')
 const flush = () => new Promise<void>((resolve) => setImmediate(resolve))
-function client(fetcher: typeof fetch) {
+function client(fetcher: typeof fetch, href?: string) {
   const listeners: Record<string, (event: unknown) => void> = {}
   const elements = Object.fromEntries(
     [
@@ -19,11 +19,14 @@ function client(fetcher: typeof fetch) {
       'connection',
       'preview-controls',
       'preview-state',
-      'preview-motion'
+      'preview-motion',
+      'hud'
     ].map((id) => [
       id,
       {
         textContent: '',
+        hidden: true,
+        style: { opacity: '' },
         focus() {},
         addEventListener(type: string, fn: (event: unknown) => void) {
           listeners[id + ':' + type] = fn
@@ -36,6 +39,7 @@ function client(fetcher: typeof fetch) {
   let next = 0
   runInNewContext(script, {
     URL,
+    URLSearchParams,
     AbortController,
     fetch: fetcher,
     setTimeout: (fn: () => void, delay: number) => {
@@ -45,13 +49,14 @@ function client(fetcher: typeof fetch) {
     },
     clearTimeout: (id: number) => timers.delete(id),
     document: {
-      body: { dataset: {}, classList: { toggle() {} } },
+      body: { dataset: {}, classList: { toggle() {}, add() {} } },
       getElementById: (id: string) => elements[id],
       addEventListener: (type: string, fn: (event: unknown) => void) => {
         listeners[type] = fn
       }
     },
     window: {
+      location: href ? new URL(href) : undefined,
       close: () => {
         closed = true
       },
@@ -71,6 +76,35 @@ const frame = {
   title: '<b>Actual request</b>',
   message: 'Command accepted · visible result not verified'
 }
+
+void test('named localhost previews expose lab controls and dismiss without closing the page', () => {
+  const noFetch: typeof fetch = () => {
+    throw new Error('Preview must not contact a device')
+  }
+  for (const origin of [
+    'http://localhost:3210',
+    'http://127.0.0.1:3210',
+    'https://smart-tv-for-real-tho.localhost',
+    'https://feature.smart-tv-for-real-tho.localhost:1355'
+  ]) {
+    const c = client(noFetch, origin + '/hud/?preview=1')
+    assert.equal(c.elements['preview-controls']!.hidden, false)
+    assert.equal(c.timers.size, 0)
+    c.listeners['dismiss:click']!({})
+    assert.equal(c.elements.hud!.style.opacity, '0')
+    assert.equal(c.closed(), false)
+  }
+  for (const href of [
+    'https://smart-tv-for-real-tho.localhost/hud/',
+    'https://smart-tv-for-real-tho.localhost.attacker.example/?preview=1',
+    'file:///media/developer/apps/usr/palm/applications/room/index.html?preview=1'
+  ]) {
+    const c = client(noFetch, href)
+    assert.equal(c.elements['preview-controls']!.hidden, true)
+    c.listeners['dismiss:click']!({})
+    assert.equal(c.closed(), true)
+  }
+})
 
 void test('TV client refuses to send its token to public or credential-bearing URLs', async () => {
   let calls = 0

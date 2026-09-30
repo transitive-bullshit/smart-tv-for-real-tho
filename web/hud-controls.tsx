@@ -37,13 +37,8 @@ export function HudControls({
         <p>Voice-reactive light, clear intent, and your content underneath.</p>
       </div>
       <div className='controls'>
-        <a
-          className='button-link'
-          href='/hud/?preview=1'
-          target='_blank'
-          rel='noreferrer'
-        >
-          Open visual lab ↗
+        <a className='button-link' href='/hud/?preview=1'>
+          Open visual lab
         </a>
         <button
           disabled={busy || !display?.enabled}

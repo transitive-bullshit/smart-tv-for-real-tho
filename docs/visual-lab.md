@@ -6,14 +6,14 @@ The library direction is chosen: **Thinking Orbs + restrained Voice Glow**. Next
 
 ## Explore locally
 
-Open [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1) from the controller's **Open visual lab** link. The same compiled renderer and assets are used in the native TV package.
+Open [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1) from the controller's **Open visual lab** link. The same compiled renderer and assets are used in the native TV package. The right sidebar contains four design directions, nine orb patterns and assistant states. The `preview=1` query enables these controls on direct localhost or named Portless `.localhost` URLs; native launches keep them hidden.
 
 - **Design direction:** Quiet, Signal, Ember and Prism are our room presets. They vary ink/glow palette, density and motion speed. They are independent of assistant states.
 - **Orb pattern:** all nine upstream Thinking Orbs animations are available. Click one to pin that geometry across states. **Follow state** restores the configurable mapping.
 - **Assistant state:** idle, listening, thinking, speaking, complete and error. **Play sequence** cycles through a short happy path. This only simulates presentation; it makes no device or AI calls.
 - **Light & motion:** tune restrained glow, orb size, speed, synthetic speech versus manual level, static/subtle/full motion, and dark/bright/transparency backdrops. System reduced motion takes precedence.
 - **Particle tuning & state mapping:** adjust density/weight and choose a pattern per assistant state. Mappings apply only in Follow state mode.
-- **Live session:** reads the existing controller's state and audio envelopes. Connect voice in the main controller to supply real levels. This mode does not create an additional voice session or request microphone permission.
+- **Live session:** reads the existing controller's state and audio envelopes. Connect voice in the main controller to supply real levels. This mode does not create an additional voice session or request microphone permission. To compare live voice while using the lab, manually keep the controller in another tab; ordinary internal navigation now stays in the current tab.
 
 Choices are remembered in this browser. **Use this look on TV** separately saves the appearance to ignored `.local/display-appearance.json`. It does not wake, install or launch the TV app. An already-running 0.0.4 panel receives it through its feed; otherwise it is used at the next launch. Preview motion and backdrop are local only; the main controller's Motion control sets TV motion. **Reset look** restores local defaults; save afterward to use those defaults on the TV.
 

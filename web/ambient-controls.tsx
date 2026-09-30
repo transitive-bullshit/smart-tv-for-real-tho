@@ -44,13 +44,8 @@ export function AmbientControls({ live }: { live: boolean }) {
         the separate full-screen TV app.
       </p>
       <div className='controls'>
-        <a
-          className='button-link'
-          href='/ambient/?preview=1'
-          target='_blank'
-          rel='noreferrer'
-        >
-          Open ambient lab ↗
+        <a className='button-link' href='/ambient/?preview=1'>
+          Open ambient lab
         </a>
         <button disabled={busy || !live} onClick={() => void run('install')}>
           Install ambient app
