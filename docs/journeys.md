@@ -48,7 +48,7 @@ This journey is a reliability requirement even when the final edit primarily sho
 
 Use plain-text links without decorative arrow icons. Internal controller/lab navigation stays in the same tab; external authentication and reference links may open separately.
 
-The assistant overlay and laptop experience use one chosen Thinking Orbs + restrained Voice Glow treatment. Idle is calm; listening is attentive; thinking communicates work; speaking follows real response audio; completion settles quickly. Detailed timing, IDs and caveats belong in diagnostics. The preview lab retains exploratory themes; the everyday experience has one coherent default.
+The assistant overlay and laptop experience use the selected Ember Thinking Orbs + restrained Voice Glow treatment: warm orange foregrounds and accents against the existing cool cyan backgrounds and surfaces. Idle is calm; listening is attentive; thinking communicates work; speaking follows real response audio; completion settles quickly. Detailed timing, IDs and caveats belong in diagnostics. The preview lab retains exploratory themes; the everyday experience has one coherent default.
 
 The overlay is native on the TV above YouTube/Xbox. Baseline coexistence is verified. The animated package shares the lab's renderer and receives real state/audio levels, but needs its installed-version and sustained-performance checks. Updates within the same app should not relaunch it. Source transitions may require restoration; explicit dismissal should feel predictable. The existing brief native launch flash is acceptable for the initial demo.
 

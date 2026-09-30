@@ -7,7 +7,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
   border-radius: inherit;
   z-index: 0;
 }
@@ -450,4 +450,168 @@ body.preview[data-scene='grid'] .scene-number {
   font-size: 10px;
   letter-spacing: 1px;
   border-color: #36515d;
+}
+
+/* Warm Ember foregrounds complement the existing cool cyan surfaces. */
+body[data-style='ember'] .lab-sidebar button[aria-pressed='true'] {
+  color: #ffe4cb;
+  border-color: #bf8c62;
+  background: #142b31;
+}
+.lab-sidebar button:focus-visible,
+.lab-sidebar select:focus-visible,
+.lab-sidebar input:focus-visible,
+.lab-sidebar summary:focus-visible {
+  outline-color: var(--accent);
+}
+.lab-range input {
+  accent-color: var(--accent);
+}
+body[data-style='ember'] .lab-footer .lab-primary {
+  background: #ffbd84;
+  border-color: #ffbd84;
+  color: #241b14;
+}
+body.preview .scene-caption {
+  display: none;
+}
+.voice-lab {
+  position: absolute;
+  left: 40px;
+  right: 460px;
+  top: 200px;
+  max-width: 675px;
+  padding: 20px 0;
+  border-top: 1px solid #8ca6b333;
+  color: #d3e3e6;
+}
+.voice-lab-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.voice-lab h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+.voice-lab-tabs {
+  display: flex;
+  gap: 4px;
+}
+.voice-lab button,
+.voice-lab-file {
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 7px;
+  padding: 10px 13px;
+  border: 1px solid #8ca6b340;
+  color: #d3e3e6;
+  background: #0c1b2380;
+  cursor: pointer;
+}
+.voice-lab-tabs button {
+  border-color: transparent;
+  padding: 7px 10px;
+}
+.voice-lab button[aria-pressed='true'] {
+  background: #142b31;
+  border-color: var(--accent);
+}
+.voice-lab-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.voice-lab .voice-lab-primary {
+  color: #261c14;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.voice-lab .voice-lab-primary[aria-pressed='true'] {
+  background: #ffe1b9;
+}
+.voice-lab button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.voice-lab button:focus-visible,
+.voice-lab-file:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.voice-lab-file {
+  position: relative;
+}
+.voice-lab-file input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.voice-lab-volume {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #89a4ae;
+  font-size: 10px;
+  margin-left: auto;
+}
+.voice-lab-volume input {
+  width: 70px;
+  accent-color: var(--accent);
+}
+.voice-lab-status {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 15px 0 4px;
+  overflow-wrap: anywhere;
+}
+.voice-lab-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #89a4ae;
+  margin: 0;
+}
+@media (min-width: 901px) and (max-height: 790px) {
+  body.preview {
+    min-height: 790px;
+  }
+  body.preview .hud {
+    position: absolute;
+    top: 420px;
+    bottom: auto;
+  }
+  .lab-stage-label {
+    position: absolute;
+    top: 745px;
+    bottom: auto;
+  }
+}
+@media (max-width: 900px) {
+  body.preview {
+    padding-top: 850px;
+  }
+  body.preview .preview-scene {
+    height: 850px;
+  }
+  .voice-lab {
+    left: 5%;
+    right: 5%;
+    top: 190px;
+    max-width: none;
+  }
+  body.preview .hud {
+    top: 450px;
+  }
+  .lab-stage-label {
+    top: 812px;
+  }
 }

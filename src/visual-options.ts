@@ -44,7 +44,7 @@ export const visualOptionsSchema = z
   .strict()
 export type VisualOptions = z.infer<typeof visualOptionsSchema>
 export const defaultVisualOptions: VisualOptions = {
-  style: 'signal',
+  style: 'ember',
   pattern: 'auto',
   size: 144,
   speed: 0.75,
