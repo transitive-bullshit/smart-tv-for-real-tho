@@ -1,6 +1,6 @@
 # Implementation status
 
-September 30 automatic ambient update: the paired-controller launcher is implemented and enabled for the live Home-idle test. It requires LG’s actual `Screen Saver` signal after fresh Home observation, not elapsed time on Home. LG’s natural Home → Screen Saver transition is recorded at about ten minutes; visible automatic entry remains pending. The owner reports several hours of uninterrupted photos with the saved guard enabled. See [automatic activation](ambient-screensaver.md#automatic-activation) for setup, safeguards and acceptance.
+September 30 automatic ambient update: the paired-controller launcher is implemented and enabled for the live Home-idle test. It requires LG’s actual `Screen Saver` signal after fresh Home observation, not elapsed time on Home. Two natural Home → Screen Saver → Room Ambient entries are recorded after about ten minutes each, and the owner confirms the app opened automatically and remained visible. The owner reports several hours of uninterrupted photos with the saved guard enabled. See [automatic activation](ambient-screensaver.md#automatic-activation) for setup, safeguards and acceptance.
 
 Updated September 30, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier dated entries below are historical observations, not current instructions to pause for every manual test.
 
@@ -10,7 +10,7 @@ The current objective includes a polished live-device demo and ongoing personal 
 
 - Room Ambient 0.0.8 is installed. Saved guard preferences, controller preservation, bounded re-registration recovery and session diagnostics are implemented. The automatic-launch change passes 82 TypeScript and 24 Python tests plus format/lint/types.
 - The user confirmed the guard is checked after the no-override reopen, hid controls with Back once, and subsequently reported several hours of advancing photos without the clock. Duration is estimated; the exact stock timeout and veto count were not recorded.
-- Automatic activation from LG Home is **implemented, awaiting hardware verification**. The paired-controller watcher uses LG's actual `Screen Saver` state after observing Home. Live reads record Home → Active/Screen Saver Ready → Screen Saver after about ten minutes. The policy now recognizes the observed Ready value; automatic handoff is being retested. No TV package update or native provider registration is involved.
+- Automatic activation from LG Home is **implemented, with positive physical confirmation of automatic entry**. The paired-controller watcher uses LG's actual `Screen Saver` state after observing Home. Live reads record Home → Active/Screen Saver Ready → Screen Saver after about ten minutes. Two automatic launches are accepted and followed by Room Ambient foreground within about six seconds of LG’s idle signal. At 08:39:27 Asia/Bangkok, the latest run is still observed active after about 30 minutes. The owner did not watch for a brief stock-clock flash. Three separately watched runs, deliberate dismissal and standby recovery remain open. No TV package update or native provider registration is involved.
 
 The following demo-build table reflects the September 29 milestone; the ambient record above and linked owning documents contain newer results.
 

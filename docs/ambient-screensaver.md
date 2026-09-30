@@ -1,6 +1,6 @@
 # Room Ambient: personal screensaver
 
-Updated September 30, 2026. Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.8 is installed and launched on the live TV. It remembers the guard preference, preserves it through controller launches, and exposes session-wide idle diagnostics. Fresh API state confirms Room Ambient foreground and volume zero after closing and reopening without an override. The user verified the guard remains checked after reopening and now reports several hours of continued slideshow playback with no clock takeover. The duration is an estimate; the stock timeout and actual veto count were not measured.** Version 0.0.7 moved the 15-scene collection to R2 with bounded prefetching; remote-image playback is browser-verified. The user confirmed all new images look great on the live TV in 0.0.5. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration previously responded on the TV; that alone does not prove idle suppression. The existing assistant overlay remains a separate app.
+Updated September 30, 2026. **Automatic activation has its first positive physical report: the owner saw Room Ambient open without a manual launch and remain visible. The controller recorded two Home → idle → ambient entries, and a fresh read still finds the app active. The transition itself was not watched closely enough to assess a stock-clock flash.** Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.8 is installed and launched on the live TV. It remembers the guard preference, preserves it through controller launches, and exposes session-wide idle diagnostics. Fresh API state confirms Room Ambient foreground and volume zero after closing and reopening without an override. The user verified the guard remains checked after reopening and now reports several hours of continued slideshow playback with no clock takeover. The duration is an estimate; the stock timeout and actual veto count were not measured.** Version 0.0.7 moved the 15-scene collection to R2 with bounded prefetching; remote-image playback is browser-verified. The user confirmed all new images look great on the live TV in 0.0.5. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration previously responded on the TV; that alone does not prove idle suppression. The existing assistant overlay remains a separate app.
 
 ## Scope and acceptance
 
@@ -18,7 +18,7 @@ Acceptance checks for the personal-use milestone:
 4. **Everyday recovery:** verify the chosen mechanism through TV standby/wake and a controller restart. Document whether the laptop must stay running and what happens when it is asleep, disconnected or restarted; native slideshow playback itself is independent of the laptop. Include Developer Mode session upkeep and recovery from image/network failures in the runbook.
 5. **Usable setup and escape:** document necessary manual steps and an easy way to disable automatic activation or exit the slideshow. Retain the owner's chosen actual power-off behavior. A longer clock delay or one successful filmed run alone does not satisfy ongoing use.
 
-Current evidence: 0.0.8’s saved-on guard state is user-verified after reopening. The owner subsequently reported several hours of advancing photos with no clock takeover. This supports sustained display on this TV; the exact interval and veto count remain unmeasured. Automatic entry, repeatability and standby recovery still require the checks above.
+Current evidence: 0.0.8’s saved-on guard state is user-verified after reopening. The owner subsequently reported several hours of advancing photos with no clock takeover. This supports sustained display on this TV; the exact interval and veto count remain unmeasured. The owner now reports a successful automatic entry and continued visible photos. Logs corroborate two entries, but this is not three separately watched runs; repeatability, explicit-dismissal behavior and standby recovery still require the checks above.
 
 ## Feasibility and the useful boundary
 
@@ -29,7 +29,7 @@ We can own the full-screen ambient experience in a normal Developer Mode app: sh
 | Foreground image app | Full visual control, original photos, adjustable focal points and timing | User verified images, framing, transitions and several hours without a clock takeover with the guard enabled. |
 | Private foreground guard | Requests that LG leave our visible image app alone when its idle timer fires | Opt-in, remembered; owner reports several hours of uninterrupted photos on 0.0.8. Exact veto count was not captured. |
 | Remote shortcut | One-button entry into our app | LG documents Quick Access; verify registration for this sideloaded app and remote. |
-| Automatic activation | Open Room Ambient after an eligible idle/activation condition, starting with LG Home | Implemented paired-controller launcher using LG’s Screen Saver signal after Home. Natural Home → Screen Saver power transition observed after ten minutes; automatic handoff remains to verify. |
+| Automatic activation | Open Room Ambient after an eligible idle/activation condition, starting with LG Home | Implemented paired-controller launcher using LG’s Screen Saver signal after Home. Two automatic Home → Screen Saver → Room Ambient entries recorded; owner confirms seeing the automatically opened slideshow. Clock flash and full recovery checks remain unverified. |
 | Native system-wide replacement | Own LG's system screensaver across idle contexts | No public provider-registration API; alternate mechanisms and firmware compatibility remain unresolved. |
 | Root / system modification | Potential replacement of the actual screensaver | Existing homebrew requires root; not assessed as compatible with this firmware and not implemented. |
 
@@ -74,7 +74,24 @@ A TV-only JS service could be a later experiment. LG documents background servic
 - Owner report: 0.0.8 kept advancing photos for an estimated few hours without LG’s clock taking over. Saved guard was on.
 - Live read-only probe returned `Active`, no processing transition, and the ambient app ID. After sending Home it returned `com.webos.app.home`, `Active`, no processing transition; volume remained zero. The background ambient app was then explicitly closed to release its guard for the natural-idle test.
 - First natural-idle recording: Home at `1790725186398`; `Active` with processing `Screen Saver Ready` at `1790725784497`; `Screen Saver` with processing null at `1790725786606`. Foreground remained Home. This is approximately **600 seconds** from entering Home. The first conservative policy disarmed on the then-unknown Ready value, so it correctly made zero launches; the policy and regression now recognize that exact transition. A second Home test exercises the corrected handoff.
-- Policy/source/power/cancellation tests pass; the automatic control is browser-visible and enabled with a one-minute cooldown. Natural Home → screensaver → ambient activation is still awaiting physical verification. No native registration or completed three-run acceptance is claimed.
+- Policy/source/power/cancellation tests pass; the automatic control is browser-visible and enabled with a one-minute cooldown. No native registration or completed three-run acceptance is claimed.
+
+#### First successful automatic activation: September 30
+
+The owner reports finding Room Ambient open automatically and seeing it remain visible for a long time. They did not watch the transition closely and had left the room before the latest check. This is positive physical confirmation of automatic entry and continued photos, not proof of a flash-free handoff or an exact visual duration.
+
+The running controller corroborates two automatic launches. Times below are Asia/Bangkok; intervals use millisecond timestamps from ignored `.local/trace.jsonl`:
+
+| Cycle | Home observed | LG Screen Saver observed | Launch accepted | Room Ambient / Active observed |
+| --- | --- | --- | --- | --- |
+| 1 | 06:51:30 | 07:01:30 | 07:01:34 | 07:01:36 |
+| 2 | 07:58:57 | 08:08:56 | 08:09:01 | 08:09:03 |
+
+Home-to-idle intervals were 599.6 and 599.7 seconds. Launch acceptance followed the observed idle signal by 4.35 and 4.37 seconds; foreground confirmation followed by 6.37 and 6.38 seconds. Those intervals include polling and the deliberate stability check; they are not measurements of pixels appearing on screen.
+
+A read at **08:39:27** returned `it.transitivebullsh.smarttv.ambient`, `Active`, no processing transition, two accepted launches, and automatic activation still enabled. The latest run had therefore remained the observed foreground for about **30 minutes**. The first foreground interval lasted about **57 minutes** before Home reappeared; no controller command was logged in the 15 seconds around that change. Its cause is unknown, so do not label it a confirmed deliberate dismissal or an app failure. The two recorded cycles cannot be mapped individually to the owner's visual report.
+
+Remaining hardware checks: observe the transition directly if clock-flash polish matters, intentionally dismiss and verify cooldown, validate active YouTube/Xbox exclusions and standby/wake recovery, and reach three separately observed automatic entries. Leave the current slideshow running; no reinstall or setting change is needed for this evidence update.
 
 ## Clock takeover: settings and diagnosis
 
