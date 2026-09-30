@@ -62,7 +62,7 @@ Push-to-talk is the reliable filming baseline. Open mic is optional after testin
 
 ## Development and validation
 
-The checked-in package scripts are authoritative. `pnpm dev` builds TV assets and starts the watched controller; backend TypeScript / `bridge/main.py` changes restart it in the user's working network-enabled Terminal. `pnpm dev:restart` requests a restart of that existing watcher. Native visual changes require rebuilding and installing the relevant TV package; a browser preview is not a TV deployment. `pnpm dev:stable` avoids code-triggered restarts while filming.
+The checked-in package scripts are authoritative. `pnpm dev` builds TV assets and starts the watched controller through Portless at `https://smart-tv-for-real-tho.localhost` (use the printed URL for a custom proxy port/worktree). `PORTLESS_URL` supplies the exact allowed proxy origin and `PORT` the loopback backend port; Vite HMR shares that HTTP server. The separate token-protected TV LAN feed and Xbox loopback OAuth callback keep their existing addresses. Backend TypeScript / `bridge/main.py` changes restart it in the user's working network-enabled Terminal. `pnpm dev:restart` requests a restart of that existing watcher. Native visual changes require rebuilding and installing the relevant TV package; a browser preview is not a TV deployment. `pnpm dev:stable` avoids code-triggered restarts while filming.
 
 Use focused regression tests for source races, stale/wrong receiver events, voice interruption, reconnect failure, idle/power exclusions and bounded image recovery. Run the repository checks and appropriate builds for changed code. [Hardware runbook](runbook.md) supplies physical timing/recovery probes; [demo session](demo-session.md) assembles them into one batch.
 

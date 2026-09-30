@@ -6,7 +6,7 @@ The library direction is chosen: **Thinking Orbs + restrained Voice Glow**. Next
 
 ## Explore locally
 
-Open [the visual lab](http://localhost:3210/hud/?preview=1) from the controller's **Open visual lab** link. The same compiled renderer and assets are used in the native TV package.
+Open [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1) from the controller's **Open visual lab** link. The same compiled renderer and assets are used in the native TV package.
 
 - **Design direction:** Quiet, Signal, Ember and Prism are our room presets. They vary ink/glow palette, density and motion speed. They are independent of assistant states.
 - **Orb pattern:** all nine upstream Thinking Orbs animations are available. Click one to pin that geometry across states. **Follow state** restores the configurable mapping.

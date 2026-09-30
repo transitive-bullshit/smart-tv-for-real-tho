@@ -44,7 +44,7 @@ try {
       const response = await ky.get(asset.url, {
         timeout: 30000,
         retry: 2,
-        headers: { Origin: 'http://localhost:3210' }
+        headers: { Origin: 'https://smart-tv-for-real-tho.localhost' }
       })
       const hash = createHash('sha256')
         .update(Buffer.from(await response.arrayBuffer()))

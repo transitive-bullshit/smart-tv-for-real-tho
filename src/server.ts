@@ -12,6 +12,7 @@ import { Bridge } from './bridge.js'
 import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
 import { Coordinator } from './coordinator.js'
+import { localAccess } from './local-access.js'
 import { DisplayState, startDisplayFeed } from './display.js'
 import { visualOptionsSchema } from './visual-options.js'
 import { createSession } from './realtime.js'
@@ -33,10 +34,7 @@ const port = z.coerce
   .min(1024)
   .max(65535)
   .parse(process.env.PORT ?? 3210)
-const origins = new Set([
-  'http://127.0.0.1:' + port,
-  'http://localhost:' + port
-])
+const access = localAccess(port, process.env.PORTLESS_URL)
 const traces: Trace[] = []
 const displayState = new DisplayState()
 const savedAppearance = visualOptionsSchema.safeParse(
@@ -212,13 +210,9 @@ const setupSchema = z.discriminatedUnion('action', [
     consoleId: z.string().max(200).optional()
   })
 ])
-const vite = await createViteServer({
-  server: { middlewareMode: true },
-  appType: 'spa'
-})
 const server = createServer(async (req, res) => {
   const host = req.headers.host
-  if (!host || !origins.has('http://' + host)) {
+  if (!host || !access.hosts.has(host)) {
     json(res, { error: 'Unexpected host' }, 403)
     return
   }
@@ -243,8 +237,8 @@ const server = createServer(async (req, res) => {
     return
   }
   if (
-    (req.headers.origin && !origins.has(req.headers.origin)) ||
-    (req.method === 'POST' && !origins.has(req.headers.origin ?? ''))
+    (req.headers.origin && !access.origins.has(req.headers.origin)) ||
+    (req.method === 'POST' && !access.origins.has(req.headers.origin ?? ''))
   ) {
     json(res, { error: 'Unexpected origin' }, 403)
     return
@@ -582,8 +576,16 @@ const server = createServer(async (req, res) => {
     )
   }
 })
+const vite = await createViteServer({
+  server: {
+    middlewareMode: true,
+    allowedHosts: access.hostnames,
+    ws: { server }
+  },
+  appType: 'spa'
+})
 server.listen(port, '127.0.0.1', () =>
-  console.log('Smart TV (' + config.mode + '): http://localhost:' + port)
+  console.log('Smart TV (' + config.mode + '): ' + access.url)
 )
 async function shutdown() {
   automaticAmbient?.stop()

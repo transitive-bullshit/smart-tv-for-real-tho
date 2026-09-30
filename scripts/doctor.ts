@@ -30,4 +30,6 @@ console.log(
   secrets.youtube || process.env.YOUTUBE_API_KEY ? 'present' : 'missing'
 )
 for (const check of checks) console.log(check)
-console.log('Start: pnpm dev → http://localhost:3210. Keys are never printed.')
+console.log(
+  'Start: pnpm dev → https://smart-tv-for-real-tho.localhost (or the URL printed by Portless). Keys are never printed.'
+)

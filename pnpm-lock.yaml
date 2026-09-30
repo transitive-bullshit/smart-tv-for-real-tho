@@ -221,6 +221,9 @@ importers:
       oxlint-tsgolint:
         specifier: ^7.0.2002
         version: 7.0.2003
+      portless:
+        specifier: 0.15.6
+        version: 0.15.6
       simple-git-hooks:
         specifier: ^2.14.0
         version: 2.14.0
@@ -1213,6 +1216,12 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  portless@0.15.6:
+    resolution: {integrity: sha512-uOAwWLF32rmyEGFASzSO0VOaqb/AQxFCCzyZbPGd82UNNOfIEvc09zy92nroNibE5HNfzV4oVB0ObKbPXgkM9A==}
+    engines: {node: '>=24'}
+    os: [darwin, linux, win32]
+    hasBin: true
+
   postcss@8.5.28:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
@@ -2107,6 +2116,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   pidtree@1.0.0: {}
+
+  portless@0.15.6: {}
 
   postcss@8.5.28:
     dependencies:

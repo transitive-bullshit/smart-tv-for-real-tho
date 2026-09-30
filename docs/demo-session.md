@@ -10,7 +10,7 @@ Updated September 30, 2026. [Roadmap](roadmap.md) owns the milestone gates; this
 - Keep the development process in the working network-enabled Terminal. For rehearsals use `pnpm dev:stable` with the saved `.env` and this computer's actual `TV_DISPLAY_HOST`, not a copied owner-specific address. Restarting the backend rotates the HUD feed token and ends voice sessions; reconnect and relaunch the panel once before the take.
 - Keep TV volume zero for unattended preparation. Agree on recording volume with the owner before audible tests. Push-to-talk is the default; open mic is a separate acoustic check.
 
-The controller is at http://localhost:3210/ and the shared visual lab at http://localhost:3210/hud/?preview=1. The preview does not command the TV. **Use this look on TV** saves appearance; an installed, running compatible panel receives it through the feed. This does not install or launch a TV app.
+The controller is at https://smart-tv-for-real-tho.localhost/ and the shared visual lab at https://smart-tv-for-real-tho.localhost/hud/?preview=1. The preview does not command the TV. **Use this look on TV** saves appearance; an installed, running compatible panel receives it through the feed. This does not install or launch a TV app.
 
 ## One combined validation session
 

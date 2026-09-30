@@ -126,7 +126,7 @@ Automatic entry from Home/YouTube/Xbox is a separate feature; no current checkbo
 
 ## What is built
 
-Open [the ambient lab](http://localhost:3210/ambient/?preview=1), or use **Open ambient lab** on the controller.
+Open [the ambient lab](https://smart-tv-for-real-tho.localhost/ambient/?preview=1), or use **Open ambient lab** on the controller.
 
 - Fifteen remotely loaded scenes: the original rocket and desk images, plus all 13 Midjourney upscales from September 30. Photos live at `https://assets.cultural-alignment.com/smart-tv/<sha256>.jpg`; only the [structured catalog](../tv/ambient-src/catalog.json) ships with the app. It contains titles, dimensions, focal points, byte sizes, SHA-256 hashes and public URLs. [Midjourney provenance](ambient-images.json). Internet access is needed for an uncached image; the browser HTTP cache may reuse immutable responses across launches, but offline playback is not guaranteed.
 - A fresh shuffled playlist on opening the app. Each scene appears once per round; subsequent rounds reshuffle with at least five intervening scenes before an image repeats (or all other scenes for smaller collections). Preloading keeps the next scene fixed. Previous retraces the actual playlist; selecting a scene explicitly starts a fresh round from that image. Image failures remove that scene and rebuild the remaining playlist.

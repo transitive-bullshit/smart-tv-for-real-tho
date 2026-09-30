@@ -72,6 +72,8 @@ Use trace.jsonl for software timestamps and pnpm timings for grouped medians/wor
 
 ## Development server reloads
 
+Use `pnpm dev` for the Portless URL `https://smart-tv-for-real-tho.localhost`; use the printed URL if the proxy has a custom port or this is a worktree. `pnpm dev:stable` uses the same named route without watching. Stop the old controller before switching launch modes. `PORTLESS=0 pnpm dev` is the direct-port troubleshooting fallback. The TV display feed still uses the configured LAN address/port, and Xbox OAuth still uses localhost:8080.
+
 Keep `pnpm dev` running in the user's network-enabled Terminal. Source changes in backend TypeScript or `bridge/main.py` restart its child automatically. Agents can also run `pnpm dev:restart` from the repository without controlling the Terminal UI. The command updates only the server file timestamp, not its contents. It requires the watcher to be running; it is not a process supervisor for a closed Terminal or `pnpm dev:stable`.
 
 Before a restart, finish or cancel active device probes and disconnect voice. Afterward, wait for `/api/status` boot results, then use `get_room_state` to verify actual TV access. The server can answer HTTP before its device connections finish, so an immediate empty state is not evidence of lost permissions. Showing the live TV panel again supplies the new display token; reconnect voice as needed. During hardware timing trials, avoid edits that trigger reloads.

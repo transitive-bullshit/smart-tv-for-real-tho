@@ -6,6 +6,14 @@ Updated September 30, 2026. This ledger distinguishes code, local evidence and p
 
 The current objective includes a polished filmed demo, ongoing personal use of Room Ambient, and a reproducible open-source preview for technical owners. [The roadmap](roadmap.md) owns current priorities and release gates; this document records evidence. Automatic activation is required scope; manual setup is acceptable. The six existing controller journeys are joined by a required ambient journey documented in [the demo session](demo-session.md), not yet implemented in the controller. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
 
+## Portless development URL: September 30
+
+`pnpm dev` and `pnpm dev:stable` now wrap the controller with pinned `portless@0.15.6`. The default URL is `https://smart-tv-for-real-tho.localhost`; use the printed URL for custom proxy ports/worktrees. The backend respects injected `PORT` and allows the exact configured `PORTLESS_URL` origin/host alongside its direct loopback addresses. Vite’s WebSocket transport shares the backend HTTP server. TV LAN feed and Xbox OAuth callback addresses are unchanged.
+
+Verification: 85 TypeScript and 24 Python tests, lint/format/types and production builds pass. Chrome rendered the controller and ambient images over trusted HTTPS; Vite reported connected, with no app console warnings/errors. HTTP checks covered the controller, both labs, a valid-origin request reaching the router, and rejection of foreign/missing POST origins and an unexpected Host. No TV mutation or voice/audio test was performed for this change.
+
+The old Terminal-launched controller connected to LG and Xbox. A temporary Codex-launched Portless server reached Xbox but failed LG startup, reproducing the existing process-specific LAN limitation. Computer Use cannot control Terminal. That temporary server was stopped after browser validation; resume with `pnpm dev` in the owner’s existing working Terminal. Future backend edits retain automatic watcher restarts. Browser-local notes/preferences remain associated with the old origin; server-side saved setup is unchanged.
+
 ## Current assistant visual milestone
 
 Thinking Orbs + restrained Voice Glow is the selected library direction; Murmur was rejected. The shared lab/native renderer, actual voice amplitude and state wiring, saved appearance and full/subtle/static modes are implemented in display package 0.0.4 and browser-verified. Confirm installation of this specific build and test the final appearance on the TV; native animation performance and final preset acceptance are still open. Earlier “TV off/unreachable” notes describe previous attempts, not a current prerequisite. See [visual lab](visual-lab.md) and [the next demo session](demo-session.md).
