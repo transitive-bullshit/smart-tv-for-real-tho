@@ -4,7 +4,11 @@ September 30 automatic ambient update: the paired-controller launcher is impleme
 
 Updated September 30, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier dated entries below are historical observations, not current instructions to pause for every manual test.
 
-The current objective includes a polished live-device demo and ongoing personal use of Room Ambient on the owner's TV. Automatic activation is required scope; manual setup is acceptable. The six existing controller journeys are joined by a required ambient journey documented in [the demo session](demo-session.md), not yet implemented in the controller. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
+The current objective includes a polished filmed demo, ongoing personal use of Room Ambient, and a reproducible open-source preview for technical owners. [The roadmap](roadmap.md) owns current priorities and release gates; this document records evidence. Automatic activation is required scope; manual setup is acceptable. The six existing controller journeys are joined by a required ambient journey documented in [the demo session](demo-session.md), not yet implemented in the controller. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
+
+## Current assistant visual milestone
+
+Thinking Orbs + restrained Voice Glow is the selected library direction; Murmur was rejected. The shared lab/native renderer, actual voice amplitude and state wiring, saved appearance and full/subtle/static modes are implemented in display package 0.0.4 and browser-verified. Confirm installation of this specific build and test the final appearance on the TV; native animation performance and final preset acceptance are still open. Earlier “TV off/unreachable” notes describe previous attempts, not a current prerequisite. See [visual lab](visual-lab.md) and [the next demo session](demo-session.md).
 
 ## Latest ambient milestone: September 30
 
@@ -23,7 +27,7 @@ The following demo-build table reflects the September 29 milestone; the ambient 
 | Rehearsal | Six complete journeys, browser-persisted notes, downloadable results with recent traces, one-click muted demo start | One room session and an uncut recording |
 | Local verification | 55 TypeScript + 20 Python tests, format/lint/typecheck, browser build and TV package pass; browser layout and state preview inspected | Remaining real-device results deliberately deferred |
 
-## Evidence so far
+## Historical initial checks: September 28
 
 - pnpm test: 43 TypeScript tests (including display-feed/client, coordinator/observation/overlay, YouTube close/reopen and voice interruption/lifecycle regressions) and 14 Python bridge regression tests, plus lint/format/typecheck.
 - pnpm build: browser bundle produced.
@@ -53,13 +57,13 @@ The following demo-build table reflects the September 29 milestone; the ambient 
 - Real search found Virtual Insanity and Cosmic Girl by Jamiroquai in 436 ms and 319 ms respectively. The second search omitted the artist and retained Jamiroquai correctly. These queries were new to this prototype; repeated playback searches then used its cache.
 - From Xbox HDMI, the real Virtual Insanity result was observed Playing in native LG YouTube at 6,618 ms. Contextual correction to the real Cosmic Girl result was observed Playing at 6,543 ms, followed by Paused at 8,172 ms. Volume remained 0 with external ARC. These are receiver/foreground observations, not physical latency measurements or a voice test.
 - Actual Chrome session: granted microphone access for this visit, connected through /api/session, and reached Voice ready · push to talk. The microphone track remained disabled (Talk was never pressed); disconnected after verification. This proves the real WebRTC/data-channel handshake, not speech recognition, assistant audibility, tool use from speech or room acoustics.
-- The updated Xbox feedback passes local regressions and build. Full controller restart in the user's Terminal and verification of the new live feedback are pending; an explicit restart request is open. Computer control cannot operate the Terminal app, and starting a replacement from Codex loses the known-working TV network access.
+- At this initial check, the updated Xbox feedback passed locally but awaited a controller restart. That restart and live feedback verification were subsequently completed below. Backend watch/restart support now preserves the working Terminal environment; see [the runbook](runbook.md#development-server-reloads).
 
-## Latest bounded reliability run
+## Historical bounded reliability run: September 28
 
 Batch `warm-reliability-1790540161907` stopped on the first failed step, so runs 2 and 3 were not attempted. Initial state was LG Home, volume 0. Xbox HDMI was observed in 440 ms; native YouTube A in 8,768 ms, replacement B in 7,063 ms, pause in 12,997 ms and resume in 10,226 ms. Return-to-Xbox timed out at 20,007 ms while awaiting pause confirmation. A subsequent read reported native YouTube still foreground, B Paused, volume 0. No blind retry or source switch followed. This fails P3 and supplies no physical latency measurement.
 
-The controller remains the original user-Terminal process (PID 55623 at this check), so the updated Xbox feedback has not been loaded. A fresh LG catalog contains no Developer Mode app. Full restart/new feedback, cold-app observations, spoken trials, Developer Mode installation/pairing, overlay coexistence and recording remain dependent on the requested hands-on setup/observation. Saved pairings, search and warm API control are not substitutes for those gates.
+At that check, the original controller had not loaded the revised Xbox feedback and Developer Mode was absent. Subsequent entries record the restart, feedback verification, Developer Mode pairing, spoken playback and physical overlay coexistence. The failed batch remains useful latency evidence; it is not a current setup blocker.
 
 ## Integration decisions
 
@@ -71,7 +75,7 @@ Xbox commands now inspect the matching cloud operation after acceptance, rejecti
 
 Playback-state-only events do not carry video identity. The bridge requests a correlated now-playing event instead of making an old video ID appear fresh. Video completion also requires the chosen receiver and foreground native app.
 
-## Remaining limitations
+## Reliability boundaries
 
 - Actual LG pairing, discovery and state reads pass; no complete P1–P5 journey gate has passed yet.
 - Open-mic acoustics and end-to-end voice timing are untested.
@@ -81,7 +85,7 @@ Playback-state-only events do not carry video identity. The bridge requests a co
 - Static on-TV overlay over Xbox HDMI and native YouTube is physically confirmed; YouTube briefly glitches/shows a spinner at launch. No root, firmware change or video recording has been performed.
 - Local trace timestamps cover intent/search/command/observed state. Physical first-picture/audio timings require observer entries in the run log.
 
-Continue with source transitions, first-play delay diagnosis, cold-app/full-controller restart checks and actual speech before adding demo polish.
+Current work combines final visual selection with source-transition, cold-start and recovery checks. Follow [the roadmap](roadmap.md); earlier failures do not invalidate later physical successes, and individual successes do not establish a repeatable full-session pass.
 
 ## Developer setup and first physical overlay result
 

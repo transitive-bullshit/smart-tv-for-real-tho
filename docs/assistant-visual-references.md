@@ -1,17 +1,12 @@
 # Assistant visual references
 
-Researched September 29, 2026. This is a design and source review, not an implemented renderer selection. The TV was off; no installation, graphics benchmark or hardware compatibility claim follows from these findings. See [graphics capabilities](overlay-graphics.md) for the current client and platform limits.
+Researched September 29, 2026; selection status updated September 30. This preserves the original design/source review. It is not a TV graphics benchmark. See [graphics capabilities](overlay-graphics.md) for platform limits and [the implemented visual lab](visual-lab.md) for current code.
 
-The user selected Thinking Orbs + restrained Voice Glow. See [the implemented visual lab](visual-lab.md). The shortlist below preserves the research and earlier recommendation.
+## Selected direction
 
-## Recommendation
+The user selected **Libraries.dev Thinking Orbs + restrained Voice Glow** and rejected Murmur. Both selected libraries are integrated into the shared lab/native renderer in display package 0.0.4, with actual voice amplitude and state wiring. Final native appearance and performance remain unverified.
 
-Compare two directions before implementation:
-
-1. **Libraries.dev Thinking Orbs + Voice Glow:** the closest match to the user's confirmed references. Fine particles supply an expressive identity; a restrained edge glow provides audio feedback. My preferred direction for an assistant that feels integrated into the room and recedes during playback.
-2. **Murmur, especially Aura or Opal:** the strongest new candidate for a more cinematic presence. Its glass-like volume and internal light are visually richer; its state choreography is already meaningful. Worth adapting if this wins visually, rather than rejecting it because the existing renderer needs work.
-
-ElevenLabs Orb is a strong third comparison. Orb UI offers a lighter atmospheric alternative. Preserve the chosen project's authored motion, timing and material treatment when adapting it. Dependencies are an implementation choice; visual quality is the selection criterion.
+Next compare Signal, Quiet and Ember treatments of this selected direction, choose one TV default, and refine state transitions, legibility and dismissal through a whole conversation. See [the roadmap](roadmap.md). Preserve the libraries’ authored motion and redraw at the actual TV display size. The alternatives below are historical research, not a request to reopen the library decision.
 
 ## Confirmed Libraries.dev references
 
@@ -35,7 +30,7 @@ The public API accepts an external normalized `level`, including a per-frame get
 
 The published Libraries.dev libraries are MIT. Studio Pro exports, presets and recipes have separate paid terms; use the open-source packages as the baseline. [Repository licensing explanation](https://github.com/Jakubantalik/Libraries.dev#faq)
 
-## Other strong candidates
+## Historical alternatives — not selected
 
 | Project | Design assessment and state support | Renderer and adaptation |
 | --- | --- | --- |

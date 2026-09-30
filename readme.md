@@ -1,6 +1,12 @@
 # Smart TV, for real tho
 
-A personal voice interface and ambient screen for the room: native LG YouTube, direct Xbox HDMI, room volume, conversational corrections and personal artwork. The goals include a compelling demo and ongoing use on the owner's real TV. The laptop runs the controller; the TV continues using its native apps.
+A personal voice interface and ambient screen for the room: native LG YouTube, direct Xbox HDMI, room volume, conversational corrections and personal artwork. The goals are a polished filmed demo, ongoing use on the owner's real TV, and an open-source technical preview that another owner can reproduce. The laptop runs the controller; the TV continues using its native apps.
+
+## Next milestones
+
+Choose the final Thinking Orbs + restrained Voice Glow treatment on the real TV → prove the complete journeys and recovery → film two clean rehearsals → prepare a reproducible open-source preview. The renderer already shares real voice/state wiring with the TV package; final visual selection and native performance still need validation.
+
+[The roadmap](docs/roadmap.md) owns the prioritized checklist, pass criteria and decisions. [Distribution](docs/distribution.md) covers Developer Mode installation, renewal and the optional LG Store path. Public release preparation is planned; this is currently the owner’s working prototype.
 
 ## Run locally
 
@@ -33,7 +39,7 @@ No developer mode is needed for these controls. See [room facts](docs/room.md) a
 
 The controller now includes **Start demo session**, a native Thinking Orbs + Voice Glow HUD with full/subtle/static motion, source-transition restoration, and six full rehearsal journeys with local notes/export. Open [the visual lab](http://localhost:3210/hud/?preview=1) to inspect the actual TV client without changing the TV.
 
-Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.4; installation currently awaits a reachable TV Developer Mode connection. Use the controller's **Install TV update** action once available. New native animation/restoration, extended playback settings and complete rehearsals will be tested together, per the user's request. No physical performance or recording success is inferred from a browser preview.
+Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.4 and browser-verified; installation of that specific build and its native performance have not been confirmed in the evidence ledger. Use the controller’s **Install TV update** action for the next planned TV session. Final appearance, native animation/restoration, extended playback settings and complete rehearsals will be checked together. No physical performance or recording success is inferred from a browser preview.
 
 Explore nine orb patterns, four design directions, state mappings and restrained audio glow in [the visual lab](http://localhost:3210/hud/?preview=1). [Visual lab usage and implementation](docs/visual-lab.md) explains local choices, real voice levels and saving a look for the TV.
 
@@ -72,10 +78,12 @@ Commands already delivered to a vendor cannot be recalled. Cancellation prevents
 
 ## Project context
 
-- [Implementation plan](docs/implementation-plan.md): full objective, ordered work and live-device gates.
+- [Roadmap](docs/roadmap.md): next milestones, pass criteria and open decisions.
+- [Implementation plan](docs/implementation-plan.md): architecture, scope and implementation boundaries.
+- [Distribution](docs/distribution.md): technical preview packaging and optional LG Store requirements.
 - [Current status](docs/implementation-status.md): evidence, limitations and next steps.
 - [Hardware runbook](docs/runbook.md): probes, recovery, timing and filming.
 - [Native overlay experiment](docs/overlay-experiment.md): `pnpm tv:package`, Developer Mode setup and the static compatibility probe.
-- [Overlay graphics](docs/overlay-graphics.md) and [assistant visual references](docs/assistant-visual-references.md): rendering limits, designer-built orbs and proposed adaptation.
+- [Overlay graphics](docs/overlay-graphics.md) and [assistant visual references](docs/assistant-visual-references.md): rendering limits, selected design libraries and historical alternatives.
 - [Journeys](docs/journeys.md) and [feasibility research](docs/feasibility.md).
 - [Agent guidance](AGENTS.md).

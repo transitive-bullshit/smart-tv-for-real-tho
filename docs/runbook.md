@@ -1,4 +1,4 @@
-> Current workflow: use [the one-session demo guide](demo-session.md) and the controller's six journeys. Earlier step-by-step probe instructions below are diagnostics, not a requirement to interrupt the user after every action.
+> Current workflow: use [the one-session demo guide](demo-session.md) and [roadmap](roadmap.md). The controller has six journeys; automatic ambient entry is a required seventh journey documented for manual recording until it is added to the UI. Earlier step-by-step probes below are diagnostics, not a requirement to interrupt the user after every action.
 
 # Hardware runbook and recording script
 
@@ -29,7 +29,7 @@ The user asked to keep the TV muted during testing. Volume is currently set to 0
 
 ## P2: room primitives
 
-Pair/reconnect LG; check discovered native YouTube and HDMI 3 mappings. Test Volume 15 and Quieter, confirming the **soundbar's audible response**. Test Xbox game activation, Xbox Home and TV Home independently. Note whether CEC changes the input after a command.
+Pair/reconnect LG; check discovered native YouTube and HDMI 3 mappings. While the mute constraint applies, verify volume/state handling at zero. Only after the owner explicitly enables audible testing, test Volume 15 and Quieter and confirm the **soundbar’s audible response**. Test Xbox game activation, Xbox Home and TV Home independently. Note whether CEC changes the input after a command.
 
 A game launch gate is activation, not saved-game readiness. Home buttons return accepted-only when no dependable dashboard observation is available.
 

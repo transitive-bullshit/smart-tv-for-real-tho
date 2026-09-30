@@ -1,12 +1,12 @@
 # Overlay graphics capabilities
 
-Researched September 29, 2026 for LG 86UA8450PSA, webOS 25, firmware 33.31.61. This records the current implementation, platform documentation and proposed experiments separately. The TV is off; no graphics-capability probe or installation was performed. The user approved a later installation retry when the TV is available.
+Researched September 29, 2026 for LG 86UA8450PSA, webOS 25, firmware 33.31.61. This separates implementation, platform documentation and historical experiments. No exact-device graphics benchmark was performed during the research. The selected Canvas-based renderer is now built; [the roadmap](roadmap.md) prioritizes its native visual/performance check rather than a general shader exploration. Earlier TV-off notes are not a current blocker.
 
 ## What runs today
 
 The TV client is a packaged web app. [Its manifest](../tv/display/appinfo.json) requests a transparent 1920×1080 web surface with the experimental `overlay` window type. The 0.0.4 build adds a local React bundle: Thinking Orbs' Canvas 2D engine draws the orb, and Voice Glow draws the restrained light using Canvas/SVG/CSS. HTML text and the authenticated feed client remain. No WebGL renderer is required by the selected design. See [visual lab implementation](visual-lab.md).
 
-The approximately 750-pixel corner panel is a layout choice, not an API size cap. Transparent regions reveal the underlying native picture. Baseline overlay and in-place text updates have physical evidence; the 0.0.4 renderer is built and browser-checked but not installed. See [the evidence ledger](implementation-status.md).
+The approximately 750-pixel corner panel is a layout choice, not an API size cap. Transparent regions reveal the underlying native picture. Baseline overlay and in-place text updates have physical evidence; the 0.0.4 renderer is built and browser-checked but installation of that specific build is not confirmed in the evidence ledger. See [the evidence ledger](implementation-status.md).
 
 Polling now waits 100 ms after each completed request. Existing laptop streams supply bounded amplitude telemetry at up to 10 Hz, with freshness checks; the TV animates locally. Actual TV frame timing and microphone-to-TV latency remain unmeasured.
 

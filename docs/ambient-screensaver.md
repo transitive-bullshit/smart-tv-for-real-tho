@@ -4,7 +4,7 @@ Updated September 30, 2026. **Automatic activation has its first positive physic
 
 ## Scope and acceptance
 
-**Owner decision, September 30:** automatic activation is a required part of the live demo and the intended ongoing experience on this TV. Deliver a personal ambient screen the owner can use after filming, with repeatable setup and recovery. Public distribution, generalized support for other TVs and a production service remain outside the goal. This scope supersedes the earlier foreground-only prototype boundary.
+**Owner decision, September 30:** automatic activation is a required part of the live demo and the intended ongoing experience on this TV. Deliver a personal ambient screen the owner can use after filming, with repeatable setup and recovery. The scope also includes a reproducible open-source preview for technical owners after the filmed demo. General consumer support, a hosted production service and LG Store submission are outside that first release. [The roadmap](roadmap.md) owns this sequence and [distribution](distribution.md) covers packaging and Developer Mode upkeep. This supersedes the earlier foreground-only and private-demo-only boundaries.
 
 The intended journey is **LG Home → inactivity/activation condition → Room Ambient → normal TV use**. Starting inside the slideshow tests whether it stays visible; it does not demonstrate automatic activation. The owner accepts manual TV setup if needed. Investigate available native/private mechanisms and documented manual configuration on this exact firmware; the absence of a public provider API does not settle every alternative's feasibility. No working native automatic integration or compatible system modification has been established.
 
@@ -107,7 +107,9 @@ Do not conflate these behaviors:
 
 These are official webOS 25 menu references, not a verified inventory of this Thailand model's menus. Availability and wording depend on model/region/firmware.
 
-### Next on-TV pass
+### Clock diagnostic path
+
+The owner already checked the relevant settings without finding a necessary change. Do not repeat this path unless the clock returns or the owner wants different shutdown behavior. Current acceptance focuses on automatic entry and recovery.
 
 1. Open **Room Ambient**, press **OK**, and enable **Try private screensaver guard**. Press **Back once** to hide settings, leaving the slideshow running. Alternatively select **Slideshow idle guard → Enable and remember on TV** in the laptop controller before **Show slideshow on TV**. Ordinary launches use **Use saved TV setting**. The two controls belong to different app instances; a browser preview checkbox does not affect the TV.
 2. Leave the remote untouched beyond the previously observed takeover time. If unknown, use an initial 10-minute observation, then extend it if the reported interruption normally occurs later. Check whether the photos remain visible and inspect the guard status afterward. **Registration responded · waiting for an idle request** establishes only registration. **Idle veto acknowledged × N** records a response to an actual idle request, but physical visibility remains the acceptance check. Dismissing a clock can re-register the guard through `visibilitychange`, so the status after waking may differ from the status before takeover. [Guard source](../tv/ambient-src/guard.ts), [lifecycle and launch code](../tv/ambient-src/main.ts)
@@ -116,7 +118,7 @@ These are official webOS 25 menu references, not a verified inventory of this Th
 
 **Screen Saver Promotion** under **General → System → Additional Settings → Screen Saver Settings** controls advertisements only. Some firmware exposes **Screen Saver Standby Time** there too; record the available choices before changing the test baseline. A longer delay postpones takeover rather than selecting Room Ambient. Older menus put Promotion directly under Additional Settings. [LG webOS 25 screensaver settings](https://kr.eguide.lgappstv.com/manual/w25/w25_u68/enga.html), [earlier webOS 25 menu](https://kr.eguide.lgappstv.com/manual/w25/w25_us25/enga.html)
 
-### App-side limitation and next development step
+### Saved-guard fix and activation boundary
 
 Version 0.0.7 initialized the guard unchecked, did not persist it, and the controller sent false by default. Version 0.0.8 fixes those confirmed configuration defects: the native app saves both on and off in localStorage; launch parameters override only when explicitly supplied, and the controller defaults to preserving the TV preference. Storage failures retain the selection for the session and appear in diagnostics. The subsequent owner report of several hours of uninterrupted photos is positive physical evidence, although no timed stock baseline or veto count was captured. [Native initialization](../tv/ambient-src/main.ts), [native checkbox](../tv/ambient/index.html), [controller](../web/ambient-controls.tsx), [launch schema](../src/ambient-options.ts)
 
@@ -184,16 +186,16 @@ On this Mac, the Codex process reported `EHOSTUNREACH` on port 9922 while the ex
 
 Controller preview assets use an exact file allowlist. Neither arbitrary local files nor generated package installation paths can be supplied by the browser. Device actions remain loopback/origin restricted and share the existing source-command queue, so a newer Home request wins over an older pending launch.
 
-## One shared TV session
+## Original foreground-app validation session
 
-Initial preparation did not touch the TV. The user subsequently authorized installation and live testing; see the session evidence below. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
+This is the original foreground-app test plan; completed results are recorded below. For current automatic-entry and recovery checks, use [the combined demo session](demo-session.md) and [automatic activation](#automatic-activation). Initial preparation did not touch the TV; the user subsequently authorized installation and live testing. Start once the user is watching, with TV awake, Developer Mode session active and laptop on its LAN. Existing Developer Mode pairing should suffice; no additional LG account or service key is needed.
 
 1. **Install once** using the controller's Room Ambient section. **Show slideshow on TV**, selecting **Disable and remember on TV** only for the baseline test. Observe several scene transitions and select added scenes from the picker: cover edges, smooth motion/dissolve, person/desk in frame, no audio. OK opens diagnostics/controls; Check the title remains in clean view and both checkboxes toggle with remote OK. Back hides settings; Back again should exit without a prompt; reopen; Home exits. Record the return destination. The original overlay is not part of this check.
 2. **Baseline idle:** reopen images with guard off. Leave it untouched and time any stock screensaver takeover. Stop the initial observation at 10 minutes if none occurs and record “not seen within 10 minutes,” not “disabled.” Note whether visibility diagnostics changed. Allow this passive interval while doing other work; only inspect at its end.
 3. **Private guard, if useful:** launch images with guard on. Inspect diagnostics once, then return to clean view and leave it untouched past the baseline timeout plus two minutes (or the same 10-minute observation if no baseline was established). If the guard is denied or times out, record that limitation and keep the slideshow available on demand; do not reintroduce video. After leaving the app, check that normal LG idle behavior still returns.
 4. **Optional remote entry:** while our app is open, hold an unused number 1–8 and register it if offered. Hold that number from Home to reopen. Hold 0 to inspect/remove Quick Access assignments; 9 is reserved for Quick Help. If this remote lacks accessible number keys or LG refuses the sideloaded app, skip the shortcut. [LG Quick Access instructions](https://www.lg.com/us/simroom/tvs/user-guide/2024/set-up-quick-access-shortcuts)
 
-The image engine is the selected visual experience regardless of the guard result. Without a working guard, LG may interrupt it after inactivity. Automatic activation is now required scope, starting with LG Home; implementation and hardware verification remain open under [scope and acceptance](#scope-and-acceptance).
+The image engine is the selected visual experience regardless of the guard result. Without a working guard, LG may interrupt it after inactivity. Automatic activation from LG Home is implemented and has positive physical feedback. Repeated watched entries and recovery checks remain open under [scope and acceptance](#scope-and-acceptance).
 
 | Hardware observation | Result |
 | --- | --- |
@@ -205,8 +207,8 @@ The image engine is the selected visual experience regardless of the guard resul
 | Installed app cleanup | Catalog shows one Room Ambient plus Smart TV Live Activity; obsolete Smart TV Overlay Probe removed |
 | Baseline stock screensaver timeout | Pending; no uninterrupted measured interval yet |
 | Saved guard preference | User confirmed guard checked after the 0.0.8 reopen without an override |
-| Private guard permissions, idle behavior, release | Registration previously responded; in 0.0.8 the user reports photos still visible with no clock seen during an ongoing interval of unknown duration. Long-run suppression and an actual veto remain unverified. |
-| Automatic activation from Home | Required scope; not implemented or tested. Foreground idle observations do not test this behavior. |
+| Private guard permissions, idle behavior, release | Registration responded; the owner reports several hours of advancing photos without clock takeover on 0.0.8. Exact duration and veto count were not captured; measured soak and guard release checks remain open. |
+| Automatic activation from Home | Implemented; two Home → idle → ambient sequences in controller logs and positive physical feedback. Clock flash, three separately watched entries, dismissal and standby recovery remain open. |
 | Quick Access registration | Pending |
 
 Local verification for 0.0.3: 63 TypeScript tests and 21 Python tests pass, including cover bounds/focal visibility, independent image loading, live-mode gating, mute/pause ordering, newer-source cancellation, fixed app targeting, and private subscription cleanup/rejection. Format, lint, TypeScript, production builds and package build pass. Chrome confirms image rendering and Enter toggles the focal checkbox on/off; guard activation correctly reports no native bridge in the browser. Browser rendering or an API's acceptance is never substituted for physical observations.

@@ -1,5 +1,7 @@
 # Native HUD investigation
 
+Historical static-probe and Developer Mode setup record. Later physical focus, dismissal and transition results are in [implementation status](implementation-status.md); the current animated client is described in [visual lab](visual-lab.md). Use [the demo session](demo-session.md) for the next combined TV check rather than repeating all initial setup below.
+
 Target: LG 86UA8450PSA, webOS 25, firmware 33.31.61. The static probe builds locally, and developer pairing is verified from the user’s Terminal. The user has now confirmed the installed overlay panel is visible over Xbox HDMI with the Xbox picture visible behind it. The user also confirmed manual dismissal and automatic dismissal after 60 seconds. The user also confirmed native YouTube video playing behind the panel after a brief launch glitch/spinner. Focus recovery and transition checks remain pending; launch is not visually seamless.
 
 ## Source evidence

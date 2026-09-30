@@ -1,6 +1,8 @@
 # Thinking Orbs visual lab
 
-Implemented September 29, 2026 in TV package 0.0.4. Browser-verified; physical TV rendering and live microphone-to-TV latency remain unverified. No TV installation was attempted while the TV was off.
+Implemented September 29, 2026 in TV package 0.0.4. Browser-verified; physical TV rendering and live microphone-to-TV latency remain unverified. Installation of this specific animated build is not confirmed in the evidence ledger. Earlier TV-off notes describe the original build session, not current device availability.
+
+The library direction is chosen: **Thinking Orbs + restrained Voice Glow**. Next compare three curated looks—Signal (recommended starting point), Quiet and Ember—on the actual TV, then save one default and refine the whole conversation’s motion and dismissal. See [the roadmap](roadmap.md#m1--choose-and-finish-the-assistants-visual-identity). Murmur is not part of the next comparison.
 
 ## Explore locally
 
@@ -19,7 +21,7 @@ Choices are remembered in this browser. **Use this look on TV** separately saves
 
 `pnpm dev` and `pnpm dev:stable` build the visual assets before starting the usual watched controller. `pnpm build` builds both visual assets and the main web app. After editing `tv/visuals`, run `pnpm build:visuals` and refresh the lab; backend edits retain their existing watcher behavior. No user-Terminal restart is required for visual asset builds.
 
-`pnpm tv:package-display` builds assets and creates `build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk`. The controller's **Install TV update · 0.0.4** action installs the fixed package when the TV is available. This task built the package but did not install it.
+`pnpm tv:package-display` builds assets and creates `build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk`. The controller's **Install TV update · 0.0.4** action installs the fixed package when the TV is available. The package was built locally; confirm installation and native rendering during the next shared TV session.
 
 ## Implementation
 
