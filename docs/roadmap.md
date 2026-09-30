@@ -1,6 +1,6 @@
 # From working room to polished demo to open source
 
-Updated September 30, 2026. This is the owner-approved scope and ordered backlog. It supersedes the original preparation-only / demo-only boundary. The current request prepares this plan and documentation; the unchecked items below are future implementation work.
+Updated September 30, 2026. This is the owner-approved scope and ordered backlog. It supersedes the original preparation-only / demo-only boundary. Unchecked items below remain open; the owner selected Ember on September 30 and local voice-lab work is underway.
 
 Build an assistant that feels present, understands a short request, acts on the actual room, and recedes. Preserve native LG YouTube and direct Xbox HDMI. The three outcomes are a reliable personal setup, a compelling real-device video, and a reproducible open-source release for technical owners. Consumer app-store distribution is a separate option.
 
@@ -8,7 +8,7 @@ Build an assistant that feels present, understands a short request, acts on the 
 
 - **Hardware-confirmed:** LG and Xbox control, Hades, native YouTube search/correction, spoken requests, seeking, baseline transparent overlay over YouTube/Xbox, clean overlay Hide, ambient photos/framing/titles/Back, and several hours of ambient playback with the guard on.
 - **Automatic ambient:** two logged Home → idle → ambient entries after about ten minutes, plus positive physical feedback. Complete repeated observations, dismissal and recovery checks remain open. [Evidence](ambient-screensaver.md#evidence-so-far).
-- **Built and browser-checked:** shared Thinking Orbs + restrained Voice Glow renderer, nine patterns/four themes, real input/output amplitude and assistant-state feed, saved TV appearance, animated overlay package 0.0.4. Final design selection, installed-version confirmation and real-TV performance are outstanding. [Visual lab](visual-lab.md).
+- **Built and browser-checked:** shared Thinking Orbs + restrained Voice Glow renderer, nine patterns/four themes, real input/output amplitude and assistant-state feed, saved TV appearance, animated overlay package 0.0.4. Ember with cool cyan surfaces is selected; installed-version confirmation and real-TV performance are outstanding. [Visual lab](visual-lab.md).
 - **Verification baseline:** 82 TypeScript and 24 Python tests passed at the automatic-activation milestone. Automated tests establish code behavior; the physical acceptance below establishes the room experience.
 
 ## Milestones, in order
@@ -17,8 +17,8 @@ Build an assistant that feels present, understands a short request, acts on the 
 
 **Next work package.** The lab and native overlay already share a renderer and live-state wiring. Finish that integration and its presentation; do not start another rendering system.
 
-- [ ] Prepare three short, directly comparable state sequences: **Signal** (recommended cyan direction), **Quiet** (minimal monochrome), **Ember** (warm alternative). Use the existing authored Thinking Orbs and restrained Voice Glow. Murmur was rejected and is not in the selection round.
-- [ ] Pick one default on the actual TV at sofa distance. Freeze its palette, particle weight/density, orb size, glow strength, type scale and placement over dark/bright YouTube and Xbox content. Keep alternatives in the lab.
+- [x] Select the local design direction: **Ember** warm orb/glow/accents with the original **cool cyan backgrounds and surfaces**. Preserve the approved orb defaults. The lab now has an audible recorded conversation, local clip playback and same-page live push-to-talk; alternatives remain available.
+- [ ] Verify the selected Ember default on the actual TV at sofa distance. Freeze its palette, particle weight/density, orb size, glow strength, type scale and placement over dark/bright YouTube and Xbox content. Keep alternatives in the lab.
 - [ ] Make the full interaction coherent: calm idle → attentive listening → quiet thinking → speech-reactive response → brief completion → recede. Use real voice/tool events; stop speaking animation on interruption, clear obsolete text, and make disconnect/error states actionable. Technical uncertainty stays in operator diagnostics; never fabricate completion.
 - [ ] Save the selected look as the shared default, verify it survives restart, package/install it, and check actual microphone-to-TV response. Simplify the main controller into an everyday/demo view, with setup, labs and detailed traces in secondary panels. Confirm deliberate overlay dismissal and source-restoration behavior together.
 
@@ -64,7 +64,7 @@ After the open-source preview: assess an always-on controller host, more tested 
 | Item | Status / what unblocks it |
 | --- | --- |
 | Visual family | Decided: Thinking Orbs + restrained Voice Glow. No new library search needed. |
-| Final theme and choreography | One owner decision after a curated real-TV comparison. Signal is the working recommendation; no approval is assumed. |
+| Final theme and choreography | Owner selected Ember foregrounds and accents on cool cyan surfaces, retaining orb defaults. Local recorded/live voice testing is implemented; combined TV choreography acceptance remains. |
 | Animated overlay performance | Needs installation/version confirmation and an observed TV run. Browser results cannot settle it. Prep and local work can proceed now. |
 | Native control reliability | Primitives work; full cold/warm, cancellation and recovery acceptance remains. Measured receiver lag is an investigation item. |
 | Automatic ambient | Core flow works. Requires an awake controller host, valid Developer Mode and the remaining recovery checks. No extra TV setting is currently required. |
@@ -74,9 +74,9 @@ After the open-source preview: assess an always-on controller host, more tested 
 
 ## Immediate queue
 
-1. Prepare the three visual candidates and a final-state/interaction checklist using the shared renderer.
+1. Finish Ember voice interaction testing in the lab and the final-state checklist using the shared renderer.
 2. Prepare the reliability/recovery batch and add ambient to rehearsal notes.
-3. Use one TV session to choose the look and run the combined checks; fix findings, then rehearse and film.
+3. Use one TV session to verify the selected look and run the combined checks; fix findings, then rehearse and film.
 4. Package and document the working result for a fresh outside installation before the public release.
 
 Work should remain autonomous between these concrete human checkpoints. Keep [implementation status](implementation-status.md) as the evidence ledger; this roadmap owns priority and release scope, [journeys](journeys.md) owns intended behavior, and [ambient scope](ambient-screensaver.md#scope-and-acceptance) owns detailed idle acceptance.

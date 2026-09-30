@@ -1,3 +1,10 @@
+export function audioLevel(buffer: Float32Array<ArrayBuffer>) {
+  let energy = 0
+  for (const value of buffer) energy += value * value
+  const rms = Math.sqrt(energy / buffer.length)
+  return Math.min(1, Math.max(0, (rms - 0.008) * 5))
+}
+
 // Analyse the existing streams only. This module never requests a microphone or plays audio.
 export class AudioMeter {
   private context?: AudioContext
@@ -45,10 +52,7 @@ export class AudioMeter {
       const node = this[kind]
       if (!node || this.context?.state !== 'running') return 0
       node.analyser.getFloatTimeDomainData(node.buffer)
-      let energy = 0
-      for (const value of node.buffer) energy += value * value
-      const rms = Math.sqrt(energy / node.buffer.length)
-      return Math.min(1, Math.max(0, (rms - 0.008) * 5))
+      return audioLevel(node.buffer)
     }
     return { input: read('input'), output: read('output') }
   }

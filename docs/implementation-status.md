@@ -22,7 +22,11 @@ Removed decorative arrows from links and made internal controller/lab navigation
 
 ## Current assistant visual milestone
 
-Thinking Orbs + restrained Voice Glow is the selected library direction; Murmur was rejected. The shared lab/native renderer, actual voice amplitude and state wiring, saved appearance and full/subtle/static modes are implemented in display package 0.0.4 and browser-verified. Confirm installation of this specific build and test the final appearance on the TV; native animation performance and final preset acceptance are still open. Earlier “TV off/unreachable” notes describe previous attempts, not a current prerequisite. See [visual lab](visual-lab.md) and [the next demo session](demo-session.md).
+The owner selected Ember Thinking Orbs + restrained Voice Glow, keeping the original cool cyan backgrounds/surfaces and using warm orange for the orb, glow and accents. Approved orb settings remain unchanged. Ember is the shared default and is already saved in local TV appearance settings. The glow now uses a matching warm palette and a more visible edge treatment at the existing 0.3 strength.
+
+The lab now plays a short recorded request/thinking/reply sequence and local audio files, measuring actual samples for both visuals. Local clips remain in the browser; their reply is explicitly prerecorded. Same-page live voice reuses the controller’s Voice client with connect/cancel/disconnect and pointer/keyboard push-to-talk. Chrome verified sample and file playback, real WebRTC connection, quick keyboard release without submitting an empty utterance, and disconnect. No room-control request or TV installation was performed. Native animation performance, the final TV appearance and a spoken end-to-end request from this page still need physical acceptance. See [visual lab](visual-lab.md) and [the next demo session](demo-session.md).
+
+Validation: 90 TypeScript tests, 24 Python tests, formatting, lint, typecheck and production builds passed. New regressions cover measured playback levels, phase transitions after actual clip completion, stopping during decode/playback/thinking, and rejecting long clips before playback.
 
 ## Latest ambient milestone: September 30
 

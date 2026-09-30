@@ -21,6 +21,8 @@ import {
 } from '../../src/visual-options.js'
 import type { AssistantState, VisualOptions } from '../../src/visual-options.js'
 import { Orb } from './orb.js'
+import { VoiceLab } from './voice-lab.js'
+import type { LabScenario } from './voice-lab.js'
 import './visuals.css'
 
 type Frame = Partial<DisplayFrame> & { preview?: boolean }
@@ -32,7 +34,7 @@ declare global {
 }
 // display.js owns preview detection and exposes this API before the bundle runs.
 const preview = Boolean(window.roomHud)
-const preferenceKey = 'smart-tv.visual-lab.v1'
+const preferenceKey = 'smart-tv.visual-lab.v2'
 let frame: Frame = { visual: 'idle', motion: 'full' }
 let audio = { input: 0, output: 0, at: 0 }
 let revision = ''
@@ -145,7 +147,11 @@ function App() {
   const [options, setOptions] = useState<VisualOptions>(() =>
     preview ? readPreferences() : defaultVisualOptions
   )
-  const [scenario, setScenario] = useState<AssistantState | 'live'>('listening')
+  const [scenario, setScenario] = useState<LabScenario>('listening')
+  const demoLevel = useRef<() => number>(() => 0)
+  const setDemoLevel = useCallback((read: () => number) => {
+    demoLevel.current = read
+  }, [])
   const [motion, setMotion] = useState<MotionMode>('full')
   const [sound, setSound] = useState<'demo' | 'manual'>('demo')
   const [manualLevel, setManualLevel] = useState(0.45)
@@ -171,6 +177,7 @@ function App() {
     const current = signal.current
     if (current.paused || !['listening', 'speaking'].includes(current.visual))
       return 0
+    if (preview && current.scenario === 'audio') return demoLevel.current()
     if (!preview || current.scenario === 'live') {
       if (performance.now() - audio.at > 750) return 0
       return current.visual === 'listening' ? audio.input : audio.output
@@ -205,7 +212,8 @@ function App() {
       '--accent',
       visual === 'error' ? '#ffbd84' : style.color
     )
-  }, [selected.size, style.color, visual])
+    document.body.dataset.style = selected.style
+  }, [selected.size, selected.style, style.color, visual])
   useEffect(() => {
     if (!preview) return
     try {
@@ -221,6 +229,7 @@ function App() {
   }, [scene, motion])
   useEffect(() => {
     if (!preview) return
+    if (scenario === 'audio') return
     let stopped = false
     let timer: ReturnType<typeof setTimeout>
     const abort = new AbortController()
@@ -249,7 +258,7 @@ function App() {
           timer = setTimeout(() => {
             void refresh()
           }, 100)
-      } else {
+      } else if (scenario !== 'audio') {
         const [title, message, detail] = examples[scenario]
         window.roomHud?.render({
           visual: scenario,
@@ -282,6 +291,7 @@ function App() {
     let index = 0
     const timer = setInterval(() => {
       index = (index + 1) % sequence.length
+      setScenario(sequence[index]!)
     }, 3500)
     return () => clearInterval(timer)
   }, [cycling])
@@ -328,6 +338,29 @@ function App() {
         <VoiceBeam
           theme='dark'
           colorVariant={style.beam}
+          colors={
+            selected.style === 'ember'
+              ? [
+                  '#ffa35c',
+                  '#ffbd84',
+                  '#ffe0b3',
+                  '#d97545',
+                  '#ffbd84',
+                  '#d98b57',
+                  '#ffce9e'
+                ]
+              : undefined
+          }
+          bandColors={
+            selected.style === 'ember'
+              ? {
+                  core: '#ffe0b3',
+                  above: '#ffa35c',
+                  mid: '#ffbd84',
+                  below: '#d97545'
+                }
+              : undefined
+          }
           level={readLevel}
           processing={visual === 'working'}
           processingLevel={0.24}
@@ -340,14 +373,15 @@ function App() {
           sensitivity={1}
           attack={0.12}
           release={0.3}
-          reach={0.8}
+          reach={1.6}
           bend={14}
-          scale={0.8}
+          scale={1.6}
           distortion={0}
-          bandStrength={0.3}
+          bandStrength={0.45}
+          bandOffset={-8}
           bandAberration={0.1}
-          glowHeight={0.65}
-          bloomOpacity={0.65}
+          glowHeight={1.1}
+          bloomOpacity={0.9}
           staticColors
           borderRadius={20}
           style={{ width: '100%', height: '100%' }}
@@ -363,11 +397,28 @@ function App() {
               <a href='/'>S / TV</a>
               <span>VISUAL LAB</span>
               <p>A presence for your room.</p>
-              <small>Local preview · your TV stays as it is.</small>
+              <small>
+                {style.name} ·{' '}
+                {selected.style === 'ember'
+                  ? 'Warm light on cool cyan.'
+                  : style.description}
+              </small>
               <button type='button' onClick={() => window.roomHud?.show()}>
                 Show panel
               </button>
             </header>
+            <VoiceLab
+              scenario={scenario}
+              onScenario={(next) => {
+                setCycling(false)
+                setScenario(next)
+                window.roomHud?.show()
+              }}
+              onLevel={setDemoLevel}
+              present={(next) =>
+                window.roomHud?.render({ ...next, motion, preview: true })
+              }
+            />
             <aside className='lab-sidebar' aria-label='Visual playground'>
               <div className='lab-title'>
                 <div>
@@ -450,7 +501,10 @@ function App() {
                     type='button'
                     className='lab-text-button'
                     aria-pressed={cycling}
-                    onClick={() => setCycling(!cycling)}
+                    onClick={() => {
+                      setScenario('idle')
+                      setCycling(!cycling)
+                    }}
                   >
                     {cycling ? 'Stop sequence' : 'Play sequence'}
                   </button>
@@ -482,8 +536,10 @@ function App() {
                 </div>
                 <p className='lab-help'>
                   {scenario === 'live'
-                    ? 'Follows your existing controller voice session. No new microphone or AI connection.'
-                    : 'Preview states and audio are simulated. No device commands.'}
+                    ? 'Following live voice. Connect and hold to talk in the voice panel.'
+                    : scenario === 'audio'
+                      ? 'Glow follows the actual recorded audio. The reply is prerecorded.'
+                      : 'Preview states and audio are simulated. No device commands.'}
                 </p>
               </section>
               <section className='lab-tuning'>
@@ -515,25 +571,39 @@ function App() {
                 <label className='lab-select'>
                   Audio source
                   <select
-                    value={sound}
-                    disabled={scenario === 'live'}
+                    value={
+                      scenario === 'audio'
+                        ? 'recorded'
+                        : scenario === 'live'
+                          ? 'live'
+                          : sound
+                    }
+                    disabled={scenario === 'live' || scenario === 'audio'}
                     onChange={(event) =>
                       setSound(event.target.value as 'demo' | 'manual')
                     }
                   >
+                    {scenario === 'audio' && (
+                      <option value='recorded'>Recorded audio</option>
+                    )}
+                    {scenario === 'live' && (
+                      <option value='live'>Live voice audio</option>
+                    )}
                     <option value='demo'>Demo speech envelope</option>
                     <option value='manual'>Manual level</option>
                   </select>
                 </label>
-                {sound === 'manual' && scenario !== 'live' && (
-                  <Range
-                    label='Voice level'
-                    value={manualLevel}
-                    min={0}
-                    max={1}
-                    onChange={setManualLevel}
-                  />
-                )}
+                {sound === 'manual' &&
+                  scenario !== 'live' &&
+                  scenario !== 'audio' && (
+                    <Range
+                      label='Voice level'
+                      value={manualLevel}
+                      min={0}
+                      max={1}
+                      onChange={setManualLevel}
+                    />
+                  )}
                 <label className='lab-select'>
                   Motion
                   <select
@@ -640,8 +710,12 @@ function App() {
                 {visualStyles[options.style].name} / {pattern}
               </span>
               <span>
-                {scenario === 'live' ? 'LIVE CONTROLLER' : 'PREVIEW'} ·{' '}
-                {reduced || motion === 'static' ? 'STATIC' : 'ANIMATED'}
+                {scenario === 'live'
+                  ? 'LIVE CONTROLLER'
+                  : scenario === 'audio'
+                    ? 'RECORDED AUDIO'
+                    : 'PREVIEW'}{' '}
+                · {reduced || motion === 'static' ? 'STATIC' : 'ANIMATED'}
               </span>
             </div>
           </>,
