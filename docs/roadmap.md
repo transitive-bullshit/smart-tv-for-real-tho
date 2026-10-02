@@ -1,6 +1,6 @@
 # From working room to polished demo to open source
 
-Updated September 30, 2026. This is the owner-approved scope and ordered backlog. It supersedes the original preparation-only / demo-only boundary. Unchecked items below remain open; the owner selected Ember on September 30 and local voice-lab work is underway.
+Updated October 2, 2026. This is the owner-approved scope and ordered backlog. It supersedes the original preparation-only / demo-only boundary. Ember is selected, the voice lab is implemented, and the new public-facing room demo is built. See the [concrete launch plan and next joint session](launch-plan.md) for the shortest path from here.
 
 Build an assistant that feels present, understands a short request, acts on the actual room, and recedes. Preserve native LG YouTube and direct Xbox HDMI. The three outcomes are a reliable personal setup, a compelling real-device video, and a reproducible open-source release for technical owners. Consumer app-store distribution is a separate option.
 
@@ -8,8 +8,9 @@ Build an assistant that feels present, understands a short request, acts on the 
 
 - **Hardware-confirmed:** LG and Xbox control, Hades, native YouTube search/correction, spoken requests, seeking, baseline transparent overlay over YouTube/Xbox, clean overlay Hide, ambient photos/framing/titles/Back, and several hours of ambient playback with the guard on.
 - **Automatic ambient:** two logged Home → idle → ambient entries after about ten minutes, plus positive physical feedback. Complete repeated observations, dismissal and recovery checks remain open. [Evidence](ambient-screensaver.md#evidence-so-far).
-- **Built and browser-checked:** shared Thinking Orbs + restrained Voice Glow renderer, nine patterns/four themes, real input/output amplitude and assistant-state feed, saved TV appearance, animated overlay package 0.0.4. Ember with cool cyan surfaces is selected; installed-version confirmation and real-TV performance are outstanding. [Visual lab](visual-lab.md).
-- **Verification baseline:** 82 TypeScript and 24 Python tests passed at the automatic-activation milestone. Automated tests establish code behavior; the physical acceptance below establishes the room experience.
+- **Installed and measured:** animated overlay 0.0.5, Ember Thinking Orbs + cached Voice Glow, live controller mirror and TV frame-rate reporting. All nine patterns advanced in short native samples at 25–50 fps; composing remains below the 30 fps target. Sustained voice/source acceptance is outstanding. [Visual lab](visual-lab.md).
+- **Verification baseline:** 93 TypeScript and 24 Python tests passed after the live-mirror update. Automated tests establish code behavior; the physical acceptance below establishes the room experience.
+- **Public web preview:** a separate scripted landing page at `/demo/`, with a cinematic fictional room, the existing Ember orb renderer and bundled artwork. It needs no controller or API key. The owner selected instant demo first and optional live voice later; public hosting and hardware acceptance remain separate gates.
 
 ## Milestones, in order
 
@@ -22,7 +23,7 @@ Build an assistant that feels present, understands a short request, acts on the 
 - [ ] Make the full interaction coherent: calm idle → attentive listening → quiet thinking → speech-reactive response → brief completion → recede. Use real voice/tool events; stop speaking animation on interruption, clear obsolete text, and make disconnect/error states actionable. Technical uncertainty stays in operator diagnostics; never fabricate completion.
 - [ ] Save the selected look as the shared default, verify it survives restart, package/install it, and check actual microphone-to-TV response. Simplify the main controller into an everyday/demo view, with setup, labs and detailed traces in secondary panels. Confirm deliberate overlay dismissal and source-restoration behavior together.
 
-**Done:** one owner-approved live-TV look, legible from the couch, consistent across listening/thinking/speaking and both native sources. At least a 15-minute animated run with no accumulating stutter, stuck activity or audio/focus regression. Measure frame pacing on the TV before tuning density/resolution; a steady 30 fps is an acceptable design target, not a current measurement. The known launch loading flash is an accepted platform limitation for v0.1; normal in-place updates must stay smooth.
+**Done:** one owner-approved live-TV look, legible from the couch, consistent across listening/thinking/speaking and both native sources. At least a 15-minute animated run with no accumulating stutter, stuck activity or audio/focus regression. Measure frame pacing on the TV before tuning density/resolution; a steady 30 fps is the design target. Short native checks now span 25–50 fps, so composing and the complete sustained interaction still need attention. The known launch loading flash is an accepted platform limitation for v0.1; normal in-place updates must stay smooth.
 
 ### M2 — Make the complete journeys dependable
 
@@ -37,7 +38,8 @@ Can prepare the harness and recovery UI alongside M1; validate the final visual 
 
 ### M3 — Rehearse and record the demo
 
-- [ ] Add the ambient journey to the controller’s six existing rehearsal entries, using the [filming guide](demo-session.md). Export one coherent result sheet with build/configuration identifiers and physical observations.
+- [x] Add the ambient journey to the controller’s rehearsal entries, using the [filming guide](demo-session.md). All seven journeys have saved notes and export.
+- [ ] Export the completed result sheet with tested build/configuration identifiers and physical observations.
 - [ ] Run two complete voice rehearsals without developer intervention. Start push-to-talk; use open mic in the film only after a successful audible-room interruption test. TV stays muted for unattended work; choose recording volume explicitly with the owner.
 - [ ] Record a 60–90-second main take: real TV/voice, music request, correction, one seek, return to Xbox, and concise responsive visuals. Record automatic ambient entry as a separate honest before/after or labeled time-lapse of the approximately ten-minute wait, plus a clean close-up of the artwork.
 - [ ] Prepare the final short edit, captions, a simple architecture/setup card and representative screenshots. Keep native delays visible in the continuous take; distinguish any montage/time compression. Use audio/images cleared for public sharing and avoid account/credential screens in the shot.
@@ -74,9 +76,9 @@ After the open-source preview: assess an always-on controller host, more tested 
 
 ## Immediate queue
 
-1. Finish Ember voice interaction testing in the lab and the final-state checklist using the shared renderer.
-2. Prepare the reliability/recovery batch and add ambient to rehearsal notes.
-3. Use one TV session to verify the selected look and run the combined checks; fix findings, then rehearse and film.
-4. Package and document the working result for a fresh outside installation before the public release.
+1. Review the [room demo and launch story](launch-plan.md#landing-page-story). Its self-contained static build can be hosted separately from the eventual source release.
+2. Run the [combined TV session](launch-plan.md#the-next-session-together): install/verify Ember, exercise real push-to-talk, source transitions and recovery, and collect ambient acceptance.
+3. Fix findings, then complete two rehearsals and record the real-device film.
+4. Package and document the working result for a fresh outside installation before the open-source release.
 
 Work should remain autonomous between these concrete human checkpoints. Keep [implementation status](implementation-status.md) as the evidence ledger; this roadmap owns priority and release scope, [journeys](journeys.md) owns intended behavior, and [ambient scope](ambient-screensaver.md#scope-and-acceptance) owns detailed idle acceptance.

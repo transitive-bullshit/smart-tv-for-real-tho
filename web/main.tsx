@@ -14,6 +14,7 @@ import { Journeys } from './journeys.js'
 import { AmbientControls } from './ambient-controls.js'
 import { HudControls } from './hud-controls.js'
 import type { DisplayFrame, MotionMode } from '../src/display.js'
+import type { DisplayHealth } from '../src/display-health.js'
 import './style.css'
 
 interface Status {
@@ -30,6 +31,7 @@ interface Status {
     autoRestore: boolean
     motion: MotionMode
     frame: DisplayFrame
+    health?: DisplayHealth
   }
 }
 interface Catalog {
@@ -163,9 +165,6 @@ function App() {
         </a>
       </header>
       <section className='hero' aria-live='polite'>
-        <div className={'orb ' + (pending ? 'working' : '')}>
-          <div />
-        </div>
         <div>
           <p className='eyebrow'>YOUR ROOM. YOUR SOFTWARE.</p>
           <h1>{pending ? 'On it.' : 'Make yourself heard.'}</h1>
@@ -175,57 +174,7 @@ function App() {
           </p>
         </div>
       </section>
-      <section className='states'>
-        {(['tv', 'youtube', 'xbox'] as const).map((device) => {
-          const item = state?.[device]
-          return (
-            <article key={device}>
-              <p className='eyebrow'>
-                <span className={item?.connected ? 'dot on' : 'dot'} />
-                {device === 'tv'
-                  ? 'LG · webOS 25'
-                  : device === 'youtube'
-                    ? 'NATIVE YOUTUBE'
-                    : 'XBOX · HDMI 3'}
-              </p>
-              <h2>
-                {device === 'tv'
-                  ? (state?.tv.appId ?? 'No observation')
-                  : device === 'youtube'
-                    ? (state?.youtube.videoId ?? 'No video observed')
-                    : (state?.xbox.activeTitle ?? 'No title observed')}
-              </h2>
-              <p>
-                {device === 'tv'
-                  ? 'Volume ' +
-                    (state?.tv.volume ?? '—') +
-                    ' · ' +
-                    (state?.tv.soundOutput ?? 'output unknown')
-                  : device === 'youtube'
-                    ? (state?.youtube.playback ?? 'unknown')
-                    : item?.connected
-                      ? 'Console responding'
-                      : 'Not connected'}
-              </p>
-              <small>
-                {item?.observedAt
-                  ? 'Observed ' +
-                    Math.floor((clock - item.observedAt) / 1000) +
-                    's ago'
-                  : 'Awaiting device data'}
-              </small>
-            </article>
-          )
-        })}
-      </section>
-      {display ? (
-        <p className='display-note'>
-          {last?.action.replaceAll('_', ' ')} · {last?.phase}
-          <br />
-          Laptop display preview. The separate TV overlay probe is available in
-          Room controls.
-        </p>
-      ) : (
+      {!display && (
         <>
           <section className='panel voice-panel'>
             <div>
@@ -342,7 +291,61 @@ function App() {
               {actionError}
             </p>
           )}
-          <HudControls display={status?.display} refresh={refresh} />
+        </>
+      )}
+      <HudControls display={status?.display} refresh={refresh} />
+      <section className='states'>
+        {(['tv', 'youtube', 'xbox'] as const).map((device) => {
+          const item = state?.[device]
+          return (
+            <article key={device}>
+              <p className='eyebrow'>
+                <span className={item?.connected ? 'dot on' : 'dot'} />
+                {device === 'tv'
+                  ? 'LG · webOS 25'
+                  : device === 'youtube'
+                    ? 'NATIVE YOUTUBE'
+                    : 'XBOX · HDMI 3'}
+              </p>
+              <h2>
+                {device === 'tv'
+                  ? (state?.tv.appId ?? 'No observation')
+                  : device === 'youtube'
+                    ? (state?.youtube.videoId ?? 'No video observed')
+                    : (state?.xbox.activeTitle ?? 'No title observed')}
+              </h2>
+              <p>
+                {device === 'tv'
+                  ? 'Volume ' +
+                    (state?.tv.volume ?? '—') +
+                    ' · ' +
+                    (state?.tv.soundOutput ?? 'output unknown')
+                  : device === 'youtube'
+                    ? (state?.youtube.playback ?? 'unknown')
+                    : item?.connected
+                      ? 'Console responding'
+                      : 'Not connected'}
+              </p>
+              <small>
+                {item?.observedAt
+                  ? 'Observed ' +
+                    Math.floor((clock - item.observedAt) / 1000) +
+                    's ago'
+                  : 'Awaiting device data'}
+              </small>
+            </article>
+          )
+        })}
+      </section>
+      {display ? (
+        <p className='display-note'>
+          {last?.action.replaceAll('_', ' ')} · {last?.phase}
+          <br />
+          Laptop display preview. The separate TV overlay probe is available in
+          Room controls.
+        </p>
+      ) : (
+        <>
           <AmbientControls live={status?.config.mode === 'live'} />
           <Journeys traces={status?.traces ?? []} />
           <details className='panel'>

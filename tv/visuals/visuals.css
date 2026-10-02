@@ -10,6 +10,18 @@
   overflow: visible;
   border-radius: inherit;
   z-index: 0;
+  transition: opacity 100ms linear;
+}
+body[data-visual='working'] #glow-root {
+  animation: panel-light 2.8s ease-in-out infinite alternate;
+}
+@keyframes panel-light {
+  from {
+    transform: translateX(-6px);
+  }
+  to {
+    transform: translateX(6px);
+  }
 }
 .beam-surface {
   width: 100%;

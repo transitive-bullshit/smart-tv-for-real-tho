@@ -14,7 +14,7 @@ export function AmbientControls({ live }: { live: boolean }) {
       if (action === 'install') {
         await api('ambient/install', {})
         setMessage(
-          'Room Ambient 0.0.8 installed. Open the slideshow when ready.'
+          'Room Ambient 0.0.9 installed. Open the slideshow when ready.'
         )
       } else {
         const command: AmbientCommand = {
@@ -37,7 +37,7 @@ export function AmbientControls({ live }: { live: boolean }) {
   }
   return (
     <section className='panel'>
-      <p className='eyebrow'>ROOM AMBIENT / 0.0.8</p>
+      <p className='eyebrow'>ROOM AMBIENT / 0.0.9</p>
       <h2>A screen worth leaving on.</h2>
       <p>
         Your wallpapers, slowly moving. Explore the framing locally, then launch

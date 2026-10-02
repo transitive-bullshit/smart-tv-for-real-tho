@@ -2,9 +2,37 @@
 
 September 30 automatic ambient update: the paired-controller launcher is implemented and enabled for the live Home-idle test. It requires LG’s actual `Screen Saver` signal after fresh Home observation, not elapsed time on Home. Two natural Home → Screen Saver → Room Ambient entries are recorded after about ten minutes each, and the owner confirms the app opened automatically and remained visible. The owner reports several hours of uninterrupted photos with the saved guard enabled. See [automatic activation](ambient-screensaver.md#automatic-activation) for setup, safeguards and acceptance.
 
-Updated September 30, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier dated entries below are historical observations, not current instructions to pause for every manual test.
+Updated October 2, 2026. This ledger distinguishes code, local evidence and physical-device evidence. Earlier dated entries below are historical observations, not current instructions to pause for every manual test.
 
-The current objective includes a polished filmed demo, ongoing personal use of Room Ambient, and a reproducible open-source preview for technical owners. [The roadmap](roadmap.md) owns current priorities and release gates; this document records evidence. Automatic activation is required scope; manual setup is acceptable. The six existing controller journeys are joined by a required ambient journey documented in [the demo session](demo-session.md), not yet implemented in the controller. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
+The current objective includes a polished filmed demo, ongoing personal use of Room Ambient, a public interactive concept demo and a reproducible open-source preview for technical owners. [The roadmap](roadmap.md) owns current priorities and release gates; this document records evidence. Automatic activation is required scope; manual setup is acceptable. All seven controller journeys, including ambient, now have local notes and export. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
+
+## Native animation repair and live mirror: October 2
+
+The owner reported a non-animating panel and requested an always-present controller reference. The old controller hero was decorative, and the visual lab's live mode could override the TV's appearance/motion. The controller now embeds `/hud/?mirror=1`: the same compiled TV renderer and read-only state/audio feed, without lab preferences. It remains visible as a reference when the TV panel is requested hidden; the label distinguishes this from a physical screen capture.
+
+Direct LG inspector evidence showed an unchanged orb canvas while the browser clock ran at about 58 fps, `document.hidden` was false, reduced motion was off, and the orb retained `paused: true`. Removed the duplicate React visibility state and added recovery when visibility resumes without an event. A browser regression reproduced the missing-event condition and verified that drawing resumes.
+
+Once animation resumed, the fully animated Voice Glow layers limited the TV to 4–8 fps. Disabling glow gave 31–32 fps; disabling only its blurred band gave 8–12 fps. The final renderer keeps the actual Voice Glow library, caches its light texture, and changes wrapper opacity from live amplitude at 10 Hz with compositor interpolation. Thinking motion moves the cached layer using transform. The orb remains continuously drawn by the original Thinking Orbs engine. Native app, live mirror and lab share this treatment.
+
+Panel **0.0.5 is installed**. With the original Ember appearance restored, native idle samples measured 29–31 fps. All nine patterns advanced on the TV: breathing 30–31, listening/solving/weaving/shaping/connecting about 50, searching 49–50, working 33–35, and composing 25 fps. These are short native canvas measurements; composing is below the 30 fps design target, and a combined voice/source/15-minute acceptance run remains open. No sustained or physical optical pass is inferred from these samples.
+
+Authenticated TV feed requests now carry bounded version/frame-count/fps/paused/visibility diagnostics. The controller shows the TV's own rate and flags stale/no reports separately from its local reference. Diagnostics neither grant device control nor change the feed's GET-only surface. Room volume stayed at zero. The temporary remote-inspector hook was removed after diagnosis.
+
+## Public room demo and launch preparation: October 2
+
+The owner selected an instant scripted demo first, optional live AI voice later, and a warm cinematic evening room. Implemented a distinct `/demo/` entrypoint using the existing Thinking Orbs renderer and Ember defaults, Voice Glow, a generated architectural room backdrop and three locally bundled owner artworks. Visitors can play a short request/correction/game/ambient story, select each scene, cycle artwork, pause decorative motion and focus on the TV. Copy identifies the room/media as fictional and timing as illustrative; the ambient transition compresses an idle wait rather than claiming a new voice-control tool. No microphone, AI session, device call, account or key is used.
+
+`pnpm demo` runs this surface independently of Python and the controller. `pnpm build:demo` emits a static, portable `build/site/` with relative assets; the production build excludes local-tool links. CI also builds this public artifact. The normal local controller serves `/demo/`, with development links to the controller and both labs.
+
+The owner spotted overlay overflow in the first preview. The demo orb now scales inside a square constrained by the panel, glow is clipped to the panel, and the mobile TV close-up fills its frame instead of cropping the screen. The default ambient cloud was replaced with the earlier pink “The shape of possibility” artwork. These are public-demo layout fixes, not a native TV package change.
+
+Local validation: all 90 TypeScript and 24 Python tests, format/lint/typecheck, native asset builds, controller build and standalone site build pass. Browser checks cover request → music, retained-context live-version scene, game return, cancellation of a running story (still ambient after more than a minute), all three artwork choices, keyboard motion control, system reduced-motion handling, mobile/desktop orb containment and no horizontal page overflow. The 390px mobile close-up fits the full TV inside its frame. No application console errors were seen; app requests stayed on the static preview origin with no API calls. The in-app preview was refreshed with the fixes, and [two screenshots](launch-media/README.md) were saved. Physical voice/overlay acceptance and filming were not performed in this task, and no site/repository/release was published.
+
+The [launch plan](launch-plan.md) contains the current readiness table, concrete 40–50-minute joint session, remaining release work, landing-page logline and teaser/continuous-take scripts. Rehearsal UI now includes ambient entry, dismissal, exclusions, recovery and a two-hour soak. Stale candidate-selection and package-version guidance was updated to selected Ember and installed Room Ambient 0.0.9.
+
+## Ambient collection: October 1
+
+Room Ambient 0.0.9 adds the 37 supplied second-round Midjourney JPEGs to R2 and the slideshow catalog, retaining all 15 prior scenes. Exact optimized bytes are preserved; only metadata is tracked. The uploader verified all 52 public objects, and Chrome rendered every scene with zero unavailable images or console errors. All 90 TypeScript and 24 Python tests plus format/lint/types pass; the TV package is built. After the owner switched Wi-Fi networks, the laptop’s IP changed and its saved TV-feed bind address was stale. Correcting ignored `TV_DISPLAY_HOST` and restarting the existing controller restored LG/Xbox connections. Version 0.0.9 is now installed and reopened; fresh TV diagnostics confirm the ambient app foreground and Active power, with room volume kept at zero. Physical confirmation of the new images remains pending. See the [collection record](ambient-screensaver.md#second-singularity-collection-october-1--009) and [import manifest](ambient-images-round-2.json).
 
 ## Portless development URL: September 30
 
@@ -42,7 +70,7 @@ The following demo-build table reflects the September 29 milestone; the ambient 
 | Voice | Actual spoken search/playback and concise response style user-confirmed | Contextual interruption, two unfamiliar songs, two rehearsals, optional acoustics |
 | Native HUD baseline | User-confirmed picture coexistence over YouTube/Xbox, clean Hide, smooth text updates, Back/focus recovery on LG Home, explicit post-switch relaunch | Animated version, automatic source restoration, sustained performance |
 | Animated HUD 0.0.3 | CSS/SVG cyan/amber HUD, full/subtle/static modes, actual voice/tool signals, local visual lab, package built | Install on reachable TV, then batch-check native rendering |
-| Rehearsal | Six complete journeys, browser-persisted notes, downloadable results with recent traces, one-click muted demo start | One room session and an uncut recording |
+| Rehearsal | Seven journeys including ambient, browser-persisted notes, downloadable results with recent traces, one-click muted demo start | One room session and an uncut recording |
 | Local verification | 55 TypeScript + 20 Python tests, format/lint/typecheck, browser build and TV package pass; browser layout and state preview inspected | Remaining real-device results deliberately deferred |
 
 ## Historical initial checks: September 28
