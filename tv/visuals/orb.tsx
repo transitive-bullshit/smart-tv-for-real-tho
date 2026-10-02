@@ -3,6 +3,14 @@ import { MODE_FRAMES, paintFrame, resolvePreset } from 'thinking-orbs/engine'
 import { scaleCounts, scaleRadii } from 'thinking-orbs'
 import type { OrbState } from 'thinking-orbs'
 
+const metrics = new WeakMap<
+  HTMLCanvasElement,
+  { frames: number; fps: number; paused: boolean }
+>()
+export function readOrbMetrics(element: HTMLCanvasElement | null) {
+  return element ? metrics.get(element) : undefined
+}
+
 // Keep the upstream geometry and painter; draw at TV resolution instead of stretching a 64px bitmap.
 export function Orb({
   pattern,
@@ -48,11 +56,16 @@ export function Orb({
     let last = 0
     let visible = true
     let envelope = 0
+    const stats = { frames: 0, fps: 0, paused: true }
+    metrics.set(element, stats)
+    let sampledAt = performance.now()
+    let sampledFrames = 0
     function draw(now: number) {
       frame = 0
       const dt = Math.min(0.05, last ? (now - last) / 1000 : 0)
       last = now
       const still = paused || reduce.matches
+      stats.paused = still
       if (!still) clock.current += dt * speed * preset.speed
       envelope +=
         ((still ? 0 : readLevel.current()) - envelope) *
@@ -69,11 +82,13 @@ export function Orb({
         true,
         tint
       )
+      stats.frames++
       if (!still && visible && !document.hidden)
         frame = requestAnimationFrame(draw)
     }
     function refresh() {
       cancelAnimationFrame(frame)
+      frame = 0
       last = 0
       if (!document.hidden && visible) draw(performance.now())
     }
@@ -85,7 +100,20 @@ export function Orb({
     document.addEventListener('visibilitychange', refresh)
     reduce.addEventListener('change', refresh)
     refresh()
+    // webOS can become visible between mounting and listener registration.
+    // Recover a stopped loop without depending on a visibility event arriving.
+    const watchdog = setInterval(() => {
+      const now = performance.now()
+      stats.fps = Math.round(
+        ((stats.frames - sampledFrames) * 1000) / (now - sampledAt)
+      )
+      sampledFrames = stats.frames
+      sampledAt = now
+      stats.paused = paused || reduce.matches || document.hidden || !visible
+      if (!frame && !stats.paused) refresh()
+    }, 1000)
     return () => {
+      clearInterval(watchdog)
       cancelAnimationFrame(frame)
       observer.disconnect()
       document.removeEventListener('visibilitychange', refresh)

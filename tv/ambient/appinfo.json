@@ -1,6 +1,6 @@
 {
   "id": "it.transitivebullsh.smarttv.ambient",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "vendor": "Travis Fischer",
   "type": "web",
   "main": "index.html",

@@ -20,7 +20,9 @@ import {
   visualStyles
 } from '../../src/visual-options.js'
 import type { AssistantState, VisualOptions } from '../../src/visual-options.js'
-import { Orb } from './orb.js'
+import { Orb, readOrbMetrics } from './orb.js'
+import { displayVersion } from '../../src/display-health.js'
+import type { DisplayReport } from '../../src/display-health.js'
 import { VoiceLab } from './voice-lab.js'
 import type { LabScenario } from './voice-lab.js'
 import './visuals.css'
@@ -28,18 +30,36 @@ import './visuals.css'
 type Frame = Partial<DisplayFrame> & { preview?: boolean }
 declare global {
   interface Window {
-    roomVisuals?: { update: (frame: Frame) => void; stop: () => void }
-    roomHud?: { render: (frame: Frame) => void; show: () => void }
+    roomVisuals?: {
+      update: (frame: Frame) => void
+      stop: () => void
+      diagnostics: () => DisplayReport
+    }
+    roomHud?: {
+      mode: 'lab' | 'mirror'
+      render: (frame: Frame) => void
+      show: () => void
+    }
   }
 }
 // display.js owns preview detection and exposes this API before the bundle runs.
-const preview = Boolean(window.roomHud)
+const preview = window.roomHud?.mode === 'lab'
 const preferenceKey = 'smart-tv.visual-lab.v2'
 let frame: Frame = { visual: 'idle', motion: 'full' }
 let audio = { input: 0, output: 0, at: 0 }
 let revision = ''
 const listeners = new Set<() => void>()
 window.roomVisuals = {
+  diagnostics() {
+    const stats = readOrbMetrics(document.querySelector('#orb-root canvas'))
+    return {
+      version: displayVersion,
+      frames: stats?.frames ?? 0,
+      fps: stats?.fps ?? 0,
+      paused: stats?.paused ?? true,
+      hidden: document.hidden
+    }
+  },
   update(next) {
     audio = {
       input: next.inputLevel ?? 0,
@@ -159,14 +179,18 @@ function App() {
   const [scene, setScene] = useState('cinema')
   const [saved, setSaved] = useState('')
   const [saving, setSaving] = useState(false)
-  const [hidden, setHidden] = useState(document.hidden)
   const [reduced, setReduced] = useState(
     matchMedia('(prefers-reduced-motion: reduce)').matches
   )
-  const selected = preview ? options : (live.appearance ?? defaultVisualOptions)
+  const following = !preview || scenario === 'live'
+  const selected = following
+    ? (live.appearance ?? defaultVisualOptions)
+    : options
   const visual = live.visual ?? 'idle'
-  const activeMotion = preview ? motion : (live.motion ?? 'full')
-  const paused = hidden || reduced || activeMotion === 'static'
+  const activeMotion = following ? (live.motion ?? 'full') : motion
+  // The canvas owns visibility. Caching document.hidden here can leave a
+  // native overlay paused after webOS has made the window visible.
+  const paused = reduced || activeMotion === 'static'
   const style = visualStyles[selected.style]
   const pattern = resolveOrb(selected, visual)
   const signal = useRef({ scenario, visual, sound, manualLevel, paused })
@@ -192,13 +216,20 @@ function App() {
     return Math.min(1, syllables * phrase * 0.8)
   }, [])
   useEffect(() => {
-    const visibility = () => setHidden(document.hidden)
+    const glow = document.getElementById('glow-root')!
+    const sample = () => {
+      if (document.hidden) return
+      glow.style.opacity = String(paused ? 0.55 : 0.4 + readLevel() * 0.6)
+    }
+    sample()
+    const timer = setInterval(sample, 100)
+    return () => clearInterval(timer)
+  }, [paused, readLevel])
+  useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)')
     const preference = () => setReduced(media.matches)
-    document.addEventListener('visibilitychange', visibility)
     media.addEventListener('change', preference)
     return () => {
-      document.removeEventListener('visibilitychange', visibility)
       media.removeEventListener('change', preference)
     }
   }, [])
@@ -242,8 +273,7 @@ function App() {
           })
           if (!response.ok) throw new Error('Controller unavailable')
           const next = (await response.json()) as DisplayFrame
-          if (!stopped)
-            window.roomHud?.render({ ...next, motion, preview: false })
+          if (!stopped) window.roomHud?.render({ ...next, preview: false })
         } catch {
           if (!stopped)
             window.roomHud?.render({
@@ -361,15 +391,17 @@ function App() {
                 }
               : undefined
           }
-          level={readLevel}
-          processing={visual === 'working'}
+          level={0}
+          processing={false}
           processingLevel={0.24}
           processingDuration={1.8}
           processingTravel={0.8}
           strength={selected.glow}
           active={selected.glow > 0}
-          paused={paused}
-          idle={0.025}
+          // Cache the library's light texture. Repainting its blurred layers
+          // costs 80–250 ms on this TV; the wrapper reacts through opacity.
+          paused
+          idle={0.3}
           sensitivity={1}
           attack={0.12}
           release={0.3}

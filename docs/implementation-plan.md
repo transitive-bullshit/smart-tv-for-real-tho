@@ -28,7 +28,9 @@ flowchart TD
     A -->|Public content-addressed images| R[R2 / S3-compatible storage]
 ```
 
-The overlay bundles React, Thinking Orbs Canvas 2D and Voice Glow Canvas/SVG/CSS locally. Its lab and TV app share the renderer; real voice amplitude and tool/session events already feed it. Final appearance and physical animation performance are M1 work. [Visual lab](visual-lab.md), [graphics limits](overlay-graphics.md).
+The overlay bundles React, Thinking Orbs Canvas 2D and Voice Glow Canvas/SVG/CSS locally. Its lab and TV app share the renderer; real voice amplitude and tool/session events already feed it. Panel 0.0.5 adds an always-present controller mirror and native frame-rate reports. The Voice Glow texture is cached and animated through opacity/transform after measured repaint cost; the orb uses the original engine. Final appearance and sustained physical animation performance are M1 work. [Visual lab](visual-lab.md), [graphics limits](overlay-graphics.md).
+
+The public-facing `/demo/` page is a separate, explicitly scripted React entrypoint. It imports the shared orb renderer/Ember defaults and uses a generated fictional room plus three bundled sample images. `pnpm build:demo` emits only the static website to `build/site/`, with relative asset paths; it does not import the voice client, operator UI, controller or device adapters, and makes no API calls. This boundary keeps the instant public experience usable without keys/hardware. Optional future live voice must use simulation-only tools. [Launch plan](launch-plan.md).
 
 Room Ambient is a separate opaque app with cover framing, gentle focal-point motion, shuffled image rounds, bounded prefetch, persistent titles and remote controls. The laptop watcher uses observed LG `Screen Saver` state after Home; the optional remembered native guard keeps the foreground slideshow visible. These are distinct responsibilities, not system-wide screensaver registration. [Ambient architecture and acceptance](ambient-screensaver.md).
 

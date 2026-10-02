@@ -10,12 +10,16 @@ let expiry
 let stopped = false
 let lastActivity = 0
 const hostname = window.location?.hostname ?? ''
-const preview =
-  (['localhost', '127.0.0.1'].includes(hostname) ||
-    hostname.endsWith('.localhost')) &&
-  new URLSearchParams(window.location.search).has('preview')
+const local =
+  ['localhost', '127.0.0.1'].includes(hostname) ||
+  hostname.endsWith('.localhost')
+const query = new URLSearchParams(window.location?.search ?? '')
+const mirror = local && query.has('mirror')
+const preview = local && !mirror && query.has('preview')
+const browserView = preview || mirror
 function render(frame) {
-  if (preview)
+  document.body.classList.toggle('page-hidden', document.hidden)
+  if (browserView)
     status.textContent =
       frame.preview === false
         ? 'Live controller preview'
@@ -55,7 +59,11 @@ function render(frame) {
     ? frame.motion
     : 'full'
   window.roomVisuals?.update(frame)
-  if (!preview && frame.visual !== 'idle' && frame.updatedAt > lastActivity) {
+  if (
+    !browserView &&
+    frame.visual !== 'idle' &&
+    frame.updatedAt > lastActivity
+  ) {
     lastActivity = frame.updatedAt
     clearTimeout(expiry)
     expiry = setTimeout(dismiss, 300000)
@@ -66,6 +74,7 @@ document.addEventListener('visibilitychange', () =>
 )
 
 function dismiss() {
+  if (mirror) return
   if (stopped) return
   stopped = true
   generation++
@@ -81,7 +90,7 @@ function dismiss() {
   window.close()
 }
 button.addEventListener('click', dismiss)
-button.focus()
+if (!browserView) button.focus()
 window.addEventListener('keydown', (event) => {
   if (event.keyCode === 461 || event.key === 'Escape') {
     event.preventDefault()
@@ -99,7 +108,10 @@ function connect(params) {
   clearTimeout(expiry)
   expiry = setTimeout(dismiss, 300000)
   try {
-    const url = new URL(params.url)
+    const url = new URL(
+      mirror ? '/api/display/frame' : params.url,
+      window.location?.href
+    )
     const octets = url.hostname.split('.').map(Number)
     const privateIP =
       octets.length === 4 &&
@@ -108,15 +120,16 @@ function connect(params) {
         (octets[0] === 192 && octets[1] === 168) ||
         (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31))
     if (
-      !privateIP ||
-      url.protocol !== 'http:' ||
-      url.username ||
-      url.password ||
-      url.pathname !== '/display/state' ||
-      url.search ||
-      url.hash ||
-      typeof params.token !== 'string' ||
-      !/^[A-Za-z0-9_-]{43}$/.test(params.token)
+      !mirror &&
+      (!privateIP ||
+        url.protocol !== 'http:' ||
+        url.username ||
+        url.password ||
+        url.pathname !== '/display/state' ||
+        url.search ||
+        url.hash ||
+        typeof params.token !== 'string' ||
+        !/^[A-Za-z0-9_-]{43}$/.test(params.token))
     ) {
       throw new Error('Invalid display connection')
     }
@@ -127,8 +140,16 @@ function connect(params) {
       const timeout = setTimeout(() => controller.abort(), 3000)
       let again = true
       try {
+        const headers = {}
+        if (!mirror) {
+          headers.Authorization = 'Bearer ' + params.token
+          if (window.roomVisuals?.diagnostics)
+            headers['X-Room-Display'] = JSON.stringify(
+              window.roomVisuals.diagnostics()
+            )
+        }
         const response = await fetch(url.href, {
-          headers: { Authorization: 'Bearer ' + params.token },
+          headers,
           credentials: 'omit',
           cache: 'no-store',
           signal: controller.signal
@@ -150,15 +171,16 @@ function connect(params) {
         ) {
           throw new Error('Invalid controller response')
         }
-        if (frame.dismiss === true) {
+        if (!mirror && frame.dismiss === true) {
           dismiss()
           return
         }
-        render(frame)
-        status.textContent =
-          (frame.mode === 'simulation'
-            ? 'SIMULATION · NO HARDWARE'
-            : 'Live controller activity') + ' · Back to dismiss'
+        render(mirror ? { ...frame, preview: false } : frame)
+        status.textContent = mirror
+          ? 'Live reference preview · no device commands'
+          : (frame.mode === 'simulation'
+              ? 'SIMULATION · NO HARDWARE'
+              : 'Live controller activity') + ' · Back to dismiss'
       } catch (err) {
         if (run !== generation || stopped) return
         window.roomVisuals?.update({
@@ -173,7 +195,9 @@ function connect(params) {
         message.textContent = again
           ? 'Waiting to reconnect. Check the laptop.'
           : err.message
-        status.textContent = 'No live confirmation · Back to dismiss'
+        status.textContent = mirror
+          ? 'Controller offline · preview is stale'
+          : 'No live confirmation · Back to dismiss'
       } finally {
         clearTimeout(timeout)
         if (again && run === generation && !stopped)
@@ -191,15 +215,31 @@ function connect(params) {
 document.addEventListener('webOSLaunch', (event) => connect(event.detail))
 document.addEventListener('webOSRelaunch', (event) => connect(event.detail))
 
-if (preview) {
-  document.body.classList.add('preview')
-  document.getElementById('preview-controls').hidden = false
+if (browserView) {
+  document.body.classList.add(mirror ? 'mirror' : 'preview')
+  document.getElementById('preview-controls').hidden = !preview
   clearTimeout(expiry)
   window.roomHud = {
+    mode: mirror ? 'mirror' : 'lab',
     render,
     show() {
       stopped = false
       document.getElementById('hud').style.opacity = '1'
     }
+  }
+  if (mirror) {
+    const resize = () =>
+      document.body.style.setProperty(
+        '--mirror-scale',
+        Math.min(
+          1,
+          (window.innerWidth - 24) / 800,
+          (window.innerHeight - 24) / 400
+        )
+      )
+    resize()
+    window.addEventListener('resize', resize)
+    connect({ url: '/api/display/frame' })
+    clearTimeout(expiry)
   }
 }

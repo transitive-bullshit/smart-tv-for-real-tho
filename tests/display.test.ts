@@ -95,8 +95,51 @@ void test('LAN feed requires a token and cannot serve controls, config or creden
   assert.equal(preflight.headers.get('access-control-allow-methods'), 'GET')
   assert.equal(
     preflight.headers.get('access-control-allow-headers'),
-    'Authorization'
+    'Authorization, X-Room-Display'
   )
+})
+
+void test('TV render reports require feed authentication and reject malformed diagnostics without breaking playback', async (t) => {
+  const state = new DisplayState()
+  const feed = await startDisplayFeed('127.0.0.1', 0, () =>
+    state.snapshot('live')
+  )
+  t.after(() => {
+    feed.server.closeAllConnections()
+    feed.server.close()
+  })
+  const report = {
+    version: '0.0.5',
+    frames: 180,
+    fps: 60,
+    paused: false,
+    hidden: false
+  }
+  const metrics = { 'X-Room-Display': JSON.stringify(report) }
+  assert.equal((await fetch(feed.url, { headers: metrics })).status, 401)
+  assert.equal(feed.health().lastSeen, null)
+  const headers = { ...metrics, Authorization: 'Bearer ' + feed.token }
+  assert.equal((await fetch(feed.url, { headers })).status, 200)
+  assert.deepEqual(feed.health().report, report)
+  const reportedAt = feed.health().reportedAt
+  for (const value of [
+    'invalid json',
+    JSON.stringify({ ...report, fps: -1 }),
+    'x'.repeat(513)
+  ]) {
+    assert.equal(
+      (
+        await fetch(feed.url, {
+          headers: { ...headers, 'X-Room-Display': value }
+        })
+      ).status,
+      200
+    )
+    assert.equal(feed.health().reportedAt, reportedAt)
+  }
+  const copy = feed.health()
+  copy.report!.fps = 1
+  assert.equal(feed.health().report!.fps, 60)
 })
 
 void test('display hide is idempotent and later tool progress cannot reopen it', () => {

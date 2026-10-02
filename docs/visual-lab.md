@@ -1,8 +1,12 @@
 # Thinking Orbs visual lab
 
-Implemented September 29, 2026 in TV package 0.0.4. Browser-verified; physical TV rendering and live microphone-to-TV latency remain unverified. Installation of this specific animated build is not confirmed in the evidence ledger. Earlier TV-off notes describe the original build session, not current device availability.
+Updated October 2, 2026. Panel 0.0.5 is installed; short native measurements across all nine patterns ranged from 25–50 fps. See [the evidence ledger](implementation-status.md#native-animation-repair-and-live-mirror-october-2). Combined voice/source transitions and sustained physical acceptance remain open.
 
 The owner selected **Ember Thinking Orbs + restrained Voice Glow**, keeping the original cool cyan backgrounds and surfaces with warm orange foregrounds and accents. Orb size, density, speed and state mapping retain the approved defaults. The glow now has a matching seven-color warm palette and enough height to read during speech. Confirm this treatment on the actual TV and refine the whole conversation’s motion and dismissal. See [the roadmap](roadmap.md#m1--choose-and-finish-the-assistants-visual-identity). Murmur is not part of the next comparison.
+
+## Live controller reference
+
+The main controller embeds the same TV renderer at `/hud/?mirror=1`. It polls live state/audio every 100 ms after each response, follows the saved appearance and motion, and has no lab overrides or device controls. The reference stays visible when the TV is hidden. A separate indicator shows the TV’s reported build and canvas rate; stale or absent reports do not count as physical confirmation.
 
 ## Explore locally
 
@@ -17,17 +21,17 @@ Open [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1) fr
 - **Particle tuning & state mapping:** adjust density/weight and choose a pattern per assistant state. Mappings apply only in Follow state mode.
 - **Live session:** follows controller state and audio envelopes, including a session connected with the new **Live voice** controls on this page. It can also observe a session from another tab. Choose a manual assistant state to leave live mode and close this page’s voice session.
 
-Choices are remembered in this browser. The v2 preference key starts the accepted Ember defaults once; subsequent customizations persist. **Use this look on TV** separately saves the appearance to ignored `.local/display-appearance.json`. It does not wake, install or launch the TV app. An already-running 0.0.4 panel receives it through its feed; otherwise it is used at the next launch. Preview motion and backdrop are local only; the main controller's Motion control sets TV motion. **Reset look** restores local defaults; save afterward to use those defaults on the TV.
+Choices are remembered in this browser. The v2 preference key starts the accepted Ember defaults once; subsequent customizations persist. **Use this look on TV** separately saves the appearance to ignored `.local/display-appearance.json`. It does not wake, install or launch the TV app. An already-running 0.0.5 panel receives it through its feed; otherwise it is used at the next launch. Manual preview motion and backdrop are local only; Live session follows the saved TV appearance and motion. In manual preview, the main controller's Motion control sets TV motion. **Reset look** restores local defaults; save afterward to use those defaults on the TV.
 
 ## Build and run
 
 `pnpm dev` and `pnpm dev:stable` build the visual assets before starting the usual watched controller. `pnpm build` builds both visual assets and the main web app. After editing `tv/visuals`, run `pnpm build:visuals` and refresh the lab; backend edits retain their existing watcher behavior. No user-Terminal restart is required for visual asset builds.
 
-`pnpm tv:package-display` builds assets and creates `build/tv/it.transitivebullsh.smarttv.display_0.0.4_all.ipk`. The controller's **Install TV update · 0.0.4** action installs the fixed package when the TV is available. The package was built locally; confirm installation and native rendering during the next shared TV session.
+`pnpm tv:package-display` builds assets and creates `build/tv/it.transitivebullsh.smarttv.display_0.0.5_all.ipk`. The controller's **Install TV update · 0.0.5** action installs the fixed package when the TV is available. The update is installed on the owner’s TV. Rebuild before installing subsequent visual changes.
 
 ## Implementation
 
-Pinned dependencies: `thinking-orbs@0.3.2` and `voice-glow@0.2.1`. The large orb uses the published Thinking Orbs engine, geometry, presets and painter, drawing at its actual size. It does not stretch a 64-pixel bitmap or replace the authored animations with approximations. Gallery thumbnails use the upstream React component. Voice Glow receives an external level getter and a processing flag. React and both MIT libraries are bundled locally; license notices ship with the TV app. No CDN, additional voice provider or TV microphone is required. The browser-only voice controls reuse the existing Voice client. Bundled original sample dialogue uses macOS synthesized voices; see [audio provenance](../tv/visuals/audio/README.md). Neither a YouTube embed nor cross-origin media access is needed for the offline demo.
+Pinned dependencies: `thinking-orbs@0.3.2` and `voice-glow@0.2.1`. The large orb uses the published Thinking Orbs engine, geometry, presets and painter, drawing at its actual size. It does not stretch a 64-pixel bitmap or replace the authored animations with approximations. Gallery thumbnails use the upstream React component. Voice Glow renders a cached light texture; live amplitude drives wrapper opacity with a 100 ms transition, and thinking moves it using transform. Repainting the library’s blurred layers every frame caused single-digit rates on the TV. React and both MIT libraries are bundled locally; license notices ship with the TV app. No CDN, additional voice provider or TV microphone is required. The browser-only voice controls reuse the existing Voice client. Bundled original sample dialogue uses macOS synthesized voices; see [audio provenance](../tv/visuals/audio/README.md). Neither a YouTube embed nor cross-origin media access is needed for the offline demo.
 
 The laptop analyses its existing microphone and assistant WebRTC streams. Only bounded input/output amplitude values reach the display service; no raw audio is forwarded for visualization. Telemetry is limited to 10 Hz with one request in flight, session/sequence validation, phase gating and a 750 ms stale-value timeout. The authenticated TV feed polls at 100 ms intervals after each completed request. Local canvas/glow animation runs independently; these intervals are not a measured end-to-end latency guarantee.
 
@@ -35,6 +39,6 @@ The UI pauses motion when hidden or requested by the user/system. Dismissing the
 
 ## Validation
 
-Browser inspection covered the nine-pattern gallery, independent style/pattern/state changes, pinned patterns, custom state mappings, persisted choices, static motion, a bright backdrop, appearance saving and dismiss/restore. Browser console reported no warnings/errors during those checks. Automated coverage exercises envelope bounds, stale/reordered/session-mismatched values, phase gating, analysis without playback and cleanup. Existing device/coordinator regression tests continue to pass. Native performance, transparency and real-room voice response need the next TV session.
+Browser inspection covered the nine-pattern gallery, independent style/pattern/state changes, pinned patterns, custom state mappings, persisted choices, static motion, a bright backdrop, appearance saving and dismiss/restore. Browser console reported no warnings/errors during those checks. Automated coverage exercises envelope bounds, stale/reordered/session-mismatched values, phase gating, analysis without playback and cleanup. Existing device/coordinator regression tests continue to pass. Short native rates are recorded above; sustained performance, source restoration and real-room voice response need the next joint session.
 
 Sources and design credits: [Thinking Orbs](https://libraries.dev/orbs), [Voice Glow](https://libraries.dev/voice), and [the research shortlist](assistant-visual-references.md).

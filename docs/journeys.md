@@ -9,7 +9,8 @@ Start on LG Home, or with Room Ambient showing. The laptop microphone and assist
 | Request | Intended result |
 | --- | --- |
 | “Open Hades on Xbox.” | Select the configured Xbox input, activate the installed game and show concise live assistant feedback. |
-| “A little quieter.” | Adjust the actual TV/soundbar output without changing the picture. |
+| “A little quieter.” | Lower the actual TV/soundbar output by two points without changing the picture or asking for an amount. |
+| “Turn it down more.” | Lower it another five points immediately, with at most a brief “Quieter.” acknowledgment. |
 | “Go to Xbox Home.” | Show the console dashboard. |
 | “Back to TV Home.” | Show LG Home. |
 
@@ -23,7 +24,7 @@ Start with Xbox visible; repeat from LG Home for cold/warm coverage. Use at leas
 | --- | --- |
 | “Play [song] by [artist], the music video.” | Infer native YouTube, resolve a real search result, launch/connect when needed and play it. |
 | “No, play [another song].” | Retain the artist when appropriate and replace the video in the current YouTube session. |
-| “Actually, the live version.” | Refine the retained request; ask one brief question only when needed. |
+| “Actually, the live version.” | Refine the retained request and play the best plausible live result without asking the user to choose between reasonable matches. |
 | “Skip ahead thirty seconds.” | Seek relative to a fresh observed position. |
 | “Pause. … Continue.” | Pause/resume the current receiver. |
 | “Back to Xbox.” | Pause YouTube explicitly, select Xbox HDMI and return to the console's actual state. |
@@ -46,11 +47,13 @@ This journey is a reliability requirement even when the final edit primarily sho
 
 ## Shared presentation contract
 
+The public landing page offers an explicitly scripted version of the room experience at `/demo/`, also buildable as a standalone static site. Visitors can try a request, correction, return to a fictional game and ambient artwork without a key, account or microphone. Fictional media and illustrative timing are labeled; this surface does not establish hardware acceptance. The owner selected a warm cinematic room and instant demo first, with optional live AI voice later. See [the launch story](launch-plan.md#landing-page-story).
+
 Use plain-text links without decorative arrow icons. Internal controller/lab navigation stays in the same tab; external authentication and reference links may open separately.
 
 The assistant overlay and laptop experience use the selected Ember Thinking Orbs + restrained Voice Glow treatment: warm orange foregrounds and accents against the existing cool cyan backgrounds and surfaces. Idle is calm; listening is attentive; thinking communicates work; speaking follows real response audio; completion settles quickly. Detailed timing, IDs and caveats belong in diagnostics. The preview lab retains exploratory themes; the everyday experience has one coherent default.
 
-The overlay is native on the TV above YouTube/Xbox. Baseline coexistence is verified. The animated package shares the lab's renderer and receives real state/audio levels, but needs its installed-version and sustained-performance checks. Updates within the same app should not relaunch it. Source transitions may require restoration; explicit dismissal should feel predictable. The existing brief native launch flash is acceptable for the initial demo.
+The overlay is native on the TV above YouTube/Xbox. Baseline coexistence is verified. The animated package shares the lab's renderer and receives real state/audio levels, is installed as 0.0.5 with short native frame-rate measurements, and still needs its combined sustained-performance checks. Updates within the same app should not relaunch it. Source transitions may require restoration; explicit dismissal should feel predictable. The existing brief native launch flash is acceptable for the initial demo.
 
 Open mic is optional after an audible-room test. Push-to-talk with an independent microphone is an honest baseline; no Magic Remote voice integration or TV microphone support is implied. The exact filming sequence and result sheet live in [demo session](demo-session.md).
 

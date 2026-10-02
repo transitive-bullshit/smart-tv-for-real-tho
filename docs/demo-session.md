@@ -1,11 +1,11 @@
 # Rehearse and film the real room
 
-Updated September 30, 2026. [Roadmap](roadmap.md) owns the milestone gates; this is the practical room-session and recording guide. The owner wants cohesive batches of checks, with autonomous preparation between sessions.
+Updated October 2, 2026. [Roadmap](roadmap.md) owns the milestone gates; this is the practical room-session and recording guide. Start with the [short next-session checklist](launch-plan.md#the-next-session-together). The owner wants cohesive batches of checks, with autonomous preparation between sessions.
 
 ## Before the room session
 
-- Prepare the three M1 look candidates in the [visual lab](visual-lab.md). Confirm the installed assistant package version; 0.0.4 is built and browser-checked, while its physical installation/rendering has no confirmed record. The old TV-off/connection-timeout observation is historical, not a current blocker or a request for another approval.
-- Build/package the final visual candidate and install through the controller's **Install TV update** action. Build native changes before installation; refreshing the browser does not update the TV. Leave Room Ambient 0.0.8 alone unless that client changes.
+- Use the selected **Ember** look with cool cyan surfaces in the [visual lab](visual-lab.md). Panel 0.0.5 is installed and reports its native frame rate in the controller. Short checks measured 25–50 fps across patterns; verify the combined voice/source experience and sustained pacing.
+- Build/package the final visual candidate and install through the controller's **Install TV update** action. Build native changes before installation; refreshing the browser does not update the TV. Room Ambient 0.0.9 is already installed with 52 scenes; its new collection needs physical picture confirmation.
 - Run relevant local checks, confirm saved pairings and independent laptop microphone/speaker, and make sure YouTube has the intended profile with startup prompts cleared. Xbox stays in Retail Mode with Remote features and the selected game ready.
 - Keep the development process in the working network-enabled Terminal. For rehearsals use `pnpm dev:stable` with the saved `.env` and this computer's actual `TV_DISPLAY_HOST`, not a copied owner-specific address. Restarting the backend rotates the HUD feed token and ends voice sessions; reconnect and relaunch the panel once before the take.
 - Keep TV volume zero for unattended preparation. Agree on recording volume with the owner before audible tests. Push-to-talk is the default; open mic is a separate acoustic check.
@@ -14,11 +14,11 @@ The controller is at https://smart-tv-for-real-tho.localhost/ and the shared vis
 
 ## One combined validation session
 
-First compare Signal, Quiet and Ember on the actual TV over bright/dark native YouTube and Xbox content. Choose one look; then run the interaction/recovery batch with that look. Allow roughly 30–45 minutes of active checks plus unattended idle/soak time; this is a planning allowance, not a measured duration.
+First verify the selected Ember look on the actual TV over bright/dark native YouTube and Xbox content, then run the interaction/recovery batch with that look. Allow roughly 40–50 minutes of active checks plus unattended idle/soak time; this is a planning allowance, not a measured duration.
 
 **Start demo session** reconnects configured LG, sets volume zero, enables HUD restoration, shows the panel and connects voice. Check any reported setup error before proceeding. Keep the same session established through source changes.
 
-The controller currently contains six expandable scripts with saved results/notes. The seventh ambient row below is required and partly verified; adding it to the controller's result sheet is a roadmap task.
+The controller contains all seven expandable scripts below with saved results/notes and export. The ambient row is required and partly hardware-verified; its remaining physical checks still need recording.
 
 | Journey | Result to record |
 | --- | --- |

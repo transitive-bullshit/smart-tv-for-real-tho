@@ -4,9 +4,24 @@ A personal voice interface and ambient screen for the room: native LG YouTube, d
 
 ## Next milestones
 
-Choose the final Thinking Orbs + restrained Voice Glow treatment on the real TV → prove the complete journeys and recovery → film two clean rehearsals → prepare a reproducible open-source preview. The renderer already shares real voice/state wiring with the TV package; final visual selection and native performance still need validation.
+Verify the selected Ember Thinking Orbs + restrained Voice Glow treatment on the real TV → prove the complete journeys and recovery → film after two clean rehearsals → prepare a reproducible open-source preview. The renderer already shares real voice/state wiring with the TV package; native appearance and performance still need validation.
 
 [The roadmap](docs/roadmap.md) owns the prioritized checklist, pass criteria and decisions. [Distribution](docs/distribution.md) covers Developer Mode installation, renewal and the optional LG Store path. Public release preparation is planned; this is currently the owner’s working prototype.
+
+For a concrete status assessment, the next 40–50-minute hands-on session and the launch story/video plan, start with [the launch checklist](docs/launch-plan.md).
+
+## Try the fictional room
+
+The cinematic landing page is at [`/demo/`](https://smart-tv-for-real-tho.localhost/demo/) when the controller is running. Try scripted requests, corrections, returning to a fictional game and the ambient screen. It reuses the actual Ember orb renderer and three bundled artworks, with no microphone, API calls or TV control. The public preview is intentionally separate from the operator UI and hardware evidence.
+
+To run it without hardware, Python or API keys:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm demo
+```
+
+Open the printed URL, normally `http://127.0.0.1:3215/`. `pnpm build:demo` creates a self-contained static site in `build/site`; `pnpm demo:preview` serves that production artifact locally at `http://127.0.0.1:3216/`. Publish only that directory. Hosting, optional live-voice simulation and the hardware source release are separate next steps. See [demo artwork provenance](web/demo/assets/README.md).
 
 ## Run locally
 
@@ -39,19 +54,13 @@ No developer mode is needed for these controls. See [room facts](docs/room.md) a
 
 ## Demo build
 
-The controller now includes **Start demo session**, a native Thinking Orbs + Voice Glow HUD with full/subtle/static motion, source-transition restoration, and six full rehearsal journeys with local notes/export. Open [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1) to inspect the actual TV client without changing the TV.
-
-Native YouTube, Xbox Hades, spoken playback, seeking and baseline overlay coexistence have user-confirmed evidence. The new animated package is built as version 0.0.4 and browser-verified; installation of that specific build and its native performance have not been confirmed in the evidence ledger. Use the controller’s **Install TV update** action for the next planned TV session. Final appearance, native animation/restoration, extended playback settings and complete rehearsals will be checked together. No physical performance or recording success is inferred from a browser preview.
-
-Explore nine orb patterns, four design directions, state mappings and restrained audio glow in [the visual lab](https://smart-tv-for-real-tho.localhost/hud/?preview=1). [Visual lab usage and implementation](docs/visual-lab.md) explains local choices, real voice levels and saving a look for the TV.
-
-Read [one-session testing and filming](docs/demo-session.md), [the agent tool inventory](docs/agent-tools.md), and [implementation status](docs/implementation-status.md). Keep unattended tests at volume zero.
+The controller includes live voice, an always-present TV panel reference, native frame-rate reporting and seven rehearsal journeys. **Panel 0.0.5 is installed**; short TV measurements span 25–50 fps. Use [the visual lab](docs/visual-lab.md) to customize Ember and [the session guide](docs/demo-session.md) for remaining voice/source and sustained checks. Keep unattended tests at volume zero.
 
 ## Personal ambient screen
 
 **Automatic ambient activation is required scope for the demo and daily use.** An opt-in laptop watcher now waits for LG’s actual `Screen Saver` signal after observing Home, then rechecks and opens Room Ambient. Keep the Mac awake and controller running. Two ten-minute Home → idle → ambient cycles are recorded, and the owner confirms seeing Room Ambient open automatically and remain visible. See [scope and acceptance](docs/ambient-screensaver.md#scope-and-acceptance).
 
-Open [the ambient lab](https://smart-tv-for-real-tho.localhost/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion and cover framing. **Room Ambient 0.0.8** loads 15 scenes from content-addressed R2 URLs, including all 13 September 30 Midjourney upscales converted to full-resolution JPEGs. Only the structured catalog is tracked. It prefetches 12 scenes ahead, caches at most 16 compressed images / 32 MiB, and keeps current/next decoded; failed downloads retry then silently skip. See [storage and upload instructions](docs/ambient-screensaver.md#r2-storage-and-prefetch-007). Each image plays once per shuffled round, with at least five intervening scenes before any repeat across rounds. The expanded collection is verified in the browser and by the user on the live TV, alongside the slideshow, transitions, persistent scene titles and focal-point control. Back closes settings first, then exits directly without the system prompt; both steps are user-verified on the TV. The rendered film direction has been removed. The private guard preference is now remembered on the TV, controller launches preserve it, and diagnostics retain idle counts across hide/show. The owner reports several hours without clock takeover with the guard enabled; this remains a foreground app, not LG's global idle provider.
+Open [the ambient lab](https://smart-tv-for-real-tho.localhost/ambient/?preview=1) to explore the supplied wallpapers with focal-point motion and cover framing. **Room Ambient 0.0.9** loads 52 scenes from content-addressed R2 URLs: the original 15 plus all 37 supplied second-round Midjourney JPEGs, uploaded without resizing or recompression. The full collection is browser-verified; 0.0.9 is installed and reopened on the TV, with fresh API confirmation of the ambient app foreground. The new images await physical picture confirmation. Only the structured catalog is tracked. It prefetches 12 scenes ahead, caches at most 16 compressed images / 32 MiB, and keeps current/next decoded; failed downloads retry then silently skip. See [storage and upload instructions](docs/ambient-screensaver.md#r2-storage-and-prefetch-007). Each image plays once per shuffled round, with at least five intervening scenes before any repeat across rounds. The earlier 15-scene collection is verified by the user on the live TV, alongside the slideshow, transitions, persistent scene titles and focal-point control. Back closes settings first, then exits directly without the system prompt; both steps are user-verified on the TV. The rendered film direction has been removed. The private guard preference is now remembered on the TV, controller launches preserve it, and diagnostics retain idle counts across hide/show. The owner reports several hours without clock takeover with the guard enabled; this remains a foreground app, not LG's global idle provider.
 
 The user verified that the guard remains checked after reopening 0.0.8 and reports several hours of advancing photos with no clock takeover. Exact duration and veto count were not measured. Automatic entry now has positive physical feedback and two corroborating log sequences; repeated visual checks and everyday recovery remain open.
 
@@ -81,6 +90,7 @@ Commands already delivered to a vendor cannot be recalled. Cancellation prevents
 ## Project context
 
 - [Roadmap](docs/roadmap.md): next milestones, pass criteria and open decisions.
+- [Launch plan](docs/launch-plan.md): current readiness, next joint test session, public demo and video assets.
 - [Implementation plan](docs/implementation-plan.md): architecture, scope and implementation boundaries.
 - [Distribution](docs/distribution.md): technical preview packaging and optional LG Store requirements.
 - [Current status](docs/implementation-status.md): evidence, limitations and next steps.

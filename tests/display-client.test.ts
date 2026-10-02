@@ -49,13 +49,19 @@ function client(fetcher: typeof fetch, href?: string) {
     },
     clearTimeout: (id: number) => timers.delete(id),
     document: {
-      body: { dataset: {}, classList: { toggle() {}, add() {} } },
+      body: {
+        dataset: {},
+        style: { setProperty() {} },
+        classList: { toggle() {}, add() {} }
+      },
       getElementById: (id: string) => elements[id],
       addEventListener: (type: string, fn: (event: unknown) => void) => {
         listeners[type] = fn
       }
     },
     window: {
+      innerWidth: 960,
+      innerHeight: 440,
       location: href ? new URL(href) : undefined,
       close: () => {
         closed = true
@@ -104,6 +110,62 @@ void test('named localhost previews expose lab controls and dismiss without clos
     c.listeners['dismiss:click']!({})
     assert.equal(c.closed(), true)
   }
+})
+
+void test('live mirror polls only the local read-only feed and keeps the reference visible when TV is hidden', async () => {
+  const calls: { url: string; init?: RequestInit }[] = []
+  const c = client(async (url, init) => {
+    calls.push({
+      url:
+        typeof url === 'string' ? url : url instanceof URL ? url.href : url.url,
+      init
+    })
+    return Response.json({
+      ...frame,
+      visual: 'speaking',
+      motion: 'subtle',
+      dismiss: true
+    })
+  }, 'https://smart-tv-for-real-tho.localhost/hud/?mirror=1')
+  await flush()
+  assert.equal(calls.length, 1)
+  assert.equal(
+    calls[0]!.url,
+    'https://smart-tv-for-real-tho.localhost/api/display/frame'
+  )
+  assert.equal(calls[0]!.init?.method, undefined)
+  assert.equal(new Headers(calls[0]!.init?.headers).has('Authorization'), false)
+  assert.equal(c.elements.title!.textContent, frame.title)
+  assert.equal(c.elements['preview-controls']!.hidden, true)
+  assert.equal(c.closed(), false)
+  c.listeners['dismiss:click']!({})
+  assert.equal(c.elements.hud!.style.opacity, '')
+  assert.deepEqual(
+    [...c.timers.values()].map((x) => x.delay),
+    [100]
+  )
+  // A synthetic launch event cannot redirect the mirror to another origin.
+  c.listeners.webOSRelaunch!({
+    detail: { url: 'https://example.com', token: params.token }
+  })
+  await flush()
+  assert.equal(calls[1]!.url, calls[0]!.url)
+})
+
+void test('live mirror reports a failed feed and recovers without manual refresh', async () => {
+  let online = false
+  const c = client(async () => {
+    if (!online) throw new Error('offline')
+    return Response.json(frame)
+  }, 'http://localhost:3210/hud/?mirror=1')
+  await flush()
+  assert.equal(c.elements.title!.textContent, 'Controller unavailable')
+  online = true
+  const [id, timer] = [...c.timers].find(([, x]) => x.delay === 100)!
+  c.timers.delete(id)
+  timer.run()
+  await flush()
+  assert.equal(c.elements.title!.textContent, frame.title)
 })
 
 void test('TV client refuses to send its token to public or credential-bearing URLs', async () => {

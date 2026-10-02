@@ -65,11 +65,13 @@ const journeys = [
   {
     id: 'visual',
     name: '05 / The HUD in the room',
-    time: '3 min',
+    time: '15 min',
     start: 'Enable Restore after source changes and Show TV panel.',
     steps: [
+      'Confirm assistant package 0.0.5 and its TV frame-rate report. Use the saved Ember look on cool cyan surfaces.',
       'Speak a request: observe listening, work and speech motion.',
       'Repeat over YouTube and Xbox; the native picture remains visible.',
+      'Check bright and dark content from the sofa. Watch for 15 minutes: no growing stutter or stuck speaking state.',
       'Compare Full, Subtle and Static motion from the controller.',
       'Press Back on LG remote, then navigate. → input focus returns.',
       'Click Hide on the controller; switch sources. → stays hidden.',
@@ -92,6 +94,24 @@ const journeys = [
     ],
     check:
       'Two complete rehearsals and a real-device recording. Optional audible/open-mic pass only when you choose to unmute.'
+  },
+  {
+    id: 'ambient',
+    name: '07 / Make room for quiet',
+    time: '3 idle cycles + 2 hr soak',
+    start:
+      'Room Ambient 0.0.9 installed, saved guard on, automatic entry enabled. Keep the controller awake and the TV muted.',
+    steps: [
+      'Confirm a few of the 37 new images look correct on the TV; 52 scenes total.',
+      'Close Room Ambient and go to LG Home. Leave the remote alone for about ten minutes; record actual entry time and any stock-clock flash.',
+      'Press Back to hide settings, then Back to exit. Confirm dismissal is respected through the cooldown.',
+      'Observe three separate Home → idle → ambient entries. Earlier logs show two; record what you physically see in this build.',
+      'Keep YouTube playing, then try Xbox. Ambient must not interrupt either.',
+      'Check standby/wake, controller restart, and a brief LAN interruption; reconnect without re-pairing.',
+      'Leave the final build running for at least two hours. Record duration, missed images, clock takeovers, and any unexplained return to Home.'
+    ],
+    check:
+      'Photos advance, intentional exit works, normal use is undisturbed, and recovery reuses saved setup. Record failures separately from software acceptance.'
   }
 ]
 interface Notes {
@@ -170,8 +190,8 @@ export function Journeys({ traces }: { traces: Trace[] }) {
         <div>
           <h2>The room, rehearsed.</h2>
           <p>
-            Six complete journeys. About 15 minutes. Record the visible result
-            once per journey.
+            Seven complete journeys. Allow 40–50 minutes together, plus idle
+            cycles and a two-hour ambient run. Record what the TV actually does.
           </p>
         </div>
         <button onClick={download}>Export session notes</button>

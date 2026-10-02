@@ -4,6 +4,8 @@ import type { Server } from 'node:http'
 import type { Trace } from './contracts.js'
 import { defaultVisualOptions } from './visual-options.js'
 import type { VisualOptions } from './visual-options.js'
+import { displayReportSchema } from './display-health.js'
+import type { DisplayHealth } from './display-health.js'
 
 export type VoicePhase =
   | 'ready'
@@ -233,6 +235,7 @@ export interface DisplayFeed {
   server: Server
   token: string
   url: string
+  health: () => DisplayHealth
 }
 export async function startDisplayFeed(
   host: string,
@@ -241,6 +244,11 @@ export async function startDisplayFeed(
 ): Promise<DisplayFeed> {
   const token = randomBytes(32).toString('base64url')
   const expected = Buffer.from('Bearer ' + token)
+  const health: DisplayHealth = {
+    lastSeen: null,
+    reportedAt: null,
+    report: null
+  }
   const server = createServer((req, res) => {
     const send = (status: number, data: unknown) => {
       res.writeHead(status, {
@@ -259,7 +267,7 @@ export async function startDisplayFeed(
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Authorization',
+        'Access-Control-Allow-Headers': 'Authorization, X-Room-Display',
         'Access-Control-Max-Age': '300'
       })
       res.end()
@@ -276,6 +284,19 @@ export async function startDisplayFeed(
     ) {
       send(401, { error: 'Display authorization required' })
       return
+    }
+    health.lastSeen = Date.now()
+    const report = req.headers['x-room-display']
+    if (typeof report === 'string' && report.length <= 512) {
+      try {
+        const parsed = displayReportSchema.safeParse(JSON.parse(report))
+        if (parsed.success) {
+          health.report = parsed.data
+          health.reportedAt = health.lastSeen
+        }
+      } catch {
+        // A diagnostic must never interrupt the presentation feed.
+      }
     }
     send(200, snapshot())
   })
@@ -294,6 +315,7 @@ export async function startDisplayFeed(
   return {
     server,
     token,
+    health: () => structuredClone(health),
     url: 'http://' + host + ':' + address.port + '/display/state'
   }
 }

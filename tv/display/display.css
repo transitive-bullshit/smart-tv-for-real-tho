@@ -17,6 +17,17 @@ body {
   background: transparent;
   overflow: hidden;
 }
+body.mirror .hud {
+  width: 750px;
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%) scale(var(--mirror-scale, 1));
+  transform-origin: center;
+}
+body.mirror #dismiss {
+  visibility: hidden;
+}
 body {
   color: #edf9f7;
   font-family: Arial, Helvetica, sans-serif;

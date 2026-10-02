@@ -1,10 +1,11 @@
 import { execFile } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
+import { displayVersion } from './display-health.js'
 const exec = promisify(execFile)
 const packages = {
-  display: { version: '0.0.4', command: 'tv:package-display' },
-  ambient: { version: '0.0.8', command: 'tv:package-ambient' }
+  display: { version: displayVersion, command: 'tv:package-display' },
+  ambient: { version: '0.0.9', command: 'tv:package-ambient' }
 } as const
 const installing = new Map<
   string,

@@ -259,6 +259,7 @@ const server = createServer(async (req, res) => {
         boot,
         display: {
           enabled: Boolean(displayFeed),
+          health: displayFeed?.health(),
           autoRestore: displayState.autoRestore,
           motion: displayState.motion,
           frame: displayState.snapshot(config.mode)
