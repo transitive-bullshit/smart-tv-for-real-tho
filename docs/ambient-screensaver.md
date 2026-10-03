@@ -1,6 +1,8 @@
 # Room Ambient: personal screensaver
 
-Updated October 1, 2026. **Room Ambient 0.0.9 adds all 37 owner-supplied second-round JPEGs, bringing the catalog to 52 scenes. R2 delivery and all 52 scenes are browser-verified; 0.0.9 is installed and reopened on the TV, with fresh API confirmation of the ambient app foreground. Physical picture confirmation of the new collection remains pending.** **Automatic activation has its first positive physical report: the owner saw Room Ambient open without a manual launch and remain visible. The controller recorded two Home → idle → ambient entries, and a fresh read still finds the app active. The transition itself was not watched closely enough to assess a stock-clock flash.** Target: LG 86UA8450PSA / webOS 25 (SDK 10.3.1), firmware 33.31.61. **Room Ambient 0.0.8 is installed and launched on the live TV. It remembers the guard preference, preserves it through controller launches, and exposes session-wide idle diagnostics. Fresh API state confirms Room Ambient foreground and volume zero after closing and reopening without an override. The user verified the guard remains checked after reopening and now reports several hours of continued slideshow playback with no clock takeover. The duration is an estimate; the stock timeout and actual veto count were not measured.** Version 0.0.7 moved the 15-scene collection to R2 with bounded prefetching; remote-image playback is browser-verified. The user confirmed all new images look great on the live TV in 0.0.5. The image slideshow, cover framing, transitions, persistent titles, focal-point control and two-step Back navigation are user-verified. The private guard registration previously responded on the TV; that alone does not prove idle suppression. The existing assistant overlay remains a separate app.
+Current scope and operating procedures are below. Use [the collection record](#second-singularity-collection-october-1--009) for installed-build evidence, [automatic-entry evidence](#evidence-so-far) for observed activation, and [the launch readiness table](launch-plan.md#where-we-are) for remaining joint checks. Target hardware is recorded in [room facts](room.md).
+
+For implementation, start with the [source and route maps](implementation-plan.md#task-to-source-map). For artwork changes, jump to [artwork import and storage](#artwork-import-and-storage); for deployment, use [rebuild and package](#rebuild-and-package). Dated validation sections preserve earlier builds and are not current operating instructions.
 
 ## Scope and acceptance
 
@@ -161,6 +163,27 @@ The package declares no public ACG permissions. LG documents ACG enforcement as 
 
 Actual system replacement is a different technique. `webosbrew/custom-screensaver` explicitly requires root and bind-mounts over LG's QML screensaver. Its existence does not establish compatibility with webOS 25 or this firmware. [Project](https://github.com/webosbrew/custom-screensaver), [mount script](https://github.com/webosbrew/custom-screensaver/blob/main/assets/apply.sh)
 
+## Artwork import and storage
+
+[The uploader](../scripts/ambient-upload.ts) and [storage helpers](../scripts/ambient-storage.ts) publish to R2 and atomically replace the tracked [viewer catalog](../tv/ambient-src/catalog.json). Only metadata belongs in Git; keep source JPEGs and upload inputs under ignored `.local/`. Preserve provenance in the checked-in manifests: [first collection](ambient-images.json) and [second collection](ambient-images-round-2.json). Those provenance records are distinct from the uploader's local input schema.
+
+Uploader credentials and configuration belong in ignored `.env`; see [the variable template](../.env.example). `S3_PUBLIC_URL` is the anonymous delivery origin, while `S3_API_ENDPOINT` is the authenticated storage API. Viewer builds and playback need no storage credentials. Public delivery must allow anonymous browser/TV GETs; [Cloudflare CORS reference](https://developers.cloudflare.com/r2/buckets/cors/).
+
+Prepare a local JSON array with a unique `id`, `title`, `file` (local JPEG path), positive integer `width` and `height`, and focal-point `x`/`y` between 0 and 1 for each scene. **Include every scene to retain: the input replaces the whole catalog, rather than appending to it.** Then run:
+
+```sh
+pnpm ambient:upload .local/ambient-import.json
+pnpm tv:package-ambient
+```
+
+The uploader hashes exact JPEG bytes into `smart-tv/<sha256>.jpg`, reuses existing objects and uses conditional immutable writes with concurrency bounded to three. It verifies each public object's hash, JPEG content type, immutable caching and CORS before replacing the catalog. The uploader and storage helpers own exact limits and header values. Rebuild and [install the updated TV package](#rebuild-and-package) after catalog changes; photo bytes load from R2, not from the package.
+
+### Image delivery and cache
+
+The TV prioritizes current/next/manual selections and warms the next 12 scenes when idle. Only two images normally have decoded elements; a pending manual selection may temporarily add a third. The 32 MiB compressed cache is separate from decoded image/GPU memory and is not a total process-memory guarantee. A source JPEG may be at most 8 MiB; downloads enforce its catalog byte size while streaming, with three attempts, 500 ms / 1.5 s backoff and a 15 s whole-response timeout per attempt. Decode failures and exhausted downloads exclude that scene for the session, log to diagnostics/console, and do not show a toast. Restarting gives excluded images another chance. Hidden apps release decoded elements and stop new prefetch; exiting also revokes blob URLs.
+
+The [download reader](../tv/ambient-src/download-image.ts), [prefetch queue](../tv/ambient-src/photo-pool.ts) and [cache](../tv/ambient-src/image-cache.ts) own these limits. [Download regressions](../tests/ambient-download.test.ts), [pool tests](../tests/ambient-pool.test.ts) and [cache tests](../tests/ambient-cache.test.ts) cover cancellation, recovery and bounds. Earlier migration results remain in [the dated R2 record](#r2-storage-and-prefetch-007).
+
 ## Rebuild and package
 
 ```sh
@@ -243,20 +266,7 @@ The playlist is generated a complete round at a time, rather than picking a rand
 
 ## R2 storage and prefetch: 0.0.7
 
-Reuses Cultural Alignment’s S3 variable names and conditional immutable upload convention, with a separate `smart-tv/` key prefix. Its existing public GET/HEAD CORS policy already supports the browser and packaged TV app; bucket permissions and CORS settings were not changed. [Cloudflare CORS documentation](https://developers.cloudflare.com/r2/buckets/cors/)
-
-Uploader configuration belongs in ignored `.env`: `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_API_ENDPOINT`, `S3_BUCKET_NAME`, `S3_REGION` (default `auto`) and `S3_PUBLIC_URL`. The authenticated API endpoint is never a delivery URL. None of these variables are needed to build or run the viewer.
-
-To replace the catalog, prepare a local JSON array with `id`, `title`, `file` (local JPEG path), `width`, `height`, `x` and `y` for every scene to keep, then run:
-
-```sh
-pnpm ambient:upload .local/r2-migration/import.json
-pnpm tv:package-ambient
-```
-
-The uploader computes SHA-256 from the exact JPEG bytes and uses `smart-tv/<hash>.jpg`, `Content-Type: image/jpeg` and `Cache-Control: public,max-age=31536000,immutable`. It checks existing keys before uploading, uses conditional writes to avoid overwrites, and bounds concurrency to three. It downloads and hashes each public object and checks its type, cache headers and CORS before atomically replacing the catalog. A second run verified all 15 existing keys with zero uploads. New catalog entries require rebuilding/installing the package; photo bytes themselves load dynamically from R2.
-
-The TV prioritizes current/next/manual selections and warms the next 12 scenes when idle. Only two images normally have decoded elements; a pending manual selection may temporarily add a third. The 32 MiB compressed cache is separate from decoded image/GPU memory and is not a total process-memory guarantee. A source JPEG may be at most 8 MiB; downloads enforce its catalog byte size while streaming, with three attempts, 500 ms / 1.5 s backoff and a 15 s whole-response timeout per attempt. Decode failures and exhausted downloads exclude that scene for the session, log to diagnostics/console, and do not show a toast. Restarting gives excluded images another chance. Hidden apps release decoded elements and stop new prefetch; exiting also revokes blob URLs.
+Historical migration and verification record. The [current import/cache procedure](#artwork-import-and-storage) owns operating instructions. This release reused Cultural Alignment's S3 variable names and immutable-upload convention with a separate `smart-tv/` key prefix; existing GET/HEAD CORS policy required no bucket changes. A second uploader run verified all 15 existing keys with zero uploads.
 
 Browser verification rendered all 15 remotely loaded scenes. A rapid-selection stress test exposed an unhandled abort on the ky streaming path. The image-specific native fetch reader owns cancellation, bounded reads and retries directly; subsequent cold-request stress checks showed no new unhandled errors. ky remains the uploader HTTP client. Tests cover cancellation during streamed responses, retry exhaustion, oversized bodies, queue priority, cache limits, LRU release, stale completion suppression and shuffled lookahead.
 

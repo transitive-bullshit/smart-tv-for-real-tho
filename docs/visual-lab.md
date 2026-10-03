@@ -2,7 +2,7 @@
 
 Updated October 2, 2026. Panel 0.0.5 is installed; short native measurements across all nine patterns ranged from 25–50 fps. See [the evidence ledger](implementation-status.md#native-animation-repair-and-live-mirror-october-2). Combined voice/source transitions and sustained physical acceptance remain open.
 
-The owner selected **Ember Thinking Orbs + restrained Voice Glow**, keeping the original cool cyan backgrounds and surfaces with warm orange foregrounds and accents. Orb size, density, speed and state mapping retain the approved defaults. The glow now has a matching seven-color warm palette and enough height to read during speech. Confirm this treatment on the actual TV and refine the whole conversation’s motion and dismissal. See [the roadmap](roadmap.md#m1--choose-and-finish-the-assistants-visual-identity). Murmur is not part of the next comparison.
+The owner selected **Ember Thinking Orbs + restrained Voice Glow**, keeping the original cool cyan backgrounds and surfaces with warm orange foregrounds and accents. Orb size, density, speed and state mapping retain the approved defaults. The glow now has a matching seven-color warm palette and enough height to read during speech. Confirm this treatment on the actual TV and refine the whole conversation’s motion and dismissal. See [the roadmap](roadmap.md#m1--choose-and-finish-the-assistants-visual-identity). Historical alternatives are retained in [the research shortlist](assistant-visual-references.md).
 
 ## Live controller reference
 
@@ -25,7 +25,7 @@ Choices are remembered in this browser. The v2 preference key starts the accepte
 
 ## Build and run
 
-`pnpm dev` and `pnpm dev:stable` build the visual assets before starting the usual watched controller. `pnpm build` builds both visual assets and the main web app. After editing `tv/visuals`, run `pnpm build:visuals` and refresh the lab; backend edits retain their existing watcher behavior. No user-Terminal restart is required for visual asset builds.
+`pnpm dev` and `pnpm dev:stable` build the visual assets before starting the controller; only `pnpm dev` watches backend changes. `pnpm build` builds both visual assets and the main web app. After editing `tv/visuals`, run `pnpm build:visuals` and refresh the lab; backend edits retain their existing watcher behavior. No user-Terminal restart is required for visual asset builds.
 
 `pnpm tv:package-display` builds assets and creates `build/tv/it.transitivebullsh.smarttv.display_0.0.5_all.ipk`. The controller's **Install TV update · 0.0.5** action installs the fixed package when the TV is available. The update is installed on the owner’s TV. Rebuild before installing subsequent visual changes.
 
