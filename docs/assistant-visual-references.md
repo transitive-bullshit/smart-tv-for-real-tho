@@ -1,12 +1,10 @@
 # Assistant visual references
 
-Researched September 29, 2026; selection status updated September 30. This preserves the original design/source review. It is not a TV graphics benchmark. See [graphics capabilities](overlay-graphics.md) for platform limits and [the implemented visual lab](visual-lab.md) for current code.
+Researched September 29, 2026. This preserves the original design/source review and proposed adaptations. See [graphics limits](overlay-graphics.md#meaningful-limits), [visual lab](visual-lab.md) for the selected treatment and current implementation, and the [native evidence](implementation-status.md#native-animation-repair-and-live-mirror-october-2) for measured results.
 
 ## Selected direction
 
-The user selected **Libraries.dev Thinking Orbs + restrained Voice Glow** and rejected Murmur. Both selected libraries are integrated into the shared lab/native renderer in display package 0.0.4, with actual voice amplitude and state wiring. Final native appearance and performance remain unverified.
-
-Next compare Signal, Quiet and Ember treatments of this selected direction, choose one TV default, and refine state transitions, legibility and dismissal through a whole conversation. See [the roadmap](roadmap.md). Preserve the libraries’ authored motion and redraw at the actual TV display size. The alternatives below are historical research, not a request to reopen the library decision.
+The selected libraries are **Libraries.dev Thinking Orbs + restrained Voice Glow**. [The visual lab](visual-lab.md) owns the approved Ember treatment and implementation; [the roadmap](roadmap.md#milestones-in-order) owns remaining work. The alternatives below preserve the original comparison.
 
 ## Confirmed Libraries.dev references
 
@@ -68,6 +66,8 @@ Notion search used its UI because the connector's mandated search-routing tools 
 
 ## Proposed adaptation after a visual choice
 
+Historical proposal from September 29, before renderer integration. Current behavior is documented in [visual lab implementation](visual-lab.md#implementation).
+
 Keep the existing room-control architecture. Drive the selected renderer with a small interface: semantic phase, input level, output level, optional task activity, visibility and motion preference. No new voice provider or device control framework is needed.
 
 | Assistant condition | Proposed visual behavior |
@@ -80,11 +80,13 @@ Keep the existing room-control architecture. Drive the selected renderer with a 
 
 These are proposed mappings, not behavior already shipped. Avoid a permanent wall of debugging information. Keep controls and text legible over both dark and bright content.
 
-Measure audio envelopes on the laptop, where microphone and assistant audio already exist. Send only levels/state to the TV and interpolate locally. Current controller polling waits 500 ms between requests and has no amplitude telemetry; it is suitable for coarse state but would feel delayed for voice-reactive motion. A modest faster telemetry channel and a local draw loop are the relevant changes. Sending audio to the TV just to animate the orb is unnecessary.
+The proposal was to measure audio envelopes on the laptop, send only levels/state to the TV and animate locally. At research time, controller polling waited 500 ms between requests and had no amplitude telemetry, so faster telemetry was proposed. This describes the pre-integration client.
 
-For the first selected design, preserve source attribution, pin the upstream revision, bundle assets, and adapt one renderer. Compare full and reduced rendering quality over native YouTube and Xbox. Retune pixel ratio, effect bounds and particle/blur cost only when measurements justify it. The present TV client's lack of React is not a visual ceiling.
+The proposal favored source attribution, pinned libraries, bundled assets and one renderer, with native measurements before tuning pixel ratio or effect bounds. The client at research time did not use React.
 
 ## Actual technical limits and open questions
+
+These are the September 29 research conclusions. Later native renderer results are in the [evidence ledger](implementation-status.md#native-animation-repair-and-live-mirror-october-2); sustained acceptance remains in the [roadmap](roadmap.md#milestones-in-order).
 
 - **Native transparency is established; these new renderers are not yet hardware-tested.** Canvas/WebGL context support, alpha correctness and frame timing need a short on-device check. WebGPU should not be required; use a supported fallback or port the design.
 - **The app surface is 1080p.** Size, contrast and fine detail must work from across the room and in a camera recording. This does not prevent convincing shaders or a detailed localized effect.
@@ -92,4 +94,4 @@ For the first selected design, preserve source attribution, pin the upstream rev
 - **No frame-rate promise yet.** Bound the effect area and measure it. Starting with a 256–512-pixel render buffer and comparing 30/60 fps are candidate test settings, not measured hardware limits.
 - **Renderer choice does not fix the observed webOS launch transition.** That lifecycle behavior is separate from steady-state visual fidelity.
 
-These constraints come from the [existing graphics review](overlay-graphics.md) and current implementation. No architectural showstopper was identified for the recommended visual directions; Murmur's alpha path and the TV's actual WebGL support are the most concrete items to verify before committing to its renderer.
+These research constraints came from the [graphics review](overlay-graphics.md) and the implementation at that time. Murmur's alpha path and native WebGL support were open questions for that historical alternative; they are not prerequisites for the selected Canvas renderer.

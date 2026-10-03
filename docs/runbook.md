@@ -1,4 +1,4 @@
-> Current workflow: use [the one-session demo guide](demo-session.md) and [roadmap](roadmap.md). The controller has six journeys; automatic ambient entry is a required seventh journey documented for manual recording until it is added to the UI. Earlier step-by-step probes below are diagnostics, not a requirement to interrupt the user after every action.
+> Use [the combined session checklist](demo-session.md#one-combined-validation-session) for all seven controller journeys, including automatic ambient, and [the roadmap](roadmap.md#milestones-in-order) for priorities. This runbook owns active constraints, reload/recovery steps and diagnostic probes; historical setup gates below are reached when diagnosing a failure.
 
 # Hardware runbook and recording script
 
@@ -73,6 +73,8 @@ Use trace.jsonl for software timestamps and pnpm timings for grouped medians/wor
 ## Development server reloads
 
 Use `pnpm dev` for the Portless URL `https://smart-tv-for-real-tho.localhost`; use the printed URL if the proxy has a custom port or this is a worktree. `pnpm dev:stable` uses the same named route without watching. Stop the old controller before switching launch modes. `PORTLESS=0 pnpm dev` is the direct-port troubleshooting fallback. The TV display feed still uses the configured LAN address/port, and Xbox OAuth still uses localhost:8080.
+
+Use one controller at a time: instances share device sessions and the TV feed. Portless may request certificate trust/admin access on first use. Browser preferences and rehearsal notes belong to their origin; switching from a direct localhost URL to Portless creates a separate browser store. Pairings, keys and saved TV appearance remain in ignored `.local`.
 
 Keep `pnpm dev` running in the user's network-enabled Terminal. Source changes in backend TypeScript or `bridge/main.py` restart its child automatically. Agents can also run `pnpm dev:restart` from the repository without controlling the Terminal UI. The command updates only the server file timestamp, not its contents. It requires the watcher to be running; it is not a process supervisor for a closed Terminal or `pnpm dev:stable`.
 

@@ -1,6 +1,38 @@
 # Implementation plan and architecture
 
-Updated September 30, 2026. This document describes the implemented architecture and engineering constraints. The [roadmap](roadmap.md) owns current priorities: finish the visual experience, prove complete journeys and recovery, film the real devices, then release a reproducible open-source technical preview. It supersedes the original September 27 scaffolding plan; completed preparation work is not a new prerequisite.
+Updated October 4, 2026. This document owns source navigation, architecture and engineering constraints. The [roadmap](roadmap.md#milestones-in-order) owns priorities and decisions; [launch readiness](launch-plan.md#where-we-are) owns the next joint session; [visual lab](visual-lab.md) owns the selected appearance; the [evidence index](implementation-status.md#evidence-index) leads to dated physical results. Historical research supplies capability references when needed.
+
+## Task-to-source map
+
+Start with the row for the change, then read the relevant architecture section below. Enumerate files with `rg --files` before assuming a module or test name.
+
+| Task | Sources and relevant checks |
+| --- | --- |
+| Voice prompt and Realtime session | [Session configuration and instructions](../src/realtime.ts); [tool contracts](../src/contracts.ts); [human tool inventory](agent-tools.md). |
+| Browser voice and interruption | [WebRTC/voice transport](../web/voice.ts), [tool dispatch](../web/voice-tools.ts), [voice tests](../tests/voice.test.ts), [dispatch tests](../tests/voice-tools.test.ts). |
+| Room commands and observations | [Coordinator](../src/coordinator.ts), [bridge transport](../src/bridge.ts), [Python device adapters](../bridge/main.py); [coordinator tests](../tests/coordinator.test.ts), [YouTube controls](../tests/youtube-controls.test.ts), [bridge tests](../bridge/test_bridge.py). |
+| Shared orb/glow and lab controls | [Orb renderer](../tv/visuals/orb.tsx), [lab/state integration](../tv/visuals/main.tsx), [styles](../tv/visuals/visuals.css), [audio/voice lab](../tv/visuals/voice-lab.tsx); [audio preview tests](../tests/audio-preview.test.ts). |
+| Native display and live mirror | [HTML shell](../tv/display/index.html), [feed client](../tv/display/display.js), [shell CSS](../tv/display/display.css), [feed projection](../src/display.ts), [render diagnostics](../src/display-health.ts); [client tests](../tests/display-client.test.ts), [feed tests](../tests/display.test.ts). |
+| Operator UI and local routes | [Controller](../web/main.tsx), [HUD controls](../web/hud-controls.tsx), [rehearsal journeys](../web/journeys.tsx), [HTTP routes](../src/server.ts), [host/origin checks](../src/local-access.ts); [access tests](../tests/local-access.test.ts). |
+| Scripted public demo | [Demo interaction](../web/demo/main.tsx), [demo CSS](../web/demo/style.css), [static build configuration](../demo.config.ts). |
+| Ambient photos vs automatic entry | [Photo client](../tv/ambient-src/main.ts) and its sibling modules; [controller activation](../src/ambient-auto.ts); [activation tests](../tests/ambient-auto.test.ts), [playlist tests](../tests/ambient-playlist.test.ts). |
+| Artwork upload and catalog | [Import procedure](ambient-screensaver.md#artwork-import-and-storage), [uploader](../scripts/ambient-upload.ts), [storage conventions](../scripts/ambient-storage.ts), [catalog](../tv/ambient-src/catalog.json); [storage tests](../tests/ambient-storage.test.ts). |
+| Package/install and device version | [Installer and device status](../src/tv-package.ts), [display manifest](../tv/display/appinfo.json), [ambient manifest](../tv/ambient/appinfo.json); commands in [package scripts](../package.json). |
+
+## UI surfaces and update lifecycle
+
+Routes below are relative to the controller's printed Portless URL. Standalone demo commands print their own URL. [Package scripts](../package.json) own command details.
+
+| Surface | Purpose and source/build entry |
+| --- | --- |
+| `/` | Operator controls and real push-to-talk: [web/main.tsx](../web/main.tsx), [vite.config.ts](../vite.config.ts). |
+| `/hud/?preview=1` | Exploratory visuals, recorded audio and optional live voice: [tv/visuals/main.tsx](../tv/visuals/main.tsx), [tv/visuals.config.ts](../tv/visuals.config.ts). Manual lab settings can differ from the TV; live voice can command devices. |
+| `/hud/?mirror=1` | Controller reference using the same renderer and saved live appearance; read-only feed, without lab overrides. It is a rendered reference, not a TV screenshot. Same display shell and visual build as the lab. |
+| `/ambient/?preview=1` | Browser photo preview: [tv/ambient-src/main.ts](../tv/ambient-src/main.ts), [tv/ambient.config.ts](../tv/ambient.config.ts); served by [src/ambient-assets.ts](../src/ambient-assets.ts). |
+| `/demo/` | Scripted fictional room without device/AI calls: [web/demo/main.tsx](../web/demo/main.tsx). Standalone public output uses [demo.config.ts](../demo.config.ts). |
+| Installed TV apps | Display shell in [tv/display](../tv/display/index.html) and ambient shell in [tv/ambient](../tv/ambient/index.html), each with generated assets. Installation uses [src/tv-package.ts](../src/tv-package.ts). |
+
+Backend/bridge watcher reloads end voice sessions and rotate the TV feed token; follow [runbook reload/reconnect steps](runbook.md#development-server-reloads). Visual and ambient preview routes serve generated TV assets: rebuild the affected client, then refresh the preview. Use [visual build instructions](visual-lab.md#build-and-run) or [ambient packaging](ambient-screensaver.md#rebuild-and-package). The installed TV needs a rebuilt package and installation through the controller; browser refresh alone cannot update it. The public demo has its own [run/build/publish workflow](launch-plan.md#run-and-publish-the-web-demo).
 
 ## Product contract
 
@@ -64,7 +96,7 @@ Push-to-talk is the reliable filming baseline. Open mic is optional after testin
 
 ## Development and validation
 
-The checked-in package scripts are authoritative. `pnpm dev` builds TV assets and starts the watched controller through Portless at `https://smart-tv-for-real-tho.localhost` (use the printed URL for a custom proxy port/worktree). `PORTLESS_URL` supplies the exact allowed proxy origin and `PORT` the loopback backend port; Vite HMR shares that HTTP server. The separate token-protected TV LAN feed and Xbox loopback OAuth callback keep their existing addresses. Backend TypeScript / `bridge/main.py` changes restart it in the user's working network-enabled Terminal. `pnpm dev:restart` requests a restart of that existing watcher. Native visual changes require rebuilding and installing the relevant TV package; a browser preview is not a TV deployment. `pnpm dev:stable` avoids code-triggered restarts while filming.
+The [surface/update map](#ui-surfaces-and-update-lifecycle) owns build navigation; the [runbook](runbook.md#development-server-reloads) owns live restart/reconnect steps. `PORTLESS_URL` supplies the exact allowed proxy origin and `PORT` the loopback backend port; Vite HMR shares that HTTP server. The token-protected TV LAN feed and Xbox loopback OAuth callback retain their separate addresses.
 
 Use focused regression tests for source races, stale/wrong receiver events, voice interruption, reconnect failure, idle/power exclusions and bounded image recovery. Run the repository checks and appropriate builds for changed code. [Hardware runbook](runbook.md) supplies physical timing/recovery probes; [demo session](demo-session.md) assembles them into one batch.
 

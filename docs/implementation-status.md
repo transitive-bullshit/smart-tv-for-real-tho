@@ -6,6 +6,19 @@ Updated October 2, 2026. This ledger distinguishes code, local evidence and phys
 
 The current objective includes a polished filmed demo, ongoing personal use of Room Ambient, a public interactive concept demo and a reproducible open-source preview for technical owners. [The roadmap](roadmap.md) owns current priorities and release gates; this document records evidence. Automatic activation is required scope; manual setup is acceptable. All seven controller journeys, including ambient, now have local notes and export. [Ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance) owns the requirements.
 
+## Evidence index
+
+Read the dated section for the claim being assessed. [Roadmap](roadmap.md#milestones-in-order) owns priorities and decisions; [launch readiness](launch-plan.md#where-we-are) owns the next joint session. Entries below are observations at their recorded dates, including superseded builds and former blockers.
+
+| Claim | Dated evidence |
+| --- | --- |
+| Installed display, native animation and mirror | [October 2 native repair](#native-animation-repair-and-live-mirror-october-2). |
+| Scripted public demo and browser checks | [October 2 public demo](#public-room-demo-and-launch-preparation-october-2). |
+| Ambient collection installation | [October 1 collection](#ambient-collection-october-1); [photo/guard history](ambient-screensaver.md#second-singularity-collection-october-1--009). |
+| Automatic ambient and sustained photos | [Automatic-entry evidence](ambient-screensaver.md#evidence-so-far); [September 30 guard/activation](#latest-ambient-milestone-september-30). |
+| Voice lab, spoken control and seeking | [September 30 Ember lab](#current-assistant-visual-milestone); [spoken playback](#september-28-spoken-playback-and-concise-voice-behavior); [seek observations](#september-28-native-youtube-seeking). |
+| Portless and Terminal/LAN behavior | [September 30 development URL](#portless-development-url-september-30); [current recovery procedure](runbook.md#recovery). |
+
 ## Native animation repair and live mirror: October 2
 
 The owner reported a non-animating panel and requested an always-present controller reference. The old controller hero was decorative, and the visual lab's live mode could override the TV's appearance/motion. The controller now embeds `/hud/?mirror=1`: the same compiled TV renderer and read-only state/audio feed, without lab preferences. It remains visible as a reference when the TV panel is requested hidden; the label distinguishes this from a physical screen capture.
@@ -48,7 +61,9 @@ The first Portless pass checked the HUD route’s HTTP response but missed its v
 
 Removed decorative arrows from links and made internal controller/lab navigation stay in the same tab. External Microsoft authentication and library reference links retain their separate-tab behavior. Browser verification covers all four themes, nine patterns, state selection, live controller preview over HTTPS, and controller → ambient → controller → visual-lab navigation in one tab. Six display-client regressions, lint/types, formatting and production builds pass. No native app installation is needed for this browser-preview correction.
 
-## Current assistant visual milestone
+<a id="current-assistant-visual-milestone"></a>
+
+## Ember voice lab: September 30
 
 The owner selected Ember Thinking Orbs + restrained Voice Glow, keeping the original cool cyan backgrounds/surfaces and using warm orange for the orb, glow and accents. Approved orb settings remain unchanged. Ember is the shared default and is already saved in local TV appearance settings. The glow now uses a matching warm palette and a more visible edge treatment at the existing 0.3 strength.
 
@@ -56,7 +71,9 @@ The lab now plays a short recorded request/thinking/reply sequence and local aud
 
 Validation: 90 TypeScript tests, 24 Python tests, formatting, lint, typecheck and production builds passed. New regressions cover measured playback levels, phase transitions after actual clip completion, stopping during decode/playback/thinking, and rejecting long clips before playback.
 
-## Latest ambient milestone: September 30
+<a id="latest-ambient-milestone-september-30"></a>
+
+## Guard and automatic ambient: September 30
 
 - Room Ambient 0.0.8 is installed. Saved guard preferences, controller preservation, bounded re-registration recovery and session diagnostics are implemented. The automatic-launch change passes 82 TypeScript and 24 Python tests plus format/lint/types.
 - The user confirmed the guard is checked after the no-override reopen, hid controls with Back once, and subsequently reported several hours of advancing photos without the clock. Duration is estimated; the exact stock timeout and veto count were not recorded.
@@ -64,7 +81,7 @@ Validation: 90 TypeScript tests, 24 Python tests, formatting, lint, typecheck an
 
 The following demo-build table reflects the September 29 milestone; the ambient record above and linked owning documents contain newer results.
 
-| Area | Current result | Remaining batch check |
+| Area | Result at that milestone | Remaining check at that milestone |
 | --- | --- | --- |
 | Device control | LG/Xbox pairing, Hades, native YouTube, search/correction, voice, seeking; 13 active tools with conditional ad skip | Three complete transitions, cold-start reliability, new YouTube settings |
 | Voice | Actual spoken search/playback and concise response style user-confirmed | Contextual interruption, two unfamiliar songs, two rehearsals, optional acoustics |
