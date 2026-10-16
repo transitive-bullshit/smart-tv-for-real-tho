@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-16",
+  "timezone": "Asia/Bangkok",
+  "source": "8 owner-supplied optimized JPEGs from mj singularity 10-16-2026",
+  "processing": "Original optimized JPEG bytes preserved; no resizing, cropping or recompression.",
+  "images": [
+    {
+      "id": "mj-761e1e73-1bec-4dd4-aae0-5e99fd994e9c",
+      "title": "A line beside the sea",
+      "sourceFilename": "Transitive_BS_A_lone_person_working_at_a_battered_wooden_drafti_761e1e73-1bec-4dd4-aae0-5e99fd994e9c-opt.jpg",
+      "jobId": "761e1e73-1bec-4dd4-aae0-5e99fd994e9c",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1477999,
+      "sha256": "70d3d9ed27a207cac5a3ec39c99f99e967464855087024c0ecbf5ba1eae0044c",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-1d477283-8d84-4536-bee3-72f997570ece",
+      "title": "Notes from an endless library",
+      "sourceFilename": "Transitive_BS_A_minute_archivist_annotating_a_page_at_a_desk_bo_1d477283-8d84-4536-bee3-72f997570ece-opt.jpg",
+      "jobId": "1d477283-8d84-4536-bee3-72f997570ece",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1436857,
+      "sha256": "447764e6d5642c543ccacd1040a4edcb719766c8ee1d04210ce11fca1bae57fb",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-4d4bd77c-70ab-4bee-b2fa-a928798e5020",
+      "title": "The archive folds inward",
+      "sourceFilename": "Transitive_BS_A_minute_archivist_annotating_a_page_at_a_desk_bo_4d4bd77c-70ab-4bee-b2fa-a928798e5020-opt.jpg",
+      "jobId": "4d4bd77c-70ab-4bee-b2fa-a928798e5020",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1355407,
+      "sha256": "d4ecd08d88e10d942cd159ddaf2bd3ef62eae3e9b6076484a3d32c1b758cb147",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-a1e75132-eb66-4a0a-b144-c0853b267dc0",
+      "title": "A quiet desk in infinity",
+      "sourceFilename": "Transitive_BS_A_minute_archivist_annotating_a_page_at_a_desk_bo_a1e75132-eb66-4a0a-b144-c0853b267dc0-opt.jpg",
+      "jobId": "a1e75132-eb66-4a0a-b144-c0853b267dc0",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1610634,
+      "sha256": "764c3594f7de3f63f98769ac7f9b95386d86e9d2b7a58289ba175b0d5fef08df",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-ee514123-340d-4a2a-9ebd-2b5edded26c2",
+      "title": "One page in the great library",
+      "sourceFilename": "Transitive_BS_A_minute_archivist_annotating_a_page_at_a_desk_bo_ee514123-340d-4a2a-9ebd-2b5edded26c2-opt.jpg",
+      "jobId": "ee514123-340d-4a2a-9ebd-2b5edded26c2",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1515989,
+      "sha256": "35ad3b5e6b6bb2ba0e24dad36a3853a1f5e51df8b0a5a86443d228fb3f5083f5",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-1873c544-2cc5-468a-ba3d-a83bacc5ae7a",
+      "title": "Drawing the impossible",
+      "sourceFilename": "Transitive_BS_A_small_working_hand_drawing_one_charcoal_line_ac_1873c544-2cc5-468a-ba3d-a83bacc5ae7a-opt.jpg",
+      "jobId": "1873c544-2cc5-468a-ba3d-a83bacc5ae7a",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1245879,
+      "sha256": "1922fe27812a82d5cbb6af87fa2511f08ce60a7a05ac38c78dbfb8dae17cb720",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-6a4635c7-2aac-469f-8490-61773be33ecb",
+      "title": "A thought beneath the wave",
+      "sourceFilename": "Transitive_BS_A_tiny_person_writing_at_a_desk_on_a_narrow_black_6a4635c7-2aac-469f-8490-61773be33ecb-opt.jpg",
+      "jobId": "6a4635c7-2aac-469f-8490-61773be33ecb",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1115081,
+      "sha256": "43b9590a290614ebffab263a1a31cc1d541d7050f5ea4dcec77f3edd8820502e",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    },
+    {
+      "id": "mj-748c42b6-869b-4da8-9a8a-0edd16dc8e1a",
+      "title": "Writing at the edge of the tide",
+      "sourceFilename": "Transitive_BS_A_tiny_person_writing_at_a_desk_on_a_narrow_black_748c42b6-869b-4da8-9a8a-0edd16dc8e1a-opt.jpg",
+      "jobId": "748c42b6-869b-4da8-9a8a-0edd16dc8e1a",
+      "width": 2912,
+      "height": 1632,
+      "jpegBytes": 1299950,
+      "sha256": "14d4da3f59c000f5acde0f7417c3b2a88d60acd1dc81956f67364492438452a0",
+      "colorSpace": "sRGB",
+      "interlace": "JPEG"
+    }
+  ]
+}
