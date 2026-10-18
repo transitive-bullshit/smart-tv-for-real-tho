@@ -4,21 +4,17 @@ Updated October 18, 2026. The owner wants an 80/20 publication pass, then to cal
 
 ## The MVP finish line
 
-The [publication review package](publication-review.md) records the deployed site, verification and exact owner gate.
+**Published:** the [website and interactive room](https://smart-tv-for-real-tho.vercel.app/) and [GitHub source](https://github.com/transitive-bullshit/smart-tv-for-real-tho) are public. The README and screenshots are refreshed, GitHub/X footer links are shipped, and dependency notices are distributed without a visible credits link. The approved two-blob history cleanup is complete for both public branches; the [publication report](publication-review.md) records verification and GitHub's retained PR-reference limit.
 
-**Prepared:** the website is live, the concise README and screenshots are ready, and local checks pass. The remaining source-publication action is the reviewed history cleanup followed by the owner's visibility approval. GitHub Actions is budget-blocked; it has not passed on the current preparation.
+The existing fictional room is the public preview; the real controller stays local. No custom domain, hosted controller or public AI service is required.
 
-Publish the marketing site at [smart-tv-for-real-tho.vercel.app](https://smart-tv-for-real-tho.vercel.app), keep its existing [interactive room](https://smart-tv-for-real-tho.vercel.app/#experience) usable, and prepare the GitHub repository for public access. The owner selected this room demo as the public preview; the real controller stays local. No custom domain is required. The website may publish now; **the owner reviews the concrete release before repository visibility changes**.
+- Public pages, desktop/mobile interactions, sharing metadata and static-only deployment were checked.
+- Source/media review, replacement sample audio, compatibility limits and fresh-install/build instructions are documented.
+- Before the history rewrite, Node 24 hosted CI passed on `9171c97`: 101 TypeScript tests, 24 Python tests, format/lint/types and both builds. Its cleaned counterpart has an identical file tree. This is historical evidence, not a CI result for the final documentation commit.
+- Publication approval has been given and repository visibility is already public; no visibility gate remains.
+- **Separate manual video:** the owner records one short real-TV request, correction and return to Xbox, with an ambient cutaway if convenient. The agent can supply a shot list and help with editing/captions when requested. Recording does not block the website or source publication.
 
-1. **Agent: finish the public surfaces.** Polish the interactive room, remove broken/local-only links, add sharing metadata, and check desktop/mobile, keyboard navigation and motion controls. Preserve clear scripted-preview labels and keep credentials/device access outside the public build.
-2. **Agent: prepare the source for sharing.** Review tracked files and reachable Git history for secrets/personal account data, verify bundled notices, resolve artwork redistribution and the recorded demo voice, and check fresh-install/build instructions. Prepare the exact scope of any required Git history cleanup for review. Fix concrete publication blockers; document remaining hardware and third-party protocol limitations.
-3. **Agent: publish and verify the website.** Configure Vercel's default URL, deploy the static artifact, and confirm production pages, links and assets work. Hosting does not require a separate owner approval.
-4. **Agent: finish the README and screenshots.** Lead with the public links and a representative image, retain a short keyless quick start and local-controller setup, and state exact tested hardware and open checks. Capture the final site; label fictional room images “Interactive preview.”
-5. **Owner: one publication review.** Review the deployed site, README, screenshots, source/media findings, any proposed Git history cleanup and final verification report together. Approval here authorizes making the repository public. Any unresolved redistribution or secret exposure must be resolved before that action.
-6. **Agent: publish source after approval.** Apply only approved history cleanup, change repository visibility, verify anonymous access and public links, then report the shipped URLs and final check status.
-7. **Owner: record a quick demo separately.** Film one short real-TV request, correction and return to Xbox, with an ambient cutaway if convenient. The agent can supply a shot list and help with editing/captions when requested. This recording does not block website publication.
-
-**Done for now:** the website and its interactive room work publicly; the README is concise and illustrated; source publication has passed the owner's review; automated checks and material limitations are recorded. No independent-installation or broad reliability guarantee is implied.
+**Done for now:** the public surfaces, illustrated README, source review and approved branch-history cleanup are complete. The manual video remains separate. No independent-installation or broad reliability guarantee is implied.
 
 Defer the larger reproducibility programme: an outside owner setup run, expanded doctor, downloadable IPKs/checksums, wider model support, exhaustive physical acceptance, always-on hosting, live public voice and LG Store submission. These remain open work, not passed checks. The detailed hardware checklist below is available for later validation or filming.
 
@@ -32,10 +28,10 @@ The hardware rows summarize the last recorded results from October 2; their open
 | TV and Xbox | Native YouTube search, correction, basic playback/seek, Xbox control and direct HDMI have evidence. | Three complete cold/warm journeys, two unfamiliar searches, and recovery. Extended playback settings need physical checks. |
 | Overlay | Baseline transparency over YouTube/Xbox worked. Ember is selected. Panel 0.0.5 is installed with a live controller mirror; all patterns advanced at 25–50 fps in short native samples. | Check composing against the 30 fps target, sofa-distance readability, real microphone-to-TV state changes, source restoration, Back/Hide and 15-minute smoothness. |
 | Ambient | 0.0.9 is installed with 52 scenes; all images passed browser checks. Earlier scenes and multi-hour operation have physical confirmation; two automatic Home-idle entries have logs and positive owner feedback. | See the new images physically; finish three observed entries, dismissal/cooldown, active-media exclusions, restart/network/standby recovery and a final two-hour run. |
-| Public web demo | Published and anonymously verified at the Vercel URL, with the real orb renderer, scripted story, local artwork, sharing image and dependency notices. | Owner reviews the final presentation with the source package. Simulation is not evidence of device performance. |
-| Public source preview | MIT license, locked dependencies, CI, pairing UI, setup checks and TV package scripts exist. | Complete source/history/media review, document compatibility and limitations, run local checks, and obtain owner approval before changing visibility. Independent reproduction remains unverified. |
+| Public web demo | Published and anonymously verified at the Vercel URL, with the real orb renderer, scripted story, local artwork, sharing image, GitHub/X links and dependency notices. | Simulation is not evidence of device performance. |
+| Public source preview | Public on GitHub with an illustrated README, locked dependencies, successful pre-rewrite Node 24 CI, setup checks, TV package scripts and cleaned branch history. | GitHub retains the old merged PR reference; see the publication report. Independent reproduction remains unverified. |
 
-**Assessment:** the personal prototype has enough evidence to share as an experiment with clear limitations. Publication now focuses on presentation, safe source distribution and a usable browser preview. The historical reliability and reproducibility programme remains available below.
+**Assessment:** the experimental personal project is published with clear limitations and completed branch-history cleanup. The historical reliability and reproducibility programme remains deferred.
 
 ## The next session, together
 
@@ -55,7 +51,7 @@ Allow **40–50 minutes of active testing**, followed by idle cycles and a two-h
 
 ## Deferred hardware and reproducibility work
 
-These earlier tasks remain open for a later reproducible hardware release. Source/history/media checks also apply to the current publication pass above:
+These earlier tasks remain open for a later reproducible hardware release. They do not reopen the completed publication approval:
 
 - [x] Build the public story/demo separately from the operator console, with no device or credential dependency.
 - [x] Add ambient to rehearsal notes/export; update stale Ember-selection and package guidance.
@@ -64,9 +60,9 @@ These earlier tasks remain open for a later reproducible hardware release. Sourc
 - [ ] Replace owner-specific defaults with discovery/configuration; provide a small redistributable sample catalog. The public website bundles three local samples and does not require the owner’s R2 service; the native ambient catalog still uses it.
 - [ ] Rehearse setup from a clean clone and empty `.local`, then have one other technical LG owner follow the docs. Record exact model/webOS/host compatibility.
 - [ ] Produce versioned overlay/ambient IPKs with SHA-256 checksums, a source tag, changelog, install/update/uninstall guide, dependency notices and credential/history review.
-- [ ] Prepare a versioned hardware release after the deferred work passes. Repository visibility follows the current owner review above; no store submission or npm publication is needed.
+- [ ] Prepare a versioned hardware release after the deferred work passes. The experimental source is already public; no store submission or npm publication is needed.
 
-The **web concept demo and experimental source preview can ship before the reproducible hardware release**, with their prototype/simulation labels and documented limits. Add the public source link when the repository is accessible. Do not advertise universal TV compatibility, a TV microphone, native global screensaver replacement or a one-click consumer install.
+The **web concept demo and experimental source preview are published before the reproducible hardware release**, with their prototype/simulation labels, documented limits and working public source link. Do not advertise universal TV compatibility, a TV microphone, native global screensaver replacement or a one-click consumer install.
 
 ## Landing-page story
 
@@ -88,13 +84,13 @@ The quick owner-recorded video is the current goal. The longer continuous proof 
 
 | Asset | Concrete content | Status |
 | --- | --- | --- |
-| Interactive landing page | Cinematic fictional room; three voice examples; source changes; ambient art; explicit simulation labels | Final production verification tracked in the MVP finish line above |
+| Interactive landing page | Cinematic fictional room; three voice examples; source changes; ambient art; explicit simulation labels | Published and verified; see the MVP finish line above |
 | Room artwork | Warm room with an empty TV, reusable for the site/launch layout | Generated and saved in [demo assets](../web/demo/assets/README.md) |
 | 15–20-second teaser | First five seconds: show a request changing the actual TV. Then one correction, return to game, ambient finish. Caption: “A smart TV. For real, this time.” | Script ready; needs hardware footage |
 | Quick manual demo | Short real-TV request, correction and return to Xbox; optional ambient cutaway | Owner records separately; not a website gate |
 | 60–90-second proof | One continuous real-TV voice take, with actual waits and native overlay visible | Deferred; needs two clean rehearsals first |
 | Ambient cutaway | Real Home → idle → art, with the waiting period labeled as time-lapse, plus a close-up of the new collection | Needs filming; preserve a continuous reference take |
-| Static launch images | Wide room/TV hero and Ember overlay view. Label simulated images “Interactive preview”; label real photos with tested hardware/build. | [Capture provenance](launch-media/README.md); refresh from the final public build |
+| Static launch images | Wide room/TV hero and Ember overlay view. Label simulated images “Interactive preview”; label real photos with tested hardware/build. | [Fresh production-build captures and provenance](launch-media/README.md) |
 
 Suggested teaser captions: **“Your TV has enough menus” → “Just ask” → “Change your mind” → “Back to your game” → “Make room for quiet.”** Keep the first visible result inside five seconds. Scripted web timings must never be presented as measured native performance. Real proof footage and the fictional web story are complementary assets.
 
@@ -104,4 +100,4 @@ Suggested teaser captions: **“Your TV has enough menus” → “Just ask” �
 - Without hardware, Python or API keys: `pnpm install`, then `pnpm demo`; open the printed URL, normally `http://127.0.0.1:3215/`.
 - Produce the public artifact: `pnpm build:demo`. Serve **only `build/site/`** from a static host. `pnpm demo:preview` previews that artifact at `http://127.0.0.1:3216/`.
 - Asset paths are relative, so the output works at a domain root or a subdirectory. The public build omits links to local tools and contains no backend, keys, account state, full ambient catalog or API calls.
-- Verify the static build at the chosen Vercel URL. Website publication is authorized; review the concrete source/media findings with the owner before changing GitHub visibility.
+- The website and source are public. After future changes, verify the production URL and keep the static-only boundary; no new visibility approval is needed for the already published repository.

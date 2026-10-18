@@ -1,6 +1,6 @@
 # From working room to polished demo to open source
 
-Updated October 18, 2026. The current owner-approved goal is an 80/20 publication pass, then to call this project done for now. Ship a polished marketing site with its existing interactive room, concise illustrated README and experimental public source; record a quick real-TV video separately. The [launch finish line](launch-plan.md#the-mvp-finish-line) owns the current sequence and the single owner review before repository visibility changes.
+Updated October 18, 2026. The 80/20 launch is published: [marketing site and interactive room](https://smart-tv-for-real-tho.vercel.app/), concise illustrated README and [experimental public source](https://github.com/transitive-bullshit/smart-tv-for-real-tho). The approved two-blob history cleanup is complete for both public branches; [publication verification](publication-review.md) records its scope and GitHub's retained PR-reference limit. A quick real-TV video remains separate, and broader hardware work is deferred.
 
 The product remains a personal assistant that acts on the actual room and recedes, preserving native LG YouTube and direct Xbox HDMI. The public release is an experiment with exact compatibility and limitations. Independent reproducibility, wider reliability acceptance and consumer app-store distribution are deferred; publication does not establish those guarantees.
 
@@ -9,12 +9,12 @@ The product remains a personal assistant that acts on the actual room and recede
 - **Hardware-confirmed:** LG and Xbox control, Hades, native YouTube search/correction, spoken requests, seeking, baseline transparent overlay over YouTube/Xbox, clean overlay Hide, ambient photos/framing/titles/Back, and several hours of ambient playback with the guard on.
 - **Automatic ambient:** two logged Home → idle → ambient entries after about ten minutes, plus positive physical feedback. Complete repeated observations, dismissal and recovery checks remain open. [Evidence](ambient-screensaver.md#evidence-so-far).
 - **Installed and measured:** animated overlay 0.0.5, Ember Thinking Orbs + cached Voice Glow, live controller mirror and TV frame-rate reporting. All nine patterns advanced in short native samples at 25–50 fps; composing remains below the 30 fps target. Sustained voice/source acceptance is outstanding. [Visual lab](visual-lab.md).
-- **Verification baseline:** 93 TypeScript and 24 Python tests passed after the live-mirror update. Automated tests establish code behavior; the physical acceptance below establishes the room experience.
-- **Public web preview:** a separate scripted landing page at `/demo/`, with a cinematic fictional room, the existing Ember orb renderer and bundled artwork. It needs no controller or API key. The owner selected instant demo first and optional live voice later; public hosting and hardware acceptance remain separate gates.
+- **Verification baseline:** the earlier live-mirror milestone passed 93 TypeScript and 24 Python tests. Before history cleanup, `9171c97`, including later ambient recovery fixes, passed Node 24 CI with 101 TypeScript and 24 Python tests plus all build/static checks. The cleaned counterpart has the same file tree; this historical run does not establish final-head CI or physical acceptance.
+- **Public web preview:** a separate scripted landing page at `/demo/`, with a cinematic fictional room, the existing Ember orb renderer and bundled artwork. It needs no controller or API key. The site is public with GitHub/X footer links. Hardware acceptance remains separate; optional live voice is deferred.
 
 ## Milestones, in order
 
-The milestones below retain the earlier hardware/reproducibility programme and its original pass criteria. Unchecked tasks are **deferred from the October 18 source-preview launch**, unless they address a concrete publication blocker in the current [finish line](launch-plan.md#the-mvp-finish-line). They have not been marked complete.
+The milestones below retain the earlier hardware/reproducibility programme and its original pass criteria. Unchecked tasks are **deferred from the October 18 source-preview launch**, and are not prerequisites for the published [MVP](launch-plan.md#the-mvp-finish-line). They have not been marked complete.
 
 ### M1 — Choose and finish the assistant’s visual identity
 
@@ -57,7 +57,7 @@ Start after the demo flow is stable. This is a technical preview, not universal 
 - [ ] Prepare versioned overlay/ambient IPKs, checksums, build instructions, changelog, compatibility table and optional-dependency/credential guide. Verify packaging in CI from the locked environments. Document Developer Mode expiry/renewal and uninstall/reset paths. Test a clean clone with empty `.local` rather than reusing the owner’s setup.
 - [ ] Run a release review for reachable Git history, sample data, licenses/notices and credential handling; verify Xbox client registration/distribution assumptions and the community YouTube protocol boundary. Publish no personal tokens or account state. Recruit one independent technical LG owner for a setup run without an author-led call, and fix their blockers before calling the preview reproducible.
 
-**Done:** another owner installs, pairs, completes at least the supported LG/YouTube journey and ambient activation, and can recover/reinstall using only the docs. Label Xbox and models/firmwares not independently exercised. A versioned reproducible hardware release follows these checks. The earlier experimental source preview uses the current publication review and does not claim this milestone passed. No npm publication or store submission is required.
+**Done:** another owner installs, pairs, completes at least the supported LG/YouTube journey and ambient activation, and can recover/reinstall using only the docs. Label Xbox and models/firmwares not independently exercised. A versioned reproducible hardware release follows these checks. The published experimental source preview does not claim this milestone passed. No npm publication or store submission is required.
 
 ### M5 — Optional broader distribution
 
@@ -65,7 +65,7 @@ After the open-source preview: assess an always-on controller host, more tested 
 
 ## Decisions and remaining work
 
-Hardware entries below constrain reliability claims; the current source-preview publication blockers are secret/history review, media/notices, working public surfaces and the owner visibility gate.
+Hardware entries below constrain reliability claims. The website and repository are public, and the approved branch-history cleanup is complete. The publication report records verification and the retained PR-reference limit.
 
 | Item | Status / what unblocks it |
 | --- | --- |
@@ -75,13 +75,11 @@ Hardware entries below constrain reliability claims; the current source-preview 
 | Native control reliability | Primitives work; full cold/warm, cancellation and recovery acceptance remains. Measured receiver lag is an investigation item. |
 | Automatic ambient | Core flow works. Requires an awake controller host, valid Developer Mode and the remaining recovery checks. No extra TV setting is currently required. |
 | Filming | Owner records a quick demo separately. Choose the recording audio level explicitly; filming does not block website publication. |
-| Experimental public source | Needs source/history/media review, clear setup and compatibility limits, final checks and the owner review before GitHub visibility changes. An outside installation is deferred and unverified. |
+| Experimental public source | Public on GitHub, with clear setup/compatibility limits, successful pre-rewrite Node 24 CI and cleaned branch history. The retained PR reference is documented. An outside installation is deferred and unverified. |
 | LG Store | Not a blocker for technical preview. Private overlay/guard capabilities and review requirements need a separate assessment. |
 
 ## Immediate queue
 
-1. Review the [prepared publication package](publication-review.md): the deployed site, concise README, fresh screenshots, verification and proposed two-blob history cleanup. Website deployment and local checks are complete; Actions remains budget-blocked.
-2. Wait for the owner's approval before applying the remote history cleanup and making GitHub public. Then add the public source link to the site and verify anonymous access.
-3. The owner records a quick real-TV video separately; the project is then done for now.
+The MVP publication pass is complete. The owner records a quick real-TV video separately; the website and source are already published. Broader engineering work can wait until the project resumes.
 
-Keep work autonomous through preparation and website publication. Wider physical acceptance, an outside setup run and a versioned hardware release remain deferred. [Implementation status](implementation-status.md) preserves dated evidence; [journeys](journeys.md) and [ambient scope](ambient-screensaver.md#scope-and-acceptance) retain detailed hardware acceptance.
+No repository-visibility approval remains. Wider physical acceptance, an outside setup run and a versioned hardware release stay deferred. [Implementation status](implementation-status.md) preserves dated evidence; [journeys](journeys.md) and [ambient scope](ambient-screensaver.md#scope-and-acceptance) retain detailed hardware acceptance.
