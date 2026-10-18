@@ -13,7 +13,7 @@ The interactive room is a scripted, browser-only preview. No hardware, account, 
 Requires Node.js 24+ and pnpm 12.5.1.
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install
 pnpm demo
 ```
 
@@ -26,7 +26,7 @@ This is an **experimental personal project**. Spoken YouTube playback, Xbox cont
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install
 pnpm bridge:sync
 pnpm setup:check
 pnpm dev
