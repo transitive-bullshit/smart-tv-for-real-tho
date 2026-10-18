@@ -1,3 +1,25 @@
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source './components/ui/button.tsx';
+@source './main.tsx';
+
+@theme inline {
+  --color-background: #101819;
+  --color-foreground: #f0eeea;
+  --color-muted: #243436;
+  --color-primary: var(--accent);
+  --color-primary-foreground: #101819;
+  --color-secondary: #172224;
+  --color-secondary-foreground: #f0eeea;
+  --color-border: #455753;
+  --color-input: #455753;
+  --color-ring: var(--accent);
+  --color-destructive: #fda4af;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+}
+
 :root {
   font-family:
     Inter,
@@ -40,13 +62,13 @@ button {
   border: 0;
 }
 button:focus-visible,
-a:focus-visible,
+a:not([data-slot='button']):focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 5px;
 }
 button:hover,
-a:hover {
+a:not([data-slot='button']):hover {
   color: var(--accent);
 }
 button,
@@ -635,6 +657,10 @@ footer nav {
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+footer .footer-socials {
+  flex-basis: auto;
+  gap: 8px;
+}
 @keyframes ambient-drift {
   from {
     transform: scale(1);
@@ -855,6 +881,10 @@ footer nav {
   footer > p {
     margin-left: 0;
     flex-basis: 100%;
+    order: 1;
+  }
+  footer .footer-socials {
+    margin-left: auto;
   }
   footer nav {
     justify-content: flex-start;

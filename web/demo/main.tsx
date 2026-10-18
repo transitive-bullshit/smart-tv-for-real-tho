@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { IconBrandGithubFilled, IconBrandX } from '@tabler/icons-react'
+import { cn } from 'cn'
 import { VoiceBeam } from 'voice-glow'
 import { Orb } from '../../tv/visuals/orb.js'
 import {
@@ -8,6 +10,7 @@ import {
   visualStyles
 } from '../../src/visual-options.js'
 import type { AssistantState } from '../../src/visual-options.js'
+import { buttonVariants } from './components/ui/button.js'
 import room from './assets/evening-room.webp'
 import pinkSculpture from './assets/pink-sculpture.jpg'
 import quietShore from './assets/quiet-shore.jpg'
@@ -70,6 +73,10 @@ const resting: Moment = { state: 'idle', visible: false, line: '' }
 const style = visualStyles.ember
 const options = defaultVisualOptions
 const localLinks = import.meta.env.DEV && location.pathname.startsWith('/demo/')
+const socialButton = cn(
+  buttonVariants({ variant: 'ghost', size: 'icon-lg' }),
+  'size-11'
+)
 
 function Demo() {
   const [scene, setScene] = useState<Scene>('ambient')
@@ -544,11 +551,29 @@ function Demo() {
           smart tv<span className='wordmark-aside'>for real tho</span>
         </a>
         <p>A little less friction. A little more home.</p>
-        <nav aria-label='Public project links'>
-          {!import.meta.env.DEV && (
-            <a href='./THIRD-PARTY-NOTICES.txt'>Open-source credits</a>
-          )}
-          <span>Source coming soon</span>
+        <nav className='footer-socials' aria-label='Project and social links'>
+          <a
+            className={socialButton}
+            data-slot='button'
+            href='https://github.com/transitive-bullshit/smart-tv-for-real-tho'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='View source on GitHub (opens in a new tab)'
+            title='GitHub'
+          >
+            <IconBrandGithubFilled aria-hidden='true' focusable='false' />
+          </a>
+          <a
+            className={socialButton}
+            data-slot='button'
+            href='https://x.com/transitive_bs'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='Follow Travis Fischer on X (opens in a new tab)'
+            title='X'
+          >
+            <IconBrandX aria-hidden='true' focusable='false' />
+          </a>
         </nav>
         {localLinks && (
           <nav aria-label='Local project tools'>
