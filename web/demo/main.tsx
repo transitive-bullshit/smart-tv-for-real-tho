@@ -487,11 +487,7 @@ function Demo() {
         >
           <div>
             <p className='eyebrow'>BUILT IN A REAL LIVING ROOM</p>
-            <h2 id='prototype-heading'>
-              A personal experiment.
-              <br />
-              An open-source preview in the making.
-            </h2>
+            <h2 id='prototype-heading'>A personal experiment.</h2>
             <p>
               A local controller connects OpenAI voice to an LG TV and Xbox. The
               assistant appears on the TV; your apps stay native. The first
@@ -499,7 +495,7 @@ function Demo() {
               their own.
             </p>
             <button className='primary-button' onClick={replayFromTop}>
-              Spend a moment in the room
+              Try the room
             </button>
           </div>
           <div className='prototype-details'>
@@ -525,19 +521,18 @@ function Demo() {
             <details>
               <summary>Can I use it on my own TV?</summary>
               <p>
-                The reproducible technical preview is being prepared. The
-                current setup uses an LG webOS TV, Developer Mode for the TV
-                apps, and an awake computer on the same network. Xbox and live
-                voice are optional. Broader TV compatibility is unverified.
+                This is an experimental personal project. The local setup uses
+                an LG webOS TV, Developer Mode for the TV apps, and an awake
+                computer on the same network. Xbox and live voice are optional.
+                Broader TV compatibility is unverified.
               </p>
             </details>
             <details>
               <summary>Where’s the live AI voice?</summary>
               <p>
                 It works in the local controller and voice lab with your own
-                OpenAI key and microphone. This public preview uses scripted
-                requests. An optional live-voice simulation can follow without
-                connecting to anyone’s real devices.
+                OpenAI key and microphone. This public room preview uses
+                scripted requests and sample state.
               </p>
             </details>
           </div>
@@ -549,6 +544,12 @@ function Demo() {
           smart tv<span className='wordmark-aside'>for real tho</span>
         </a>
         <p>A little less friction. A little more home.</p>
+        <nav aria-label='Public project links'>
+          {!import.meta.env.DEV && (
+            <a href='./THIRD-PARTY-NOTICES.txt'>Open-source credits</a>
+          )}
+          <span>Source coming soon</span>
+        </nav>
         {localLinks && (
           <nav aria-label='Local project tools'>
             <a href='/'>Controller</a>

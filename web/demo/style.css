@@ -633,6 +633,7 @@ footer nav {
   font-size: 13px;
   color: #b6c4c0;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 @keyframes ambient-drift {
   from {
