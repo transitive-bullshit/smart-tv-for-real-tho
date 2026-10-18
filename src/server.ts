@@ -7,7 +7,11 @@ import { createServer as createViteServer } from 'vite'
 import { z } from 'zod'
 import { serveAmbient } from './ambient-assets.js'
 import { ambientCommandSchema } from './ambient-options.js'
-import { AmbientAuto, ambientAutoConfigSchema } from './ambient-auto.js'
+import {
+  AmbientAuto,
+  ambientAutoConfigSchema,
+  ambientAutoRecoverySchema
+} from './ambient-auto.js'
 import { Bridge } from './bridge.js'
 import { configSchema, toolNames } from './contracts.js'
 import type { Result, Trace } from './contracts.js'
@@ -85,6 +89,10 @@ let coordinator = makeCoordinator()
 let automaticConfig = ambientAutoConfigSchema.parse(
   (await readLocal('ambient-auto.json')) ?? {}
 )
+const automaticRecovery = ambientAutoRecoverySchema.parse(
+  (await readLocal('ambient-auto-recovery.json')) ?? {}
+)
+let recoveryWrites = Promise.resolve()
 automaticAmbient = new AmbientAuto(
   {
     read: (signal) =>
@@ -111,7 +119,15 @@ automaticAmbient = new AmbientAuto(
       elapsedMs: 0,
       detail
     }),
-  automaticConfig
+  automaticConfig,
+  automaticRecovery,
+  (state) => {
+    recoveryWrites = recoveryWrites
+      .then(() => writeLocal('ambient-auto-recovery.json', state))
+      .catch(() => {
+        console.error('Automatic ambient cooldown could not be saved.')
+      })
+  }
 )
 automaticAmbient.configure(automaticConfig, config.mode === 'live')
 let boot: unknown[] = []
@@ -597,6 +613,7 @@ async function shutdown() {
   displayFeed?.server.close()
   await vite.close()
   await logWrites
+  await recoveryWrites
   process.exit(0)
 }
 process.on('SIGINT', () => {

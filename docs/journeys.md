@@ -35,7 +35,7 @@ Next/previous, speed, captions and autoplay are a separate extended-control acce
 
 Start on LG Home with Room Ambient closed. After LG's native idle signal (about ten minutes in observed runs), the laptop opens the slideshow. Photos fill the screen, titles remain legible, motion stays gentle, and the selected scene does not repeat too soon. Normal YouTube/Xbox use must remain untouched.
 
-OK reveals the ambient lab settings. Back hides settings first, then exits the app directly. A deliberate exit must respect the cooldown and require a new eligible idle transition before reopening. Test waking/standby and controller recovery separately; do not claim ambient activation from every app.
+OK reveals the ambient lab settings. Back hides settings first, then exits the app directly. A deliberate exit must respect the cooldown and require a new eligible idle transition before reopening. If the controller restarts or reconnects to an already-visible Home clock, it may recover after ten seconds of fresh stable idle observations and any saved cooldown. Test this existing-clock recovery and waking/standby separately; do not claim ambient activation from every app.
 
 Two automatic Home-idle launches are recorded and the owner reports seeing the slideshow open automatically. The private foreground guard has several hours of positive display feedback. Detailed evidence and remaining checks are in [ambient scope and acceptance](ambient-screensaver.md#scope-and-acceptance). An awake controller is required for automatic entry; once open, the TV slideshow runs independently of that controller.
 
