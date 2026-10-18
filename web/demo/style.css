@@ -659,7 +659,7 @@ footer nav {
 }
 footer .footer-socials {
   flex-basis: auto;
-  gap: 8px;
+  gap: 4px;
 }
 @keyframes ambient-drift {
   from {
