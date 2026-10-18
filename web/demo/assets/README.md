@@ -9,7 +9,7 @@ This directory is intentionally small and self-contained. The public build impor
 | `quiet-shore.jpg` | Owner-supplied Midjourney image `d336599f-fd41-409e-9e38-44b4f28ec19a`, titled “The quiet shore.” Exact original optimized JPEG. |
 | `cloud-workshop.jpg` | Owner-supplied Midjourney image `7597b2f3-ca48-47d9-8b39-a47590f3e4f6`, titled “The workshop above the clouds.” Exact original optimized JPEG. |
 
-Source metadata and hashes are in [the native catalog](../../../tv/ambient-src/catalog.json) and [the second collection manifest](../../../docs/ambient-images-round-2.json). They are used as artwork for explicitly fictional music/game screens as well as ambient scenes; they are not game or music-video footage. Final public redistribution terms/attribution for the supplied artwork remain part of the release asset review. The code’s MIT license does not by itself resolve image provenance.
+Source metadata and hashes are in [the native catalog](../../../tv/ambient-src/catalog.json) and [the second collection manifest](../../../docs/ambient-images-round-2.json). The owner selected these project images and requested publication of the demo. They illustrate fictional music/game screens as well as ambient scenes; they are not game or music-video footage. The MIT license applies to code; no separate reuse license is granted for the artwork.
 
 No audio recordings, third-party music, bundled synthesized voices or microphone capture are used in this demo.
 

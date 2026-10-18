@@ -10,6 +10,7 @@ coverage/
 !.env.example
 .local/
 .pnpm-store/
+.vercel/
 
 bridge/.venv/
 __pycache__/

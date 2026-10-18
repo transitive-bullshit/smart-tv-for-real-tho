@@ -1,0 +1,11 @@
+.vercel
+.local
+.env
+.env.*
+.git
+bridge/.venv
+build
+tv/ambient/media
+tv/ambient/assets
+tv/display/assets
+coverage

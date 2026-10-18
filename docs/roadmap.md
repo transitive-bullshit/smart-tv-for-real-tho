@@ -1,8 +1,8 @@
 # From working room to polished demo to open source
 
-Updated October 2, 2026. This is the owner-approved scope and ordered backlog. It supersedes the original preparation-only / demo-only boundary. Ember is selected, the voice lab is implemented, and the new public-facing room demo is built. See the [concrete launch plan and next joint session](launch-plan.md) for the shortest path from here.
+Updated October 18, 2026. The current owner-approved goal is an 80/20 publication pass, then to call this project done for now. Ship a polished marketing site with its existing interactive room, concise illustrated README and experimental public source; record a quick real-TV video separately. The [launch finish line](launch-plan.md#the-mvp-finish-line) owns the current sequence and the single owner review before repository visibility changes.
 
-Build an assistant that feels present, understands a short request, acts on the actual room, and recedes. Preserve native LG YouTube and direct Xbox HDMI. The three outcomes are a reliable personal setup, a compelling real-device video, and a reproducible open-source release for technical owners. Consumer app-store distribution is a separate option.
+The product remains a personal assistant that acts on the actual room and recedes, preserving native LG YouTube and direct Xbox HDMI. The public release is an experiment with exact compatibility and limitations. Independent reproducibility, wider reliability acceptance and consumer app-store distribution are deferred; publication does not establish those guarantees.
 
 ## Starting point
 
@@ -14,9 +14,11 @@ Build an assistant that feels present, understands a short request, acts on the 
 
 ## Milestones, in order
 
+The milestones below retain the earlier hardware/reproducibility programme and its original pass criteria. Unchecked tasks are **deferred from the October 18 source-preview launch**, unless they address a concrete publication blocker in the current [finish line](launch-plan.md#the-mvp-finish-line). They have not been marked complete.
+
 ### M1 — Choose and finish the assistant’s visual identity
 
-**Next work package.** The lab and native overlay already share a renderer and live-state wiring. Finish that integration and its presentation; do not start another rendering system.
+**Deferred hardware work.** The lab and native overlay already share a renderer and live-state wiring. Finish that integration and its presentation when physical validation resumes; do not start another rendering system.
 
 - [x] Select the local design direction: **Ember** warm orb/glow/accents with the original **cool cyan backgrounds and surfaces**. Preserve the approved orb defaults. The lab now has an audible recorded conversation, local clip playback and same-page live push-to-talk; alternatives remain available.
 - [ ] Verify the selected Ember default on the actual TV at sofa distance. Freeze its palette, particle weight/density, orb size, glow strength, type scale and placement over dark/bright YouTube and Xbox content. Keep alternatives in the lab.
@@ -55,30 +57,31 @@ Start after the demo flow is stable. This is a technical preview, not universal 
 - [ ] Prepare versioned overlay/ambient IPKs, checksums, build instructions, changelog, compatibility table and optional-dependency/credential guide. Verify packaging in CI from the locked environments. Document Developer Mode expiry/renewal and uninstall/reset paths. Test a clean clone with empty `.local` rather than reusing the owner’s setup.
 - [ ] Run a release review for reachable Git history, sample data, licenses/notices and credential handling; verify Xbox client registration/distribution assumptions and the community YouTube protocol boundary. Publish no personal tokens or account state. Recruit one independent technical LG owner for a setup run without an author-led call, and fix their blockers before calling the preview reproducible.
 
-**Done:** another owner installs, pairs, completes at least the supported LG/YouTube journey and ambient activation, and can recover/reinstall using only the docs. Label Xbox and models/firmwares not independently exercised. Prepare a GitHub technical-preview release, then review the concrete release package with the owner before making the currently private repository public. No npm publication or store submission is required.
+**Done:** another owner installs, pairs, completes at least the supported LG/YouTube journey and ambient activation, and can recover/reinstall using only the docs. Label Xbox and models/firmwares not independently exercised. A versioned reproducible hardware release follows these checks. The earlier experimental source preview uses the current publication review and does not claim this milestone passed. No npm publication or store submission is required.
 
 ### M5 — Optional broader distribution
 
 After the open-source preview: assess an always-on controller host, more tested models, easier upgrades and a supported store-compatible feature set. LG Store publication requires its own submission/review process; Developer Mode success is not an approval guarantee. See [distribution paths](distribution.md). Rooting, rewriting webOS, TV-microphone integration, a wake word, support for arbitrary apps and a commercial hosted service remain outside the initial release.
 
-## Decisions and actual blockers
+## Decisions and remaining work
+
+Hardware entries below constrain reliability claims; the current source-preview publication blockers are secret/history review, media/notices, working public surfaces and the owner visibility gate.
 
 | Item | Status / what unblocks it |
 | --- | --- |
 | Visual family | Decided: Thinking Orbs + restrained Voice Glow. No new library search needed. |
 | Final theme and choreography | Owner selected Ember foregrounds and accents on cool cyan surfaces, retaining orb defaults. Local recorded/live voice testing is implemented; combined TV choreography acceptance remains. |
-| Animated overlay performance | Needs installation/version confirmation and an observed TV run. Browser results cannot settle it. Prep and local work can proceed now. |
+| Animated overlay performance | Panel 0.0.5 has short native measurements; sustained voice/source and sofa-distance acceptance remain open. Browser results cannot settle them. |
 | Native control reliability | Primitives work; full cold/warm, cancellation and recovery acceptance remains. Measured receiver lag is an investigation item. |
 | Automatic ambient | Core flow works. Requires an awake controller host, valid Developer Mode and the remaining recovery checks. No extra TV setting is currently required. |
-| Filming | Needs a short hands-on slot, approved audio level and a quiet recording environment. No new hardware purchase is assumed. |
-| Open-source release | Needs portable setup, reusable sample content and one outside installation. It is now in scope; changing GitHub visibility is a later release action. |
+| Filming | Owner records a quick demo separately. Choose the recording audio level explicitly; filming does not block website publication. |
+| Experimental public source | Needs source/history/media review, clear setup and compatibility limits, final checks and the owner review before GitHub visibility changes. An outside installation is deferred and unverified. |
 | LG Store | Not a blocker for technical preview. Private overlay/guard capabilities and review requirements need a separate assessment. |
 
 ## Immediate queue
 
-1. Review the [room demo and launch story](launch-plan.md#landing-page-story). Its self-contained static build can be hosted separately from the eventual source release.
-2. Run the [combined TV session](launch-plan.md#the-next-session-together): install/verify Ember, exercise real push-to-talk, source transitions and recovery, and collect ambient acceptance.
-3. Fix findings, then complete two rehearsals and record the real-device film.
-4. Package and document the working result for a fresh outside installation before the open-source release.
+1. Review the [prepared publication package](publication-review.md): the deployed site, concise README, fresh screenshots, verification and proposed two-blob history cleanup. Website deployment and local checks are complete; Actions remains budget-blocked.
+2. Wait for the owner's approval before applying the remote history cleanup and making GitHub public. Then add the public source link to the site and verify anonymous access.
+3. The owner records a quick real-TV video separately; the project is then done for now.
 
-Work should remain autonomous between these concrete human checkpoints. Keep [implementation status](implementation-status.md) as the evidence ledger; this roadmap owns priority and release scope, [journeys](journeys.md) owns intended behavior, and [ambient scope](ambient-screensaver.md#scope-and-acceptance) owns detailed idle acceptance.
+Keep work autonomous through preparation and website publication. Wider physical acceptance, an outside setup run and a versioned hardware release remain deferred. [Implementation status](implementation-status.md) preserves dated evidence; [journeys](journeys.md) and [ambient scope](ambient-screensaver.md#scope-and-acceptance) retain detailed hardware acceptance.
