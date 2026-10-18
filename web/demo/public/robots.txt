@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://smart-tv-for-real-tho.vercel.app/sitemap.xml
