@@ -101,7 +101,7 @@ Suggested teaser captions: **“Your TV has enough menus” → “Just ask” �
 ## Run and publish the web demo
 
 - With the normal controller running: open [`/demo/`](https://smart-tv-for-real-tho.localhost/demo/). Its development footer links to the controller and both labs.
-- Without hardware, Python or API keys: `pnpm install --frozen-lockfile`, then `pnpm demo`; open the printed URL, normally `http://127.0.0.1:3215/`.
+- Without hardware, Python or API keys: `pnpm install`, then `pnpm demo`; open the printed URL, normally `http://127.0.0.1:3215/`.
 - Produce the public artifact: `pnpm build:demo`. Serve **only `build/site/`** from a static host. `pnpm demo:preview` previews that artifact at `http://127.0.0.1:3216/`.
 - Asset paths are relative, so the output works at a domain root or a subdirectory. The public build omits links to local tools and contains no backend, keys, account state, full ambient catalog or API calls.
 - Verify the static build at the chosen Vercel URL. Website publication is authorized; review the concrete source/media findings with the owner before changing GitHub visibility.
