@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://smart-tv-for-real-tho.vercel.app/sitemap.xml
+Sitemap: https://smart-tv-for-real-tho.transitivebullsh.it/sitemap.xml

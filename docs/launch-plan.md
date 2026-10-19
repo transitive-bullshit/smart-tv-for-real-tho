@@ -1,12 +1,12 @@
 # From this prototype to a public launch
 
-Updated October 18, 2026. The owner wants an 80/20 publication pass, then to call this project done for now. Ship a polished website and an experimental personal/source preview, with a separate short manual demo video. The [evidence ledger](implementation-status.md) retains the limits of the real-device results.
+Updated October 19, 2026. The owner wants an 80/20 publication pass, then to call this project done for now. Ship a polished website and an experimental personal/source preview, with a separate short manual demo video. The [evidence ledger](implementation-status.md) retains the limits of the real-device results.
 
 ## The MVP finish line
 
-**Published:** the [website and interactive room](https://smart-tv-for-real-tho.vercel.app/) and [GitHub source](https://github.com/transitive-bullshit/smart-tv-for-real-tho) are public. The README and screenshots are refreshed, GitHub/X footer links are shipped, and dependency notices are distributed without a visible credits link. The approved two-blob history cleanup is complete for both public branches; the [publication report](publication-review.md) records verification and GitHub's retained PR-reference limit.
+**Published:** the [website and interactive room](https://smart-tv-for-real-tho.transitivebullsh.it/) and [GitHub source](https://github.com/transitive-bullshit/smart-tv-for-real-tho) are public. The README and screenshots are refreshed, GitHub/X footer links are shipped, and dependency notices are distributed without a visible credits link. The approved two-blob history cleanup is complete for both public branches; the [publication report](publication-review.md) records verification and GitHub's retained PR-reference limit.
 
-The existing fictional room is the public preview; the real controller stays local. No custom domain, hosted controller or public AI service is required.
+The existing fictional room is the public preview; the real controller stays local. The website uses the owner’s personal-site subdomain. No hosted controller or public AI service is required.
 
 - Public pages, desktop/mobile interactions, sharing metadata and static-only deployment were checked.
 - Source/media review, replacement sample audio, compatibility limits and fresh-install/build instructions are documented.

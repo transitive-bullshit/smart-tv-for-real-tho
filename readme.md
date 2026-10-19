@@ -2,11 +2,11 @@
 
 A personal voice interface and ambient art screen for an LG TV and Xbox, with native apps and a local controller.
 
-**[Try the interactive room](https://smart-tv-for-real-tho.vercel.app/#experience)**
+**[Try the interactive room](https://smart-tv-for-real-tho.transitivebullsh.it/#experience)**
 
 ![Interactive preview: a fictional room with ambient artwork on the TV](docs/launch-media/room-preview.jpg)
 
-The interactive room is a scripted, browser-only preview. No hardware, account, microphone or API key required. [Image provenance](docs/launch-media/README.md).
+The interactive room is a scripted, browser-only preview. No hardware, account, microphone or API key required.
 
 ## Try it locally
 

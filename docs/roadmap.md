@@ -1,6 +1,6 @@
 # From working room to polished demo to open source
 
-Updated October 18, 2026. The 80/20 launch is published: [marketing site and interactive room](https://smart-tv-for-real-tho.vercel.app/), concise illustrated README and [experimental public source](https://github.com/transitive-bullshit/smart-tv-for-real-tho). The approved two-blob history cleanup is complete for both public branches; [publication verification](publication-review.md) records its scope and GitHub's retained PR-reference limit. A quick real-TV video remains separate, and broader hardware work is deferred.
+Updated October 19, 2026. The 80/20 launch is published: [marketing site and interactive room](https://smart-tv-for-real-tho.transitivebullsh.it/), concise illustrated README and [experimental public source](https://github.com/transitive-bullshit/smart-tv-for-real-tho). The approved two-blob history cleanup is complete for both public branches; [publication verification](publication-review.md) records its scope and GitHub's retained PR-reference limit. A quick real-TV video remains separate, and broader hardware work is deferred.
 
 The product remains a personal assistant that acts on the actual room and recedes, preserving native LG YouTube and direct Xbox HDMI. The public release is an experiment with exact compatibility and limitations. Independent reproducibility, wider reliability acceptance and consumer app-store distribution are deferred; publication does not establish those guarantees.
 

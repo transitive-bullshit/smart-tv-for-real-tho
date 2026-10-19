@@ -4,12 +4,12 @@ October 18, 2026. The owner selected the existing interactive room as the public
 
 ## Published
 
-- [Live website and interactive room](https://smart-tv-for-real-tho.vercel.app/), with GitHub and X footer links.
+- [Live website and interactive room](https://smart-tv-for-real-tho.transitivebullsh.it/), with GitHub and X footer links.
 - [Public GitHub repository](https://github.com/transitive-bullshit/smart-tv-for-real-tho).
 - [Visitor README](../readme.md) and [fresh preview screenshots](launch-media/README.md).
 - [Minimal finish line and separate manual video](launch-plan.md#the-mvp-finish-line).
 
-The website is deployed to Vercel's default URL and reached `READY`. Anonymous requests return 200 for the page, sharing image, dependency notices, robots and sitemap; `/api/status`, `/.env` and `/.local/config.json` return 404. No custom domain, hosted controller or public AI service is required.
+The website is deployed to Vercel and reached `READY`; its production link now uses the owner’s personal-site subdomain. Anonymous requests return 200 for the page, sharing image, dependency notices, robots and sitemap; `/api/status`, `/.env` and `/.local/config.json` return 404. No hosted controller or public AI service is required.
 
 ## Verification
 
