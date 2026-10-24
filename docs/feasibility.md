@@ -2,6 +2,8 @@
 
 Researched September 27, 2026. This is the original feasibility study, not the current implementation plan or a hardware test. Device identity was unknown at research time and is now confirmed in [room facts](room.md). Native playback, Xbox control, overlay coexistence and automatic ambient entry now have evidence in [implementation status](implementation-status.md). Follow [the roadmap](roadmap.md) for current priorities; proposals and uncertainty below preserve the original research context.
 
+Additional references: [TV customization inspiration](inspiration.md) reviews tv-vibehack, its webos-vibehack port, dumbtv and related X posts and guides, with concrete project recommendations from October 19, 2026.
+
 **Original recommendation (the selected controller architecture):** use an external voice/controller service with LG, Xbox and YouTube adapters. Start with two concrete journeys: launch an installed Xbox game and control the room; then open native LG YouTube, select a music video, correct the song conversationally inside the running app, and return to Xbox. The follow-up research strengthens the case for YouTube Lounge as the in-app playback adapter. See [the detailed journeys and experiment gates](journeys.md). The broader customization options below remain useful for later iterations.
 
 ## Refined first demo: say it, then YouTube plays it
